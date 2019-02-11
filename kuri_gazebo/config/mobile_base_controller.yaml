@@ -1,0 +1,19 @@
+mobile_base_controller:
+  angular:
+    z: {has_acceleration_limits: false, has_velocity_limits: true, max_acceleration: 1.5,
+        max_velocity: 3.0}
+  base_frame_id: base_footprint
+  cmd_vel_timeout: 1.0
+  imu_name: imu
+  left_wheel: wheel_left_joint
+  linear:
+    x: {has_acceleration_limits: true, has_velocity_limits: true, max_acceleration: 0.8,
+        max_velocity: 0.5, min_acceleration: -1.0, min_velocity: -0.15}
+  pose_covariance_diagonal: [0.001, 0.001, 1000000.0, 1000000.0, 1000000.0, 1000.0]
+  publish_rate: 50.0
+  right_wheel: wheel_right_joint
+  twist_covariance_diagonal: [0.001, 0.001, 1000000.0, 1000000.0, 1000000.0, 1000.0]
+  type: diff_drive_controller/DiffDriveController
+  use_imu_heading: true
+  wheel_radius_multiplier: 1.0
+  wheel_separation_multiplier: 1.0

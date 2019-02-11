@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+
+<!--
+Launches Kuri in mapping mode.  Mapping will start when Kuri detects its on
+the dock.  The user is expected to teleop Kuri around to build the map.  
+When kuri is back on the dock, the map will be closed off and saved, and
+the mapping node will terminate
+-->
+
+
+    <!-- Kuri motor control, depthsensor, chest LED, and other sensors-->
+    <include file="$(find mobile_base_driver)/launch/kuri_drive.launch"/>
+
+    <!-- Kuri's eye camera -->
+    <include file="$(find madmux)/launch/madmux_daemon.launch"/>
+
+    <node name="safety_controller" pkg="kuri_navigation" type="safety_controller" />
+
+     <!-- OORT is the Mayfield navigation stack. Only available on robot -->
+    <node name="oort_ros_mapping"
+          pkg="oort"
+          type="oort_ros"
+          launch-prefix="nice -n 10"
+          required="true">
+        <remap from="scan" to="scan_reduced_mapping"/>
+    </node>
+    <include file="$(find gizmo_ros_navigation)/launch/amcl.launch"/>
+
+    <node pkg="kuri_navigation" type="mapping_controller" name="mapping_controller"/> 
+
+
+</launch>

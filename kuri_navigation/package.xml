@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>kuri_navigation</name>
+  <version>0.1.0</version>
+  <description>Navigation configuration for Kuri</description>
+
+  <maintainer email="nswalker@cs.uw.edu">Nick Walker</maintainer>
+
+
+  <license>None</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+
+</package>

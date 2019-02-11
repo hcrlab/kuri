@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package>
+  <name>vision_msgs</name>
+  <version>1.0.0</version>
+  <description>Messages used by the mayfield vision_bridge package</description>
+  <maintainer email="joe@mayfieldrobotics.com">Joe Warren</maintainer>
+
+  <license>None</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>std_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>mayfield_msgs</build_depend>
+
+  <run_depend>std_msgs</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>mayfield_msgs</run_depend>
+</package>

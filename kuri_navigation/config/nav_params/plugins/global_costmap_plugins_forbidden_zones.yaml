@@ -1,0 +1,7 @@
+  plugins:
+    - {name: static_layer, type: 'costmap_2d::StaticLayer'}
+    - {name: obstacle_layer, type: 'costmap_2d::VoxelLayer'}
+    - {name: forbidden_zone_layer, type: 'costmap_2d::StaticLayer'}
+#    - {name: footprint_layer, type: 'costmap_2d::FootprintLayer'}
+    - {name: inflation_layer, type: 'costmap_2d::InflationLayer'}
+

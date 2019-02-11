@@ -1,0 +1,11 @@
+<library path="lib/libkuri_gazebo">
+
+    <class
+            name="kuri_gazebo/KuriHardwareGazebo"
+            type="gazebo::KuriHardwareGazebo"
+            base_class_type="gazebo_ros_control::RobotHWSim">
+        <description>
+            Kuri robot simulation interface.
+        </description>
+    </class>
+</library>

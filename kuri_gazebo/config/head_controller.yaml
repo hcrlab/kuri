@@ -1,0 +1,9 @@
+head_controller:
+  constraints:
+    goal_time: 0.6
+    head_1_joint: {goal: 0.02}
+    head_2_joint: {goal: 0.02}
+    stopped_velocity_tolerance: 0.05
+  joints: [head_1_joint, head_2_joint]
+  stop_trajectory_duration: 0.0
+  type: position_controllers/JointTrajectoryController

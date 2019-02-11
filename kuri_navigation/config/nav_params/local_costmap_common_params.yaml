@@ -1,0 +1,22 @@
+local_costmap:
+   update_frequency: 2.0
+   publish_frequency: 1.0
+   static_map: false
+   rolling_window: true
+   width: 2.5
+   height: 2.5
+   resolution: 0.02
+
+   inflation_layer: {cost_scaling_factor: 10.0, enabled: true, inflation_radius: 0.22, robot_radius: 0.22}
+
+   sonar_layer: {topic: /sonars, mark_threshold: 0.501, clear_threshold: 0.499, max_marking_range: 0.3, 
+      max_clearing_range: 3.0, reset_prior_for_marking: true, reset_prior_for_clearing: true, mark_target_lethal: true}
+
+   obstacle_layer:
+      bump: {clearing: false, data_type: PointCloud2, marking: true, max_obstacle_height: 1.0,
+          min_obstacle_height: 0.0, topic: mobile_base/sensors/bumper_pointcloud, observation_persistence: 0.5, 
+          observation_timeout_from_now: 5.0}
+      observation_sources: scan bump
+      scan: {clearing: true, data_type: LaserScan, marking: true, max_obstacle_height: 1.0, inf_is_valid: true, 
+          min_obstacle_height: 0.05, topic: /scan}
+      track_unknown_space: false

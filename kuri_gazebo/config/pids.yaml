@@ -1,0 +1,7 @@
+gains:
+    left_wheel: {d: 0.0, i: 2.0e-05, p: 0.0001}
+    right_wheel: {d: 0.0, i: 2.0e-05, p: 0.0001}
+
+    head_1_joint: {d: 5.0, i: 0.01, p: 13.0}
+    head_2_joint: {d: 0.0, i: 0.01, p: 8.0}
+    eyelids_joint: {d: 0.0, i: 0.02, p: 13.0}

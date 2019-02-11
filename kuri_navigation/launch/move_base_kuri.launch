@@ -1,0 +1,59 @@
+<launch>
+  <arg name="use_laser" default="true"/>
+  <arg name="use_sonars" default="false"/>
+  <arg name="use_astar" default="false"/>
+  <arg name="fake_laser" default="false"/>
+  <arg name="clear_static" default="true"/>
+  <arg name="use_forbidden_zones" default="false"/>
+  <arg name="robot_name" default="kuri"/>
+
+  <!-- Delete move base params to remove the empty robot footprint that gets generated and saved -->
+  <rosparam command="delete" ns="move_base" />
+
+  <!--<include file="$(find kuri_navigation)/launch/velocity_smoother.launch"/>-->
+  <!--include file="$(find gizmo)/launch/includes/kobuki/safety_controller.launch.xml"/-->
+
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base">
+    <rosparam file="$(find kuri_navigation)/config/nav_params/costmap_common_params_$(arg robot_name).yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(find kuri_navigation)/config/nav_params/costmap_common_params_$(arg robot_name).yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find kuri_navigation)/config/nav_params/local_costmap_common_params.yaml" command="load" />
+    <rosparam file="$(find kuri_navigation)/config/nav_params/global_costmap_common_params.yaml" command="load" />
+
+    <rosparam if="$(arg use_sonars)" file="$(find kuri_navigation)/config/nav_params/plugins/local_costmap_plugins_sonar.yaml" command="load" ns="local_costmap" />
+    <rosparam if="$(arg use_sonars)" file="$(find kuri_navigation)/config/nav_params/plugins/global_costmap_plugins_sonar.yaml" command="load" ns="global_costmap" />
+
+    <rosparam unless="$(arg use_sonars)" file="$(find kuri_navigation)/config/nav_params/plugins/local_costmap_plugins_laser.yaml" command="load" ns="local_costmap" />
+    <rosparam unless="$(arg use_sonars)" file="$(find kuri_navigation)/config/nav_params/plugins/global_costmap_plugins_laser.yaml" command="load" ns="global_costmap" />
+
+    <!--overwrite plugins list to include forbbiden_zone_layer-->
+    <rosparam if="$(arg use_forbidden_zones)" file="$(find kuri_navigation)/config/nav_params/plugins/global_costmap_plugins_forbidden_zones.yaml" command="load" ns="global_costmap" />
+
+    <!--overwrite observation_sources to not include the laser-->
+    <rosparam unless="$(arg use_laser)" ns="local_costmap/obstacle_layer" param="observation_sources">bump</rosparam>
+    <rosparam unless="$(arg use_laser)" ns="global_costmap/obstacle_layer" param="observation_sources">bump</rosparam>
+
+    <!--overwrite costmap laser topics to use fake laser-->
+    <rosparam if="$(arg fake_laser)" ns="local_costmap/obstacle_layer/scan" param="topic">"/scan_asus"</rosparam>
+    <rosparam if="$(arg fake_laser)" ns="global_costmap/obstacle_layer/scan" param="topic">"/scan_asus"</rosparam>
+
+    <!--if you're not using the laser, increase the timeout of the bump observations-->
+    <rosparam unless="$(arg use_laser)" ns="global_costmap/obstacle_layer/bump" param="max_obstacle_persistence">30.0</rosparam>
+
+    <!--<rosparam file="$(find kuri_navigation)/config/nav_params/base_local_planner_params.yaml" command="load" />-->
+    <rosparam file="$(find kuri_navigation)/config/nav_params/dwa_local_planner_params.yaml" command="load" />
+    <rosparam file="$(find kuri_navigation)/config/nav_params/recovery_behaviors.yaml" command="load" />
+
+    <rosparam if="$(arg use_astar)" file="$(find kuri_navigation)/config/nav_params/move_base_astar.yaml" command="load"/>
+    <rosparam unless="$(arg use_astar)" file="$(find kuri_navigation)/config/nav_params/move_base_params.yaml" command="load"/>
+
+    <!--overwrite base_global_planner to use navfn/NavfnROS instead (GlobalPlanner doesn't work with this case yet), and set up params in the NavfnROS namespace-->
+    <rosparam unless="$(arg use_laser)" file="$(find kuri_navigation)/config/nav_params/move_base_sonar_params.yaml" command="load"/>
+
+    <remap from="cmd_vel" to="/mobile_base/command/velocity"/>
+
+    <rosparam if="$(arg use_forbidden_zones)" ns="global_costmap/forbidden_zone_layer" param="map_topic">"/forbidden_zone_map"</rosparam>
+  </node>
+
+  <node if="$(arg clear_static)" name="$(anon dynparam)" pkg="dynamic_reconfigure" type="dynparam" args="set /move_base/global_costmap/obstacle_layer combination_method 0"/> 
+
+</launch>

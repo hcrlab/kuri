@@ -1,0 +1,27 @@
+global_costmap:
+  update_frequency: 1.0
+  publish_frequency: 0.2
+  static_map: true
+  always_send_full_costmap: true
+
+  inflation_layer: {cost_scaling_factor: 10.0, enabled: true, inflation_radius: 0.3, robot_radius: 0.22}
+
+  obstacle_layer:
+    inflation_radius: 0.3
+
+    #check the other topics before the timeout clears the map
+    check_other_topics_before_clearing: true
+
+    observation_sources: scan bump
+
+    bump: {clearing: false, data_type: PointCloud2, marking: true, max_obstacle_height: 1.0, 
+      min_obstacle_height: 0.0, topic: mobile_base/sensors/bumper_pointcloud, observation_persistence: 0.5, 
+            observation_timeout_from_now: 5.0, clear_old: false, max_obstacle_persistence: 10.0}
+
+    scan: {clearing: true, data_type: LaserScan, marking: true, max_obstacle_height: 1.0, inf_is_valid: false, 
+      min_obstacle_height: 0.05, topic: /scan, clear_old: false, max_obstacle_persistence: 2.0}
+
+    track_unknown_space: true
+  
+  forbidden_zone_layer:
+    use_maximum: true

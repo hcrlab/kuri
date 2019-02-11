@@ -1,0 +1,14 @@
+<launch>
+    <arg name="map_file" default="$(find kuri_navigation)/maps/empty_map.yaml" />
+
+    <!-- Autonomous Navigation -->
+    <include file="$(find kuri_navigation)/launch/move_base_kuri.launch" />
+
+    <include file="$(find kuri_navigation)/launch/amcl.launch">
+        <arg name="auto_start" value="true" />
+        <arg name="init_global_pose" value="true" />
+    </include>
+
+    <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
+
+</launch>
