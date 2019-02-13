@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+<robot name="sensor_asus_xtion_pro" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:include filename="$(find gizmo_description)/urdf/sensors/gazebo.urdf.xacro"/>
+
+  <!-- Xacro properties -->
+  <xacro:property name="M_SCALE" value="0.001"/>
+  <xacro:property name="asus_xtion_pro_depth_rel_rgb_py" value="0.0270" />
+  <xacro:property name="asus_xtion_pro_cam_rel_rgb_py"   value="-0.0220" />
+
+  <!-- Parameterised in part by the values in turtlebot_properties.urdf.xacro -->
+  <xacro:macro name="sensor_asus_xtion_pro" params="parent camera" >
+    <joint name="${camera}_rgb_joint" type="fixed">
+      <origin xyz="${asus_px} ${asus_py} ${asus_pz}" 
+              rpy="${asus_or} ${asus_op} ${asus_oy}"/>
+      <parent link="${parent}"/>
+      <child link="${camera}_rgb_frame" />
+    </joint>
+
+    <link name="${camera}_rgb_frame">
+      <inertial>
+        <mass value="0.001" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
+          iyy="0.0001" iyz="0.0"
+          izz="0.0001" />
+      </inertial>
+    </link>
+
+    <joint name="${camera}_rgb_optical_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="${-M_PI/2} 0 ${-M_PI/2}" />
+      <parent link="${camera}_rgb_frame" />
+      <child link="${camera}_rgb_optical_frame" />
+    </joint>
+
+    <link name="${camera}_rgb_optical_frame">
+      <inertial>
+        <mass value="0.001" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
+          iyy="0.0001" iyz="0.0"
+          izz="0.0001" />
+      </inertial>
+    </link>
+
+    <joint name="${camera}_joint" type="fixed">
+      <origin xyz="0 ${asus_xtion_pro_cam_rel_rgb_py} 0" 
+              rpy="0 0 0"/>
+      <parent link="${camera}_rgb_frame"/>
+      <child link="${camera}_link"/>
+    </joint>
+    <link name="${camera}_link">
+      <visual>
+        <origin xyz="-0.01 0 0" rpy="${-M_PI/2} -${M_PI} ${-M_PI/2}"/>
+        <geometry>
+          <mesh filename="package://gizmo_description/meshes/sensors/asus_xtion_pro_live.dae" scale="${M_SCALE} ${M_SCALE} ${M_SCALE}"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="-0.02 0.0 0.0" rpy="0 0 0" />
+        <geometry>
+        <box size="0.04 .2760 0.03"/>
+      </geometry>
+      </collision>
+      <inertial>
+        <mass value="0.01" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.001" ixy="0.0" ixz="0.0"
+          iyy="0.001" iyz="0.0"
+          izz="0.001" />
+      </inertial>
+    </link>
+
+    <joint name="${camera}_depth_joint" type="fixed">
+      <origin xyz="0 ${asus_xtion_pro_depth_rel_rgb_py} 0" rpy="0 0 0" />
+      <parent link="${camera}_rgb_frame" />
+      <child link="${camera}_depth_frame" />
+    </joint>
+
+    <link name="${camera}_depth_frame">
+      <inertial>
+        <mass value="0.01" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.001" ixy="0.0" ixz="0.0"
+          iyy="0.001" iyz="0.0"
+          izz="0.001" />
+      </inertial>
+    </link>
+
+    <joint name="${camera}_depth_optical_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="${-M_PI/2} 0 ${-M_PI/2}" />
+      <parent link="${camera}_depth_frame" />
+      <child link="${camera}_depth_optical_frame" />
+    </joint>
+
+    <link name="${camera}_depth_optical_frame">
+      <inertial>
+        <mass value="0.001" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
+          iyy="0.0001" iyz="0.0"
+          izz="0.0001" />
+      </inertial>
+    </link>
+
+  <!-- RGBD sensor for simulation, same as Kinect -->
+  <turtlebot_sim_3dsensor/>
+  </xacro:macro>
+</robot>

@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<robot name="2D_laser" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:include filename="$(find gizmo_description)/urdf/sensors/gazebo.urdf.xacro"/>
+
+  <xacro:macro name="laser_2D" params="parent suffix px py pz or op oy">
+    <joint name="laser_joint${suffix}" type="fixed">
+      <origin xyz="${px} ${py} ${pz}" rpy="${or} ${op} ${oy}" />
+      <parent link="${parent}" />
+      <child link="hokuyo_laser_link${suffix}" />
+    </joint>
+
+    <link name="hokuyo_laser_link${suffix}">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <mesh filename="package://gizmo_description/meshes/sensors/hokuyo_link.STL"/>
+        </geometry>
+        <material name="black">
+          <color rgba="0.1 0.1 0.1 1"/>
+        </material>
+      </visual>
+      <inertial>
+        <mass value="0.001" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
+           iyy="0.0001" iyz="0.0"
+           izz="0.0001" />
+      </inertial>
+    </link>
+    <turtlebot_sim_hokuyo suffix="${suffix}"/>
+  </xacro:macro>
+
+  <xacro:macro name="single_2D_laser" params="parent">
+    <laser_2D parent="${parent}" suffix="" px="${laser_px}" py="${laser_py}" pz="${laser_pz}" or="${laser_or}" op="${laser_op}" oy="${laser_oy}"/>
+  </xacro:macro>
+
+  <xacro:macro name="dual_2D_lasers" params="parent">
+    <laser_2D parent="${parent}" suffix="" px="${laser_px}" py="${laser_py}" pz="${laser_pz}" or="${laser_or}" op="${laser_op}" oy="${laser_oy}"/>
+    <laser_2D parent="${parent}" suffix="2" px="${laser2_px}" py="${laser2_py}" pz="${laser2_pz}" or="${laser2_or}" op="${laser2_op}" oy="${laser2_oy}"/>
+  </xacro:macro>
+
+</robot>

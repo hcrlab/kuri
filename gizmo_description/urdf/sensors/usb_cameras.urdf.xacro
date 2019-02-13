@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<robot name="usb_cameras" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:macro name="usb_camera" params="parent name x_loc y_loc z_loc r_ori p_ori y_ori">
+    <link name="${name}_camera_link">
+      <visual>
+        <!--origin xyz="0 0 0" rpy="${M_PI/2} 0 ${M_PI/2}" /-->
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <!--mesh filename="package://gizmo_description/meshes/sensors/genius_camera.stl"/-->
+          <mesh filename="package://gizmo_description/meshes/sensors/camera_link.STL"/>
+        </geometry>
+        <material name="DarkGrey">
+          <color rgba="0.215625 0.215625 0.215625 1"/>
+        </material>
+      </visual>
+      <inertial>
+        <mass value="0.001" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
+           iyy="0.0001" iyz="0.0" izz="0.0001" />
+      </inertial>
+    </link>
+
+    <joint name="${name}_camera_joint" type="fixed">
+      <!-- Orientations applied in YPR order!-->
+      <origin xyz="${x_loc} ${y_loc} ${z_loc}" rpy="${r_ori} ${p_ori} ${y_ori}" />
+      <parent link="${parent}" />
+      <child link="${name}_camera_link" />
+    </joint>
+
+    <link name="${name}_camera_optical_frame">
+      <inertial>
+        <mass value="0.0001" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
+           iyy="0.0001" iyz="0.0" izz="0.0001" />
+      </inertial>
+    </link>
+
+    <joint name="${name}_camera_optical_joint" type="fixed">
+      <!-- Orientations applied in YPR order!-->
+      <!-- <origin xyz="0 0 0" rpy="0 ${-M_PI/2} ${M_PI/2}" /> -->
+      <origin xyz="0 0 0" rpy="${-M_PI/2} 0 ${-M_PI/2}" />
+      <parent link="${name}_camera_link" />
+      <child link="${name}_camera_optical_frame" />
+    </joint>
+
+    <turtlebot_sim_usb_camera name="${name}"/>
+  </xacro:macro>
+
+  <xacro:macro name="usb_cameras" params="parent">
+    <!--usb_camera parent="${parent}" name="global_shutter_mono" x_loc="${global_shutter_mono_cam_x_loc}" y_loc= "${global_shutter_mono_cam_y_loc}" z_loc="${global_shutter_mono_cam_z_loc}" r_ori="${global_shutter_mono_cam_r_ori}" p_ori= "${global_shutter_mono_cam_p_ori}" y_ori="${global_shutter_mono_cam_y_ori}"/-->
+    <usb_camera parent="${parent}" name="upward_looking" x_loc="${upward_cam_x_loc}" y_loc= "${upward_cam_y_loc}" z_loc="${upward_cam_z_loc}" r_ori="${upward_cam_r_ori}" p_ori= "${upward_cam_p_ori}" y_ori="${upward_cam_y_ori}"/>
+    <usb_camera parent="${parent}" name="downward_looking" x_loc="${downward_cam_x_loc}" y_loc= "${downward_cam_y_loc}" z_loc="${downward_cam_z_loc}" r_ori="${downward_cam_r_ori}" p_ori= "${downward_cam_p_ori}" y_ori="${downward_cam_y_ori}"/>
+  </xacro:macro>
+
+</robot>

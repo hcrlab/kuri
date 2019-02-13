@@ -1,0 +1,243 @@
+<?xml version="1.0" ?>
+<robot name="base" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:include filename="$(find gizmo_description)/urdf/common_properties.urdf.xacro"/>
+
+  <xacro:include filename="$(find gizmo_description)/urdf/robots/gizmo/gazebo.urdf.xacro"/>
+  <xacro:include filename="$(find gizmo_description)/urdf/robots/gizmo/base.transmission.xacro" />
+
+  <xacro:macro name="base">
+    <!-- transmissions -->
+    <wheel_transmsission side="left" />
+    <wheel_transmsission side="right" />
+
+    <caster_transmsission side="front" />
+    <caster_transmsission side="back" />
+
+    <link name="base_footprint"/>
+    <!--
+       Base link is set at the center of the wheel axis.
+      -->
+    <joint name="base_joint" type="fixed">
+      <origin xyz="0.0 0.0 0.045" rpy="0 0 0" />
+      <parent link="base_footprint"/>
+      <child link="base_link" />
+    </joint>
+    <link name="base_link">
+      <visual>
+        <geometry>
+          <!-- new mesh -->
+          <!--cylinder length="0.09953" radius="0.10"/-->
+          <mesh filename="package://gizmo_description/meshes/stacks/lego_wheels/base_link.STL" />
+        </geometry>
+        <material name="LightGrey" />
+      </visual>
+      <collision name="base_footprint_collision_base_link">
+        <geometry>
+          <cylinder length="0.03" radius="0.15"/>
+        </geometry>
+        <origin xyz="0.0 0.0 0.03" rpy="0 0 0"/>
+      </collision>
+      <inertial>
+        <!-- COM -->
+        <origin xyz="0.0 0 0"/>
+        <mass value="2.4"/>
+        <inertia ixx="0.019995" ixy="0.0" ixz="0.0"
+                 iyy="0.019995" iyz="0.0" 
+                 izz="0.03675" />
+      </inertial>
+    </link>
+
+    <joint name="bumper_joint" type="fixed">
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+      <parent link="base_link"/>
+      <child link="bumper_link" />
+    </joint>
+    <link name="bumper_link">
+      <collision name="base_footprint_collision_bumper_link">
+        <geometry>
+          <cylinder length="0.03" radius="0.15"/>
+        </geometry>
+        <origin xyz="0.01 0.0 0.03" rpy="0 0 0"/>
+      </collision>
+    </link>
+
+    <joint name="wheel_left_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="wheel_left_link"/>
+      <origin xyz="0.00 0.0875 0.0" rpy="${-M_PI/2} 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit effort="2.0" velocity="10.0"/>
+    </joint>
+    <link name="wheel_left_link">
+      <visual>
+        <geometry>
+          <mesh filename="package://gizmo_description/meshes/stacks/lego_wheels/wheel_link.STL"/>
+        </geometry>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <cylinder length="0.02" radius="0.035"/>
+        </geometry>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+      </collision>
+      <inertial>
+        <mass value="0.01" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.001" ixy="0.0" ixz="0.0"
+                 iyy="0.001" iyz="0.0" 
+                 izz="0.001" />
+      </inertial>
+    </link>
+    
+    <joint name="wheel_right_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="wheel_right_link"/>
+      <origin xyz="0.00 -0.0875 0.0" rpy="${-M_PI/2} 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit effort="2.0" velocity="10.0"/>
+    </joint>
+    <link name="wheel_right_link">
+      <visual>
+        <geometry>
+          <!--cylinder length="0.015" radius="0.0408"/-->
+          <mesh filename="package://gizmo_description/meshes/stacks/lego_wheels/wheel_link.STL"/>
+        </geometry>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <cylinder length="0.02" radius="0.035"/>
+        </geometry>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+      </collision>
+      <inertial>
+        <mass value="0.01" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.001" ixy="0.0" ixz="0.0"
+                 iyy="0.001" iyz="0.0" 
+                 izz="0.001" />
+      </inertial>
+    </link>
+    
+    <joint name="caster_front_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="caster_front_link"/>
+      <origin xyz="0.07778 0.0 -0.02542" rpy="${-M_PI/2} 0 0"/>
+    </joint>
+    <link name="caster_front_link">
+      <visual>
+        <geometry>
+          <cylinder length="0.022" radius="0.0096"/>
+        </geometry>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <cylinder length="0.022" radius="0.0096"/>
+        </geometry>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+      </collision>      
+      <inertial>
+        <mass value="0.01" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.001" ixy="0.0" ixz="0.0"
+                 iyy="0.001" iyz="0.0" 
+                 izz="0.001" />
+      </inertial>
+    </link>
+    
+    <joint name="caster_back_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="caster_back_link"/>
+      <origin xyz="-0.07778 0.0 -0.02542" rpy="${-M_PI/2} 0 0"/>
+    </joint>
+    <link name="caster_back_link">
+      <visual>
+        <geometry>
+          <cylinder length="0.022" radius="0.0096"/>
+        </geometry>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </visual>           
+       <collision>
+        <geometry>
+          <cylinder length="0.022" radius="0.0096"/>
+        </geometry>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+      </collision>      
+      <inertial>
+        <mass value="0.01" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.001" ixy="0.0" ixz="0.0"
+                 iyy="0.001" iyz="0.0" 
+                 izz="0.001" />
+      </inertial>
+    </link>
+    
+    <!-- Gizmo's sensors -->
+    <joint name="gyro_joint" type="fixed">
+      <axis xyz="0 1 0"/>
+      <origin xyz="-0.0425 0.085 0.13" rpy="0 0 0"/>
+      <parent link="base_footprint"/>
+      <child link="gyro_link"/>
+    </joint>
+    <link name="gyro_link">
+      <inertial>
+        <mass value="0.001"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia ixx="0.0001" ixy="0" ixz="0" 
+                 iyy="0.000001" iyz="0"
+                 izz="0.0001"/>
+      </inertial>
+    </link>
+
+    <joint name="cliff_sensor_left_joint" type="fixed">
+      <origin xyz="0.0707 0.0707 0.0214" rpy="0 ${M_PI/2} 0" />
+      <parent link="base_link"/>
+      <child link="cliff_sensor_left_link" />
+    </joint>
+    <link name="cliff_sensor_left_link">
+      <inertial>
+        <mass value="0.0001" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
+                 iyy="0.0001" iyz="0.0" 
+                 izz="0.0001" />
+      </inertial>
+    </link>
+
+    <joint name="cliff_sensor_right_joint" type="fixed">
+      <origin xyz="0.0707 -0.0707 0.0214" rpy="0 ${M_PI/2} 0" />
+      <parent link="base_link"/>
+      <child link="cliff_sensor_right_link" />
+    </joint>
+    <link name="cliff_sensor_right_link">
+      <inertial>
+        <mass value="0.0001" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
+                 iyy="0.0001" iyz="0.0" 
+                 izz="0.0001" />
+      </inertial>
+    </link>
+    
+    <joint name="cliff_sensor_front_joint" type="fixed">
+      <origin xyz="0.1 0.00 0.0214" rpy="0 ${M_PI/2} 0" />
+      <parent link="base_link"/>
+      <child link="cliff_sensor_front_link" />
+    </joint>
+    <link name="cliff_sensor_front_link">
+      <inertial>
+        <mass value="0.0001" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
+                 iyy="0.0001" iyz="0.0" 
+                 izz="0.0001" />
+      </inertial>
+    </link>
+    
+    <!-- Gizmo Gazebo simulation details -->
+    <gizmo_sim />
+    
+  </xacro:macro>
+</robot>

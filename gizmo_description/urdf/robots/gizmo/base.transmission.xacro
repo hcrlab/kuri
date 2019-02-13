@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <!-- wheels transmission -->
+  <xacro:macro name="wheel_transmission" params="side">
+    <transmission name="wheel_${side}_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <actuator name="wheel_${side}_motor" >
+        <mechanicalReduction>1.0</mechanicalReduction>
+      </actuator>
+      <joint name="wheel_${side}_joint" >
+        <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+      </joint>
+    </transmission>
+  </xacro:macro>
+
+  <!-- caster transmissions -->
+  <xacro:macro name="caster_transmission" params="side" >
+    <transmission name="caster_${side}_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <actuator name="caster_${side}_motor" >
+        <mechanicalReduction>1.0</mechanicalReduction>
+      </actuator>
+      <joint name="caster_${side}_joint" >
+        <hardwareInterface>hardware_interface/JointStateInterface</hardwareInterface>
+      </joint>
+    </transmission>
+  </xacro:macro>
+</robot>

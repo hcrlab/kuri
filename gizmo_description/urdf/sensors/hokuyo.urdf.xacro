@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<robot name="hokuyo_laser" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:include filename="$(find gizmo_description)/urdf/sensors/gazebo.urdf.xacro"/>
+
+  <xacro:macro name="hokuyo_laser" params="parent suffix px py pz or op oy">
+    <joint name="laser_joint${suffix}" type="fixed">
+      <origin xyz="${px} ${py} ${pz}" rpy="${or} ${op} ${oy}" />
+      <parent link="${parent}" />
+      <child link="hokuyo_laser_link${suffix}" />
+    </joint>
+
+    <link name="hokuyo_laser_link${suffix}">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <!--origin xyz="0 0 -0.062" rpy="0 0 0" /-->
+        <geometry>
+          <mesh filename="package://gizmo_description/meshes/sensors/hokuyo_link.STL"/>
+          <!--mesh filename="package://gizmo_description/meshes/sensors/hokuyo.dae"/-->
+        </geometry>
+        <material name="black">
+          <color rgba="0.1 0.1 0.1 1"/>
+        </material>
+      </visual>
+      <inertial>
+        <mass value="0.001" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
+           iyy="0.0001" iyz="0.0"
+           izz="0.0001" />
+      </inertial>
+    </link>
+    <turtlebot_sim_hokuyo suffix="${suffix}"/>
+  </xacro:macro>
+
+  <xacro:macro name="single_hokuyo" params="parent">
+    <hokuyo_laser parent="${parent}" suffix="" px="${hokuyo_px}" py="${hokuyo_py}" pz="${hokuyo_pz}" or="${hokuyo_or}" op="${hokuyo_op}" oy="${hokuyo_oy}"/>
+  </xacro:macro>
+
+  <xacro:macro name="dual_hokuyos" params="parent">
+    <hokuyo_laser parent="${parent}" suffix="" px="${hokuyo_px}" py="${hokuyo_py}" pz="${hokuyo_pz}" or="${hokuyo_or}" op="${hokuyo_op}" oy="${hokuyo_oy}"/>
+    <hokuyo_laser parent="${parent}" suffix="2" px="${hokuyo2_px}" py="${hokuyo2_py}" pz="${hokuyo2_pz}" or="${hokuyo2_or}" op="${hokuyo2_op}" oy="${hokuyo2_oy}"/>
+  </xacro:macro>
+
+  <xacro:macro name="three_hokuyos" params="parent">
+    <hokuyo_laser parent="${parent}" suffix="" px="${hokuyo_px}" py="${hokuyo_py}" pz="${hokuyo_pz}" or="${hokuyo_or}" op="${hokuyo_op}" oy="${hokuyo_oy}"/>
+    <hokuyo_laser parent="${parent}" suffix="2" px="${hokuyo2_px}" py="${hokuyo2_py}" pz="${hokuyo2_pz}" or="${hokuyo2_or}" op="${hokuyo2_op}" oy="${hokuyo2_oy}"/>
+    <hokuyo_laser parent="${parent}" suffix="3" px="${hokuyo3_px}" py="${hokuyo3_py}" pz="${hokuyo3_pz}" or="${hokuyo3_or}" op="${hokuyo3_op}" oy="${hokuyo3_oy}"/>
+  </xacro:macro>
+
+</robot>

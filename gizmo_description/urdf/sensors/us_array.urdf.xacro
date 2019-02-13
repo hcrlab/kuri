@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<robot name="us_array" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:macro name="us_sensor" params="parent number x_loc y_loc z_loc r_ori p_ori y_ori v_r_ori v_p_ori v_y_ori">
+    <joint name="range_sensor_${number}_joint" type="fixed">
+      <origin xyz="${x_loc} ${y_loc} ${z_loc}" rpy="${r_ori} ${p_ori} ${y_ori}" />
+      <parent link="${parent}" />
+      <child link="range_sensor_${number}_link" />
+    </joint>
+    
+    <link name="range_sensor_${number}_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="${v_r_ori} ${v_p_ori} ${v_y_ori}" />
+        <geometry>
+          <!--mesh filename="package://gizmo_description/meshes/sensors/ultrasonic_sensor.stl" scale="1 1 1"/-->
+          <mesh filename="package://gizmo_description/meshes/stacks/laptop_mount/ultrasonic_center_link.STL" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <material name="DarkGrey">
+          <color rgba="0.215625 0.215625 0.215625 1"/>
+        </material>
+      </visual>
+      <inertial>
+        <mass value="0.001" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
+           iyy="0.0001" iyz="0.0"
+           izz="0.0001" />
+      </inertial>
+    </link>
+
+    <turtlebot_sim_sonar name="${number}"/>
+  </xacro:macro>
+
+  <xacro:macro name="us_array" params="parent">
+    <us_sensor parent="${parent}" number="left" x_loc="${us_0_x_loc}" y_loc= "${us_0_y_loc}" z_loc="${us_0_z_loc}" r_ori="${us_0_r_ori}" p_ori= "${us_0_p_ori}" y_ori="${us_0_y_ori}"  v_r_ori="${M_PI/2}" v_p_ori="0" v_y_ori="${M_PI/2}"/>
+    <us_sensor parent="${parent}" number="right" x_loc="${us_1_x_loc}" y_loc= "${us_1_y_loc}" z_loc="${us_1_z_loc}" r_ori="${us_1_r_ori}" p_ori= "${us_1_p_ori}" y_ori="${us_1_y_ori}" v_r_ori="${M_PI/2}" v_p_ori="0" v_y_ori="${M_PI/2}"/>
+    <us_sensor parent="${parent}" number="center" x_loc="${us_2_x_loc}" y_loc= "${us_2_y_loc}" z_loc="${us_2_z_loc}" r_ori="${us_2_r_ori}" p_ori= "${us_2_p_ori}" y_ori="${us_2_y_ori}" v_r_ori="${M_PI/2}" v_p_ori="0" v_y_ori="${M_PI/2}"/>    
+  </xacro:macro>
+</robot>

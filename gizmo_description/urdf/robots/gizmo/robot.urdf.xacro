@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<robot name="gizmo" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:include filename="$(find gizmo_description)/urdf/common_properties.urdf.xacro"/>
+  <xacro:include filename="$(find gizmo_description)/urdf/sensors/2d_laser.urdf.xacro"/>
+  <xacro:include filename="$(find gizmo_description)/urdf/materials.urdf.xacro" />
+  <xacro:include filename="$(find gizmo_description)/urdf/sensors/upward_camera.urdf.xacro"/>
+
+  <xacro:include filename="$(find gizmo_description)/urdf/robots/gizmo/gazebo.urdf.xacro"/>
+
+  <xacro:include filename="$(find gizmo_description)/urdf/robots/gizmo/base.urdf.xacro" />
+  <xacro:include filename="$(find gizmo_description)/urdf/robots/gizmo/body.urdf.xacro"/>
+  <xacro:include filename="$(find gizmo_description)/urdf/robots/gizmo/head.urdf.xacro"/>
+
+  <property name="upward_cam_x_loc" value="0.061" />
+  <property name="upward_cam_y_loc" value="-0.032" />
+  <property name="upward_cam_z_loc" value="0.015" />
+  <property name="upward_cam_r_ori" value="0" />
+  <property name="upward_cam_p_ori" value="0" />
+  <property name="upward_cam_y_ori" value="0" />
+
+  <property name="mount_px" value="0.00022" />
+  <property name="mount_py" value="0.0" />
+  <property name="mount_pz" value="0.08510" />
+  <property name="mount_or" value="${M_PI}" />
+  <property name="mount_op" value="${M_PI}" />
+  <property name="mount_oy" value="${M_PI}" />
+
+  <property name="laser_px" value="0.0" />
+  <property name="laser_py" value="0.0" />
+  <property name="laser_pz" value="0.155" />
+  <property name="laser_or" value="0" />
+  <property name="laser_op" value="0" />
+  <property name="laser_oy" value="0" />
+
+  <base/>
+  <body />
+  <head />
+  <upward_camera   parent="head_2_link"/>
+  <single_2D_laser parent="base_link"/>
+</robot>

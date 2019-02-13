@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<robot name="camera_uvm" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:include filename="$(find gizmo_description)/urdf/turtlebot_properties.urdf.xacro"/>
+
+  <xacro:macro name="camera_uvm" params="parent">
+    <link name="camera_uvm_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+	  <mesh filename="package://gizmo_description/meshes/sensors/camera_uvm.stl"/>
+        </geometry>
+        <material name="DarkGrey">
+          <color rgba="0.215625 0.215625 0.215625 1"/>
+        </material>
+      </visual>
+      <inertial>
+        <mass value="0.001" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
+           iyy="0.0001" iyz="0.0" izz="0.0001" />
+      </inertial>
+    </link>
+
+    <joint name="camera_uvm_joint" type="fixed">
+      <!-- Orientations applied in YPR order!-->
+      <origin xyz="${uvm_px} ${uvm_py} ${uvm_pz}" rpy="${uvm_or} ${uvm_op} ${uvm_oy}" />
+      <parent link="${parent}" />
+      <child link="camera_uvm_link" />
+    </joint>
+
+    <link name="camera_uvm_optical_frame">
+      <inertial>
+        <mass value="2.0" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
+           iyy="0.0001" iyz="0.0" izz="0.0001" />
+      </inertial>
+    </link>
+
+    <joint name="camera_uvm_optical_joint" type="fixed">
+      <!-- Orientations applied in YPR order!-->
+      <!-- <origin xyz="0 0 0" rpy="0 ${-M_PI/2} ${M_PI/2}" /> -->
+      <origin xyz="0 0 0" rpy="${-M_PI/2} 0 ${M_PI}" />
+      <parent link="camera_uvm_link" />
+      <child link="camera_uvm_optical_frame" />
+    </joint>
+
+    <turtlebot_sim_uvm_camera/>
+  </xacro:macro>
+</robot>

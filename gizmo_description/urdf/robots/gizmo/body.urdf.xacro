@@ -1,0 +1,39 @@
+<?xml version="1.0" ?>
+<!-- this is the -->
+<robot name="body" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:include filename="$(find gizmo_description)/urdf/common_properties.urdf.xacro"/>
+  <xacro:include filename="$(find gizmo_description)/urdf/robots/gizmo/simple.transmission.xacro"/>
+
+  <xacro:macro name="body">
+    <simple_transmission name="body" />
+
+    <joint name="body_joint" type="fixed">
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+      <parent link="base_link"/>
+      <child link="body_link" />
+    </joint>
+
+    <link name="body_link">
+      <visual>
+        <geometry>
+          <mesh filename="package://gizmo_description/meshes/gizmo/body.dae" />
+        </geometry>
+      </visual>
+<!--
+      <collision>
+        <geometry>
+          <cylinder length="0.25" radius="0.10"/>
+        </geometry>
+        <origin xyz="0.0 0 0.125"/>
+      </collision>
+-->
+      <inertial>
+        <origin xyz="0.0 0 0.125"/>
+        <mass value="2.4"/>
+        <inertia ixx="0.019995" ixy="0.0" ixz="0.0"
+                 iyy="0.019995" iyz="0.0" 
+                 izz="0.03675" />
+      </inertial>
+    </link>
+  </xacro:macro>
+</robot>
