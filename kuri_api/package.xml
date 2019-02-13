@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>kuri_api</name>
+  <version>0.1.0</version>
+  <description>High-level API for controlling the Kuri robot.</description>
+  <maintainer email="nwalker@cs.uw.edu">Nick Walker</maintainer>
+  <license>None</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>actionlib</depend>
+  <depend>control_msgs</depend>
+  <depend>roscpp</depend>
+  <depend>rospy</depend>
+  <depend>trajectory_msgs</depend>
+  <export>
+  </export>
+</package>
