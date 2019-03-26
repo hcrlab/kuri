@@ -1,0 +1,3 @@
+duration time_from_start
+float64 linear_vel
+float64 angular_vel

@@ -1,0 +1,7 @@
+float32 arc_len
+float32 linear_velocity
+float32 angle
+float32 angular_velocity
+float32 duration
+---
+---

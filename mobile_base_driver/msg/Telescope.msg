@@ -1,0 +1,9 @@
+Header header
+bool front_noise
+bool front_left
+bool front_right
+bool front_middle
+bool back_noise
+bool back_left
+bool back_right
+bool back_middle
