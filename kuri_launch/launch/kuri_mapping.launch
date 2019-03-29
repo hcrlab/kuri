@@ -25,7 +25,7 @@ the mapping node will terminate
           required="true">
         <remap from="scan" to="scan_reduced_mapping"/>
     </node>
-    <include file="$(find gizmo_ros_navigation)/launch/amcl.launch"/>
+
 
     <node pkg="kuri_navigation" type="mapping_controller" name="mapping_controller"/> 
 

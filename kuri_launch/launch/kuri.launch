@@ -11,6 +11,12 @@
     <!-- Kuri's face recognition -->
     <include file="$(find vision_bridge)/launch/vision_bridge.launch"/>
 
+    <!-- Audio processing pipeline -->
+    <include file="$(find audio_realtime)/launch/audio_realtime.launch"/>
+
+    <!-- Volume manager -->
+    <include file="$(find kuri_api)/launch/volume_interface.launch"/>
+
     <node name="safety_controller" pkg="kuri_navigation" type="safety_controller" />
 
     <!-- Autonomous Navigation -->
