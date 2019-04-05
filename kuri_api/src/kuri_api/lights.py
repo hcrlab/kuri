@@ -1,6 +1,7 @@
 import rospy
 from mobile_base_driver.msg import ChestLeds
 from mobile_base_driver.msg import Led
+from kuri_api.utils.mux import Mux, MuxChannel
 
 class Lights(object):
     """
@@ -65,7 +66,7 @@ class Lights(object):
 
     def __init__(self):
         self._light_pub = rospy.Publisher('mobile_base/commands/chest_leds', ChestLeds, queue_size=1, latch=True)
-        self.off()
+        self._last_pixels = self.ALL_OFF
 
     def shutdown(self):
         self._light_pub.unregister()
@@ -76,13 +77,56 @@ class Lights(object):
         """
         self._last_pixels = pixels
         chest_msg = ChestLeds()
-        for i in range(min(len(pixels), ChestLightClient.NUM_LEDS)):
+        for i in range(min(len(pixels), Lights.NUM_LEDS)):
             chest_msg.leds[i] = Led(pixels[i][0], pixels[i][1], pixels[i][2])
 
-        self._light_pub.publish(msg)
+        self._light_pub.publish(chest_msg)
 
     def get_pixels(self):
         return list(self._last_pixels)
 
     def off(self):
-        self.put_pixels(ChestLightClient.ALL_OFF)
+        self.put_pixels(Lights.ALL_OFF)
+
+
+class LightsMux(Mux):
+
+    class Channel(Lights, MuxChannel):
+
+        def __init__(self, mux, name, priority):
+            Lights.__init__(self)
+            MuxChannel.__init__(self, mux, name, priority)
+
+        def on_release(self):
+            self.off()
+
+        put_pixels = Mux.protect(fail=False)
+        off = Mux.protect(fail=False)
+
+    priority = [
+     'emotion',
+     'power_status',
+     'performance',
+     'teleop',
+     'listening',
+     'romoji']
+
+    def __init__(self, priority=None):
+        super(LightsMux, self).__init__()
+        self.priority = priority or self.priority
+        self.emotion = self.Channel(self, 'emotion', self.priority.index('emotion'))
+        self.power = self.Channel(self, 'power_status', self.priority.index('power_status'))
+        self.performance = self.Channel(self, 'performance', self.priority.index('performance'))
+        self.teleop = self.Channel(self, 'teleop', self.priority.index('teleop'))
+        self.listening = self.Channel(self, 'listening', self.priority.index('listening'))
+        self.animations = self.Channel(self, 'animations', self.priority.index('romoji'))
+
+    def shutdown(self):
+        self.emotion = None
+        self.power = None
+        self.performance = None
+        self.teleop = None
+        self.listening = None
+        self.romoji = None
+        del self._channels[:]
+        return
