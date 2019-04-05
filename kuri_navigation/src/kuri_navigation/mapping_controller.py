@@ -5,7 +5,7 @@ import mayfield_utils
 import mobile_base
 
 from kuri_navigation.oort_map_manager import OortMapManager
-from robot_api.power import PowerMonitor
+from kuri_api.power import PowerMonitor
 
 class MappingController:
     '''
@@ -67,9 +67,9 @@ class MappingController:
             mayfield_msgs.msg.NodeStatus("mapping_controller", True)
         )
 
-        self._power_monitor = PowerMonitor(
-            dock_changed_cb=self._dock_changed_cb
-        )
+        self._power_monitor = PowerMonitor()
+        self._power_monitor.docked_event.connect(self._dock_changed_cb)
+        self._power_monitor.undocked_event.connect(self._dock_changed_cb)
 
         # _start_mapping and _stop_mapping are called from ROS callbacks
         # once _stop mapping runs, it will set self._mapping_complete
@@ -114,7 +114,7 @@ class MappingController:
         if self._mapping_complete:
             return
 
-        if msg.dock_present:
+        if msg == 'docked':
             map_state = self._map_manager.get_map_state()
             if map_state == "not_mapping":
                 self._start_mapping()
