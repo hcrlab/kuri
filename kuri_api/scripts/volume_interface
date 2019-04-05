@@ -1,0 +1,371 @@
+#!/usr/bin/env python
+import os.path, rospy, select, subprocess, threading
+from numpy import clip
+from gizmo_msgs.msg import Volume, VolumeButton
+from std_msgs.msg import Bool, Byte, Empty
+import logging
+logger = logging.getLogger(__name__)
+
+class VolumeInterface(object):
+    """
+    This interface starts up a GPIO poller that listens to hardware volume
+    buttons and updates the ALSA speaker volume accordingly.
+    """
+    VOLUME_NAMESPACE = 'volume'
+    DEFAULT_VOLUME_LEVEL = 65
+    DEFAULT_MIXER = 'Playback'
+    ALSA_VOLUME_CHAR = '%'
+    MAX_DUCKED_VOLUME = 35
+    CHANGE_DURATION = 0.35
+    VOLUME_FILE = 'volume'
+
+    def __init__(self):
+        self._vp = None
+        gpios = rospy.get_param('volume_buttons', [402, 404])
+        active_low = rospy.get_param('volume_active_low', True)
+        self._current_level = None
+        self._restore_mute_level = None
+        self._restore_duck_level = None
+        self._bt_audio_playing = False
+        self._bt_level = self.DEFAULT_VOLUME_LEVEL
+        self._restore_pre_bt_level = None
+        self._mixer = self.DEFAULT_MIXER
+        self._api_lock = threading.RLock()
+        self.volume_file = os.path.join(os.path.expanduser("~"), self.VOLUME_FILE)
+        self._current_level_pub = rospy.Publisher(self.VOLUME_NAMESPACE + '/level', Byte, queue_size=1, latch=True)
+        self._restore_volume()
+        self._pub = rospy.Publisher(self.VOLUME_NAMESPACE + '/hw_set', Volume, queue_size=1)
+        self._app_vol_sub = rospy.Subscriber(self.VOLUME_NAMESPACE + '/app_set', Volume, self._vol_external_cb)
+        self._bt_vol_sub = rospy.Subscriber(self.VOLUME_NAMESPACE + '/bt_set', Volume, self._vol_bt_cb)
+        self._duck_set_sub = rospy.Subscriber(self.VOLUME_NAMESPACE + '/duck_set', Bool, self._toggle_ducking_cb)
+        self._store_vol_sub = rospy.Subscriber(self.VOLUME_NAMESPACE + '/save', Empty, self._store_vol_cb)
+        self._bt_media_playing_sub = rospy.Subscriber('bluetooth/media_playing', Bool, self._bt_media_playing_cb, queue_size=1)
+        self._start_volume_buttons(gpios, active_low)
+        return
+
+    def shutdown(self):
+        if self._app_vol_sub:
+            self._app_vol_sub.unregister()
+            self._app_vol_sub = None
+        if self._bt_vol_sub:
+            self._bt_vol_sub.unregister()
+            self._bt_vol_sub = None
+        if self._duck_set_sub:
+            self._duck_set_sub.unregister()
+            self._duck_set_sub = None
+        if self._bt_media_playing_sub:
+            self._bt_media_playing_sub.unregister()
+            self._bt_media_playing_sub = None
+        if self._store_vol_sub:
+            self._store_vol_sub.unregister()
+            self._store_vol_sub = None
+        self._store_volume()
+        return
+
+    def _store_volume(self):
+        with self._api_lock:
+            if self._restore_mute_level is not None:
+                level = 0
+            else:
+                if self._restore_pre_bt_level is not None:
+                    level = self._restore_pre_bt_level
+                else:
+                    if self._restore_duck_level is not None:
+                        level = self._restore_duck_level
+                    else:
+                        level = self._current_level
+        try:
+            with open(self.volume_file, 'w') as (f):
+                f.write(str(level))
+        except IOError as e:
+            logger.error(('Error writing volume: {}').format(e))
+
+        return
+
+    def _restore_volume(self):
+        stored_volume = None
+        try:
+            with open(self.volume_file, 'r') as (f):
+                stored_volume = int(f.read())
+        except (IOError, ValueError):
+            pass
+
+        with self._api_lock:
+            if stored_volume is not None and stored_volume != 100:
+                self._current_level = stored_volume
+            else:
+                self._current_level = self.DEFAULT_VOLUME_LEVEL
+        self._clamp_and_update_vol()
+        return
+
+    def _bt_media_playing_cb(self, msg):
+        if self._bt_audio_playing == msg.data:
+            return
+        self._bt_audio_playing = msg.data
+        with self._api_lock:
+            if self._bt_audio_playing:
+                self._restore_pre_bt_level = self._current_level
+                self._current_level = self._bt_level
+            else:
+                self._bt_level = self._current_level
+                self._current_level = self._restore_pre_bt_level
+                self._restore_pre_bt_level = None
+            self._clamp_and_update_vol()
+        return
+
+    def _start_volume_buttons(self, gpios, active_low):
+        """
+        Initializes volume and spawns up a thread with the vollume poller.
+        """
+        self._vp = VolumePoller(gpio_down=gpios[0], gpio_up=gpios[1], active_low=active_low)
+        self._vp.set_vol_cb(self._vol_button_cb)
+        t = threading.Thread(target=self._vp.poll)
+        t.daemon = True
+        t.start()
+
+    def _vol_button_cb(self, change):
+        """
+        Respond to hardware volume button changes and publishes new Volume.
+        :param: change Integer percentage amount to increment or decrement
+        """
+        with self._api_lock:
+            self._current_level += change
+            self._clamp_and_update_vol()
+            self._pub.publish(Volume(level=self._current_level, is_relative=False, mute=False, unmute=False))
+
+    def _toggle_ducking_cb(self, msg):
+        """
+        Duck or restore volume level
+        """
+        should_duck = msg.data
+        if should_duck:
+            if self._restore_duck_level:
+                return
+            self._restore_duck_level = self._current_level
+            ducked_level = min(self._restore_duck_level, self.MAX_DUCKED_VOLUME)
+            self._gradually_adjust_volume(self._restore_duck_level, ducked_level, self.CHANGE_DURATION)
+        else:
+            if self._restore_duck_level:
+                self._gradually_adjust_volume(self._current_level, self._restore_duck_level, self.CHANGE_DURATION)
+                self._restore_duck_level = None
+        return
+
+    def _gradually_adjust_volume(self, start, end, duration_sec, step_size=5):
+        if step_size == 0:
+            logger.warning('Step size 0 is not valid for gradually adjusting volume')
+            return
+        if start == end:
+            return
+        step_size = step_size if start < end else -step_size
+        num_steps = (end - start) / step_size
+        if num_steps == 0:
+            wait = 0
+        else:
+            wait = float(duration_sec) / num_steps
+        with self._api_lock:
+            for volume in xrange(start, end, step_size):
+                self._current_level = volume
+                self._clamp_and_update_vol()
+                rospy.sleep(wait)
+
+            self._current_level = end
+            self._clamp_and_update_vol()
+
+    def _vol_bt_cb(self, msg):
+        if not self._bt_audio_playing:
+            if msg.is_relative:
+                self._bt_level += msg.level
+            else:
+                self._bt_level = msg.level
+        else:
+            self._vol_external_cb(msg)
+
+    def _vol_external_cb(self, msg):
+        """
+        Respond to app / bluetooth requests for volume changes.
+        :param: msg The Volume message to account for.
+        """
+        with self._api_lock:
+            if self._restore_duck_level:
+                tracking_level = self._restore_duck_level
+            else:
+                tracking_level = self._current_level
+            if msg.mute:
+                if self._restore_mute_level is None:
+                    self._restore_mute_level = tracking_level
+                    self._current_level = 0
+                    self._restore_duck_level = None
+            else:
+                if msg.unmute:
+                    if self._restore_mute_level is not None:
+                        self._current_level = self._restore_mute_level
+                        self._restore_mute_level = None
+                else:
+                    if msg.is_relative:
+                        tracking_level += msg.level
+                    else:
+                        tracking_level = msg.level
+                    if self._restore_duck_level:
+                        self._restore_duck_level = tracking_level
+                        return
+                    self._current_level = tracking_level
+            self._clamp_and_update_vol()
+        return
+
+    def _store_vol_cb(self, _):
+        self._store_volume()
+
+    def _clamp_and_update_vol(self):
+        """
+        Ensures the current volume level is within acceptable range and
+        sends the updated level to the hardware.
+        """
+        self._current_level = clip(self._current_level, 0, 100)
+        logger.info(('\x1b[1;49m\nVolume: {}\x1b[1;0m').format(self._current_level))
+        volume_str = str(self._current_level) + self.ALSA_VOLUME_CHAR
+        if self._current_level == 0:
+            volume_str = '1'
+        self._amixer_set_volume(volume_str)
+        self._current_level_pub.publish(Byte(self._current_level))
+
+    def _amixer_set_volume(self, vol_str):
+        """
+        This is what actually changes the output volume.
+        :param: vol_str A string representing the desired volume.
+            We currently use absolute percentages (e.g. "52%")
+        """
+        if subprocess.call(['amixer', '-q', 'set', self._mixer, vol_str]) != 0:
+            logger.warning('Can not interface with ALSA mixer')
+
+
+class GpioPoller(object):
+    """
+    Poller for a bunch of GPIOs.
+    Example:
+    
+        def gpio_cb(num, val):
+            print("{}: {}".format(num, val))
+    
+        gp = GpioPoller()
+        gp.add(37)
+        gp.add(42)
+        gp.set_cb(gpio_cb)
+        gp.poll()  # never returns
+    
+    Note: expects GPIO pins to be pre-configured with the kernel:
+        # echo NUM > /sys/class/gpio/export
+        # echo both > /sys/class/gpio/gpioNUM/edge
+    """
+
+    def __init__(self):
+        self._gpios = {}
+        self._cb = None
+        self._last = {}
+        return
+
+    def add(self, num, active_low):
+        sysfname = os.path.join('/sys/class/gpio', ('gpio{}').format(num), 'value')
+        self._gpios[num] = open(sysfname)
+        self._gpios[num].read()
+        self._last[num] = 1 if active_low else 0
+
+    def set_cb(self, cb):
+        """
+        callback has the following signature:
+            cb(num, value)
+            Parameters:
+                num: gpio number (as given to `add_gpio`)
+                value: value read from gpio (0 or 1)
+        """
+        self._cb = cb
+
+    def poll(self):
+        """
+        Wait for events on the given GPIOs. Forever.
+        """
+        p = select.poll()
+        for g in self._gpios.values():
+            p.register(g, select.POLLPRI | select.POLLERR)
+
+        while self._gpios:
+            events = p.poll()
+            for e in events:
+                if e[1] & select.POLLPRI:
+                    for num in self._update_changed():
+                        self._cb(num, self._last[num])
+
+                else:
+                    raise RuntimeError(('poll: got code {} on fd {}').format(e[1], e[0]))
+
+    def _update_changed(self):
+        for n, v in self._last.items():
+            val = self._read_val(n)
+            if val != v:
+                self._last[n] = val
+                yield n
+
+    def _read_val(self, num):
+        self._gpios[num].seek(0)
+        return int(self._gpios[num].read())
+
+
+class VolumePoller(GpioPoller):
+    """
+    Patiently wait for events on the volume buttons.
+    Call the poll() method to start it.
+    You can optionally register a callback that is
+    called when a change in volume is triggered.
+    """
+    GPIO_UP = 21
+    GPIO_DOWN = 18
+    VOL_STEP = 5
+
+    def __init__(self, gpio_up=None, gpio_down=None, active_low=False):
+        super(VolumePoller, self).__init__()
+        self._vol_cb = None
+        self._pressed = None
+        self._gpio_up = gpio_up or self.GPIO_UP
+        self._gpio_down = gpio_down or self.GPIO_DOWN
+        self._active_low = active_low
+        self.add(self._gpio_up, active_low)
+        self.add(self._gpio_down, active_low)
+        self.set_cb(self._gpio_cb)
+        self._volume_button_pub = rospy.Publisher('volume/button_status', VolumeButton, queue_size=1)
+        return
+
+    def set_vol_cb(self, vol_cb):
+        self._vol_cb = vol_cb
+
+    def _vol_up(self):
+        if self._vol_cb:
+            self._vol_cb(self.VOL_STEP)
+
+    def _vol_down(self):
+        if self._vol_cb:
+            self._vol_cb(-self.VOL_STEP)
+
+    def _gpio_cb(self, num, val):
+        depressed = 0
+        if self._active_low:
+            depressed = 1
+        if val == depressed:
+            if num == self._pressed:
+                self._pressed = None
+                self._volume_button_pub.publish(VolumeButton(up_button_pressed=False, down_button_pressed=False))
+            return
+        if self._pressed is not None and num != self._pressed:
+            return
+        self._pressed = num
+        self._volume_button_pub.publish(VolumeButton(up_button_pressed=num == self._gpio_up, down_button_pressed=num == self._gpio_down))
+        if num == self._gpio_up:
+            self._vol_up()
+        else:
+            if num == self._gpio_down:
+                self._vol_down()
+        return
+
+if __name__ == '__main__':
+    rospy.init_node('volume_interface')
+    vol = VolumeInterface()
+    rospy.spin()
+    vol.shutdown()

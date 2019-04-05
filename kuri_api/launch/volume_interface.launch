@@ -1,0 +1,16 @@
+<launch>
+  <arg name="respawn" default="True"/>
+  <arg name="volume_active_low" default="True"/>
+  <arg name="volume_buttons" default="[]"/>
+
+  <param name="volume_active_low" value="$(arg volume_active_low)"/>
+
+  <!--<rosparam command="load" param="volume_buttons" subst_value="True">$(arg volume_buttons)</rosparam>-->
+
+  <node name="volume_interface"
+        pkg="kuri_api"
+        type="volume_interface"
+        respawn="$(arg respawn)"
+        respawn_delay="10" />
+
+</launch>
