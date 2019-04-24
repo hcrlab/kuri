@@ -1,7 +1,13 @@
 from PIL import Image
-from app_bringup import config
+
 from assets import memoize
 from assets import mov_to_pixels, mov_to_wav
+import os
+
+assets_path = "/opt/gizmo/share/assets"
+if os.path.isdir(assets_path):
+    assets_path = "/tmp/"
+
 
 class Movies(object):
 
@@ -17,7 +23,7 @@ class Movies(object):
     def to_sound(self, mov_name):
         return self.sound.open(mov_to_wav(mov_name))
 
-    @memoize(lambda : config.get_assets_path())
+    @memoize(lambda : assets_path)
     def get_pixels(self, filename):
         r"""
         \param filename: the animated gif file to extract the pixels from

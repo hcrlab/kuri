@@ -1,9 +1,9 @@
 import threading, rospy
 from numpy import clip
-from kuri_api import Lights
+from kuri_api.lights import Lights
 from assets import mov_to_pixels
-from gizmo.utils.pulse_utils import PeakMonitor
-from gizmo.utils.rate import Rate
+from kuri_api.utils.pulse_utils import PeakMonitor
+from kuri_api.utils.rate import Rate
 import logging
 logger = logging.getLogger(__name__)
 

@@ -7,6 +7,8 @@ add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED
         COMPONENTS
+        geometry_msgs
+        mayfield_msgs
         message_generation
         std_msgs
         )
@@ -35,6 +37,8 @@ add_service_files(
 
 generate_messages(
         DEPENDENCIES
+        geometry_msgs
+        mayfield_msgs
         std_msgs
 )
 

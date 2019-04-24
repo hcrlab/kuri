@@ -2,7 +2,7 @@ import random
 from kuri_api.anim import AnimationGroup
 from kuri_api.anim import Track
 from kuri_api import Head
-from gizmo.utils.social import random_adult_tilt, random_child_tilt
+from kuri_api.utils.social import random_adult_tilt, random_child_tilt
 import logging
 logger = logging.getLogger(__name__)
 

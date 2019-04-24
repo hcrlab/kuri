@@ -1,5 +1,5 @@
 import math, random
-from gizmo.utils import interp
+from kuri_api.utils import interp
 from kuri_api.anim import AnimationGroup
 from kuri_api.anim import Track
 from kuri_api import Head, Lights

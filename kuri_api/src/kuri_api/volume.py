@@ -1,5 +1,5 @@
 import os.path, rospy
-from gizmo_msgs.msg import Volume as VolMsg
+from kuri_api.msg import Volume as VolMsg
 from std_msgs.msg import Bool, Empty
 import logging
 sounds_path = '/opt/gizmo/share/assets/sounds'

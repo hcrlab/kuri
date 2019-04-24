@@ -2,7 +2,7 @@
 Dance routines (pseudo-animations).
 """
 from math import radians as rad
-from kuri_api import Head
+from kuri_api.head import Head
 CHOREOGRAPHED_SONGS = {'pancake_robot': {'intro': [
                              'interested_pancake', 'full_body_bob', 'full_body_up_nod'], 
                      'warm_up': [

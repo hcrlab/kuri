@@ -2,7 +2,7 @@ import rospy
 from numpy import clip
 from random import choice, random, randint, uniform
 
-from kuri_api import Head
+from kuri_api.head import Head
 from .dance_routines import choreographed_performances, dance_routine_pools, dance_routines, dance_routine_names
 import logging
 

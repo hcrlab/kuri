@@ -1,7 +1,6 @@
 import random, threading, rospy
 from numpy import interp
-from kuri_api import Lights
-# TODO: Port out assets library
+from kuri_api.lights import Lights
 from assets import mov_to_pixels
 from kuri_api.utils.dance import get_bpm_range
 from kuri_api.utils.rate import Rate

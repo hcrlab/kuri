@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os.path, rospy, select, subprocess, threading
 from numpy import clip
-from gizmo_msgs.msg import Volume, VolumeButton
+from kuri_api.msg import Volume, VolumeButton
 from std_msgs.msg import Bool, Byte, Empty
 import logging
 logger = logging.getLogger(__name__)

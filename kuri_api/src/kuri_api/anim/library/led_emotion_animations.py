@@ -1,6 +1,6 @@
 from kuri_api.anim import AnimationGroup
 from kuri_api.anim import Track
-from gizmo.utils.heartbeat_utils import happiness_to_color, happiness_to_fade, excitation_to_period
+from kuri_api.utils.heartbeat_utils import happiness_to_color, happiness_to_fade, excitation_to_period
 
 class LEDEmotionAnimations(AnimationGroup):
     """

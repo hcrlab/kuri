@@ -1,8 +1,8 @@
 import math, time, random, rospy, threading as tr
-from gizmo.utils import interp as lo
+from kuri_api.utils import interp as lo
 from kuri_api.anim import track
-from kuri_api import Lights
-from gizmo.utils.rate import Rate
+from kuri_api.lights import Lights
+from kuri_api.utils.rate import Rate
 from .reactive_light.listening_light import ListeningLedPlayer
 from .reactive_light.dance_light import MusicLedPlayer
 import logging
