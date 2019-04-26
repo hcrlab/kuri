@@ -4,12 +4,9 @@ def get_data_path():
     """
     Return the data path for either the GBZ or a development workspace.
     """
-    fp = os.path.realpath(__file__)
-    devp = os.path.realpath('/tmp/tmpqJML3z/devel_isolated/assets')
-    srcp = os.path.realpath('/tmp/tmpqJML3z/src/assets')
-    if devp in fp or srcp in fp:
-        return '/tmp/tmpqJML3z/src/assets'
-    return os.path.join('/opt/gizmo', 'share/assets')
+    if os.path.isdir("/opt/gizmo"):
+        return os.path.join('/opt/gizmo', 'share/assets')
+    return "/tmp"
 
 
 def get_assets_path():

@@ -3,6 +3,7 @@ from numpy import clip
 from kuri_api.anim import track
 from kuri_api.head import Head
 
+
 class HeadPlayer(track.Player):
 
     def __init__(self, svc, content, done_cb=None):

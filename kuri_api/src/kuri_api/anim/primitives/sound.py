@@ -1,8 +1,8 @@
 import os, threading
 from kuri_api.anim import track
 from kuri_api.sound import WaveFile
-
-sounds_path = '/opt/gizmo/share/assets/sounds'
+from assets import config
+sounds_path = config.get_sounds_path()
 
 class Sound(object):
     """
@@ -62,7 +62,11 @@ class SoundFile(track.Content):
 
     def __init__(self, sounds_svc, filename):
         self._sounds_svc = sounds_svc
-        self.wav = WaveFile(filename)
+        if os.path.isfile(filename):
+            self.wav = WaveFile(filename)
+        else:
+            print("{} doesn't exist; couldn't load sound".format(filename))
+            self.wav = None
 
     def play(self, done_cb=None):
         p = SoundPlayer(self._sounds_svc, self, done_cb)
@@ -70,7 +74,10 @@ class SoundFile(track.Content):
         return p
 
     def length(self):
-        return self.wav.duration
+        if not self.wav:
+            return 0
+        else:
+            return self.wav.duration
 
     def __str__(self):
         return str(self.wav)

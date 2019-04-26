@@ -39,9 +39,9 @@ class Listener(Events):
             print 'sorry, too sleepy ...'
             voice.snooze()
 
-        voice = Voice()
-        voice.wake_event.connect(on_voice_command)
-        voice.voice_command_event.connect(on_voice_command)
+        listener = Listener()
+        listener.wake_event.connect(on_voice_command)
+        listener.voice_command_event.connect(on_voice_command)
 
     """
     NAMESPACE = 'audio'

@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <launch>
-  <arg name="world"  default="empty"/>  <!-- empty, small_office, ... (see ../worlds) -->
+  <arg name="world"  default="worlds/empty.world"/> 
   <arg name="robot"  default="full"/>          <!-- full, lower_body, foot -->
   <arg name="gzpose" default="-x 0.0 -y 0.0 -z 0.0 -R 0.0 -P 0.0 -Y 0.0"/>
   <arg name="gui" default="true"/>
   <arg name="debug" default="false"/>
+  <arg name="navigation" default="true" />
+  <arg name="map_file" default="$(find kuri_navigation)/maps/empty.yaml" />
 
   <env name="GAZEBO_MODEL_PATH" value="$(find kuri_gazebo)/models:$(optenv GAZEBO_MODEL_PATH)" />
 
   <!-- start up world -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <!--<arg name="world_name" value="$(find kuri_gazebo)/worlds/$(arg world).world"/>-->
+    <arg name="world_name" value="$(arg world)"/>
     <arg name="gui" value="$(arg gui)"/>
     <arg name="debug" value="$(arg debug)"/>
   </include>
@@ -24,5 +26,7 @@
   <!-- bring up robot -->
   <include file="$(find kuri_gazebo)/launch/kuri_bringup.launch"/>
 
-  <include file="$(find kuri_navigation)/launch/nav.launch" />
+  <include file="$(find kuri_navigation)/launch/nav.launch" if="$(arg navigation)">
+      <arg name="map_file" value="$(arg map_file)" />
+  </include>
 </launch>

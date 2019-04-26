@@ -10,6 +10,10 @@ Provides Python wrappers for hardware capabilities and some high level functiona
 
 ## Usage
 
-You may need to install `alsaaudio`
+### Simulation
+
+You may need to install `alsaaudio` on your machine
 
     sudo pip install pyalsaudio
+    
+Some utilities expect Kuri's animation assets to be in place. You can mock this up by copying `/opt/gizmo/share/assets` off the robot onto your machine at the same location. Make sure your user has write access to this directory as well. 

@@ -1,0 +1,15 @@
+<launch>
+  <!-- RUN GMAPPING -->
+
+  <node name="slam_gmapping" pkg="gmapping" type="slam_gmapping" output="screen">
+        <param name="throttle_scans" value="1"/>
+        <param name="linearUpdate" value=".2"/>
+        <param name="angularUpdate" value=".5"/>
+        <param name="map_update_interval" value="1"/>
+        <param name="xmin" value="-15"/>
+        <param name="xmax" value="15"/>
+        <param name="ymin" value="-15"/>
+        <param name="ymax" value="15"/>
+  </node>
+
+</launch>

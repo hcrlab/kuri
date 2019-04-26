@@ -14,3 +14,7 @@ teleop() {
     rqt_config=$(rospack find kuri_launch)/config/teleop.perspective
     rqt --perspective-file $rqt_config
 }
+
+key_teleop() {
+    rosrun teleop_twist_keyboard teleop_twist_keyboard.py cmd_vel:=/mobile_base_controller/cmd_vel
+}

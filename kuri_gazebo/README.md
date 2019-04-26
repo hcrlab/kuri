@@ -13,3 +13,15 @@ To start the simulated robot in an empty world:
     roslaunch kuri_gazebo kuri_gazebo.launch
 
 Kuri's sensors won't show much or anything in the empty world, so add some items through the Gazebo interface.
+
+### Mapping
+
+    roslaunch kuri_gazebo kuri_gazebo.launch navigation:=false
+    
+Then separately
+
+    roslaunch kuri_navigation gmapping.launch
+    
+Teleop to build the map, then save like usual
+
+    rosrun map_server map_saver
