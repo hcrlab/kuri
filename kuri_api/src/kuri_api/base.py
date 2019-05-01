@@ -12,10 +12,12 @@ import threading
 from kuri_api.utils import Mux, MuxChannel
 from kuri_api.utils import Events
 
+
 def normalize_angle_positive(angle):
     """Normalizes angle to be in [0, 2pi)
     """
     return (angle % (2.0 * math.pi)) % (2.0 * math.pi)
+
 
 def normalize_angle(angle):
     """Normalizes angle to be in [-pi, pi)
@@ -25,6 +27,7 @@ def normalize_angle(angle):
       return pos - 2.0 * math.pi
     return pos
 
+
 def quat_heading(quat):
     x, y, z, w = (quat.x, quat.y, quat.z, quat.w)
     return math.atan2(2.0 * (x * y + w * z), 1.0 - 2.0 * (y * y + z * z))
@@ -33,6 +36,7 @@ def quat_heading(quat):
 trajectory_topic ='mobile_base/commands/wheel_traj'
 controller='mobile_base_controller'
 switch_service='controller_manager/switch_controller',
+
 
 class Base(Events):
     """Base controls the mobile base portion of the Kuri robot.
@@ -44,8 +48,12 @@ class Base(Events):
         base.stop()
     """
 
+    move_event = Events.source()
+    arc_event = Events.source()
+
     def __init__(self):
-        self.pub = rospy.Publisher('/mobile_base/command/velocity', Twist, queue_size=10)
+        super(Base, self).__init__()
+        self.vel_pub = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
         self._odom_sub = rospy.Subscriber('odom', nav_msgs.msg.Odometry, callback=self._odom_callback)
 
         if not rospy.get_param("use_sim_time", False):
@@ -58,10 +66,6 @@ class Base(Events):
         self.latest_pose = None
         self.latest_yaw = None
         self.no_odom_received = True
-        self.move_event = Events.source()
-        self.arc_event = Events.source()
-
-
 
     def _odom_callback(self, msg):
         self.no_odom_received = False
@@ -82,7 +86,7 @@ class Base(Events):
 
         self._traj_pub.publish(t)
     
-    def go_forward(self, distance, speed=0.1):
+    def go_forward(self, distance, speed):
         """Moves the robot a certain distance.
 
         It's recommended that the robot move slowly. If the robot moves too
@@ -96,13 +100,15 @@ class Base(Events):
             speed: The speed to travel, in meters/second.
         """
         if self.arc_move_client:
-            self.arc_move_client.arc_move(angle=0.0, angular_velocity=speed, arc_len=distance, linear_velocity=speed,
-                                    duration=-1, done_cb=lambda : self.arc_event('done'))
+            # We don't want duration to be a limit, so set it to a high number
+            self.arc_move_client.arc_move(angle=0.0, angular_velocity=0.0, arc_len=distance, linear_velocity=speed,
+                                    duration=1000.0, done_cb=lambda : self.arc_event('done'))
+
             return
 
 
         # rospy.sleep until the base has received at least one message on /odom
-        while self.no_odom_received:
+        while self.no_odom_received and not rospy.is_shutdown():
             rospy.loginfo_throttle(10, "Waiting for odom message before moving...")
             rospy.sleep(0.3)
 
@@ -138,7 +144,7 @@ class Base(Events):
 
 
         # rospy.sleep until the base has received at least one message on /odom
-        while self.no_odom_received:
+        while self.no_odom_received and not rospy.is_shutdown():
             rospy.loginfo_throttle(10, "Waiting for odom message before moving...")
             rospy.sleep(0.3)
 
@@ -160,7 +166,7 @@ class Base(Events):
         while yaw_error > 0.01 and not rospy.is_shutdown():
             # Simple proportional control with fixed direction
             # Make control proportional to the error, with min of 0.1 and max of `speed`
-            p = min(speed, speed * yaw_error + 0.1)
+            p = min(velocity, velocity * yaw_error + 0.1)
             self.move(0, direction * p)
             last_yaw = normalize_angle_positive(self.latest_yaw)
             yaw_error = normalize_angle_positive(target_yaw - last_yaw)
@@ -187,7 +193,7 @@ class Base(Events):
         msg.angular.z = angular_speed
 
         # Publish message
-        self.pub.publish(msg)
+        self.vel_pub.publish(msg)
 
     def stop(self):
         """Stops the mobile base from moving.
@@ -197,7 +203,7 @@ class Base(Events):
         msg.linear.x = 0.0
         msg.angular.z = 0.0
 
-        self.pub.publish(msg)
+        self.vel_pub.publish(msg)
 
 
 class ArcMove(object):
@@ -290,6 +296,12 @@ class BaseMux(Mux):
             if not self.is_active:
                 return False
             return super(type(self), self).send_trajectory(traj)
+
+        def go_forward(self, distance, speed):
+            if not self.is_active:
+                return False
+
+            return super(type(self), self).go_forward(distance, speed)
 
         def rotate_by(self, angle, velocity, duration):
             if not self.is_active:
