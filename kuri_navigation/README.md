@@ -8,7 +8,7 @@ A wrapper for the OORT mapping process. When using this node:
 
 * Start with robot on dock
 * Teleop the robot through some interface
-* Don't drive to quickly or mapping won't work well
+* Don't drive too quickly or mapping won't work well
 * Monitor map quality through Rviz
 * Drive it back onto the dock to save out the map.
 

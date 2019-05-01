@@ -8,8 +8,8 @@ import mayfield_utils
 
 import geometry_msgs.msg
 
-from .oort_map_manager import OortMapManager
 from kuri_api.power import PowerMonitor
+from kuri_navigation.localization_manager import LocalizationManager
 
 
 class MayNavController:
@@ -34,8 +34,7 @@ class MayNavController:
         mayfield_utils.wait_for_nodes(
             node_names=['controllers'],
         )
-
-        self._map_manager = OortMapManager()
+        self._localization_manager = LocalizationManager()
         self._power_monitor = None  # Created when we start to run
 
 
@@ -45,11 +44,10 @@ class MayNavController:
         map.  If there is, have OORT load it, and start AMCL localization
         '''
         if os.path.isfile(MayNavController.MAP_PATH):
-            self._map_manager.load_map(MayNavController.MAP_PATH)
-            self._map_manager.start_localization()
+            self._localization_manager.start_localization()
             # Assume that on start-up we're on or near the dock.  It's as good
             # a guess as any. . .
-            self._map_manager.localize_on_dock()
+            #self._map_manager.localize_on_dock()
             self._power_monitor = PowerMonitor()
             self._power_monitor.docked_event.connect(self._dock_changed_cb)
             self._power_monitor.undocked_event.connect(self._dock_changed_cb)
@@ -74,11 +72,13 @@ class MayNavController:
             return
 
     def shutdown(self):
-        self._map_manager.shutdown()
+        pass
 
     def _dock_changed_cb(self, msg):
         '''
         To help AMCL, relocalize to the dock whenever we're on it
         '''
         if msg == 'docked':
-            self._map_manager.localize_on_dock()
+            #TODO: Make dock pose a ros param so we can do something like this without OORT
+            #self._map_manager.localize_on_dock()
+            pass

@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
-    <arg name="map_file" default="$(find kuri_navigation)/maps/empty_map.yaml" />
 
-    <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
-
+     <!-- OORT is the Mayfield map server and mapping tool. Only available on robot -->
+    <node name="oort_ros_mapping"
+          pkg="oort"
+          type="oort_ros"
+          launch-prefix="nice -n 10"
+          required="true">
+        <remap from="scan" to="scan_reduced_mapping"/>
+    </node>
 
     <!-- Autonomous Navigation -->
     <node name="may_nav"
@@ -13,6 +18,9 @@
           respawn_delay="2.0">
         <remap from="cmd_vel" to="nav_cmd_vel"/>
         <remap from="scan" to="/scan_reduced_nav"/>
+        <!-- map_cleaned has small unknown spaces removed and obstacles smoothed
+             out to make it easier for may_nav to use -->
+        <remap from="/map" to="map_cleaned"/>
 
         <rosparam command="load"
                   file="$(find may_nav_ros)/config/local_planner_params_p3-ds.yaml"
@@ -29,8 +37,8 @@
          so it can still be used with Rviz -->
     <node name="rviz_nav_proxy" pkg="may_nav_ros" type="rviz_nav_proxy" />
 
-    <include file="$(find kuri_navigation)/launch/amcl.launch">
-        <arg name="auto_start" value="true" />
+    <include file="$(find gizmo_ros_navigation)/launch/amcl.launch">
+        <arg name="auto_start" value="false" />
         <arg name="init_global_pose" value="false" />
     </include>
 

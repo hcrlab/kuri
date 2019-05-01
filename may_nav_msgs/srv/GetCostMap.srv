@@ -1,0 +1,3 @@
+bool use_dynamic_map
+---
+may_nav_msgs/CostMap cost_map
