@@ -49,7 +49,7 @@
     <!--overwrite base_global_planner to use navfn/NavfnROS instead (GlobalPlanner doesn't work with this case yet), and set up params in the NavfnROS namespace-->
     <rosparam unless="$(arg use_laser)" file="$(find kuri_navigation)/config/nav_params/move_base_sonar_params.yaml" command="load"/>
 
-    <remap from="cmd_vel" to="/mobile_base/command/velocity"/>
+    <remap from="cmd_vel" to="/mobile_base/commands/velocity"/>
 
     <rosparam if="$(arg use_forbidden_zones)" ns="global_costmap/forbidden_zone_layer" param="map_topic">"/forbidden_zone_map"</rosparam>
   </node>

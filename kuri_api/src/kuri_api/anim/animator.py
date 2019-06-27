@@ -46,7 +46,6 @@ class Animator(object):
             return self.currentTrackPlayer
         logger.error('Could not play animation because of parse error.')
         return
-        return
 
     def play_animation_from_container_json(self, container_json, done_cb=None):
         track = self.animation_assembler.animation_track_from_container_json(container_json)

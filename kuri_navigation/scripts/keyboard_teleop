@@ -1,0 +1,245 @@
+#!/usr/bin/env python
+
+
+from __future__ import print_function
+import rospy
+
+from geometry_msgs.msg import Twist
+import controller_manager_msgs.srv
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+from sensor_msgs.msg import JointState
+
+import sys, select, termios, tty
+
+instructions = """
+Reading from the keyboard and publishing to Twist!
+---------------------------
+Moving around:
+   u    i    o
+   j    k    l
+        ,    
+
+q/z : increase/decrease max speeds by 10%
+w/x : increase/decrease only linear speed by 10%
+e/c : increase/decrease only angular speed by 10%
+
+u/o : forward and turn left/right
+j/l : turn left/right
+,   : back
+
+r/v : tilt head up/down
+d/g : pan head left/right
+
+[/] : open/close eyes
+
+
+
+anything else : stop
+
+CTRL-C to quit
+"""
+
+move_bindings = {
+    'i': (1, 0),
+    'o': (1, -1),
+    'j': (0, 1),
+    'l': (0, -1),
+    'u': (1, 1),
+    ',': (-1, 0),
+}
+
+
+head_bindings = {
+    'r': (0, 1),
+    'v': (0, -1),
+    'd': (1, 0),
+    'g': (-1, 0)
+}
+
+SMILE_EYES=-1.0
+CLOSED_EYES=1.0
+OPEN_EYES = 0.04
+eyes_bindings = {
+    '[': 1.1,
+    ']': -1.1
+}
+
+speed_bindings = {
+    'q': (1.1, 1.1),
+    'z': (.9, .9),
+    'w': (1.1, 1),
+    'x': (.9, 1),
+    'e': (1, 1.1),
+    'c': (1, .9),
+}
+
+# A keypress in Dvorak indicates what key in Qwerty?
+dvorakTranslator = {'a': 'a',
+                    'b': 'n',
+                    'c': 'i',
+                    'd': 'h',
+                    'e': 'd',
+                    'f': 'y',
+                    'g': 'u',
+                    'h': 'j',
+                    'i': 'g',
+                    'j': 'c',
+                    'k': 'v',
+                    'l': 'p',
+                    'm': 'm',
+                    'n': 'l',
+                    'o': 's',
+                    'p': 'r',
+                    'q': 'x',
+                    'r': 'o',
+                    's': ';',
+                    't': 'k',
+                    'u': 'f',
+                    'v': '.',
+                    'w': ',',
+                    'x': 'b',
+                    'y': 't',
+                    'z': '/',
+                    ';': 'z',
+                    ',': 'w',
+                    '.': 'e',
+                    '/': '[',
+                    '\'': 'q',
+                    '=': ']',
+                    '[': '-',
+                    ']': '='
+                    }
+
+pose_bindings = {"1": ("go_pose", {"head": [0, 0], "eyes": OPEN_EYES}),
+"2": ("smile", {"head": [0, 0], "eyes": SMILE_EYES}),
+"3": ("sleep", {"head": [0, .4], "eyes": CLOSED_EYES})
+}
+
+
+def getKey(translator=None):
+    fd = sys.stdin.fileno()
+    tty.setraw(fd)
+    key = sys.stdin.read(1)
+    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, original_settings)
+    key = key.lower()
+    if translator is not None:
+        key = translator.get(key, key)
+    return key
+
+
+def publish_base_velocity(x, y, th):
+    twist = Twist()
+    twist.linear.x = x
+    twist.linear.y = y
+    twist.linear.z = 0
+    twist.angular.x = 0
+    twist.angular.y = 0
+    twist.angular.z = th
+    velPub.publish(twist)
+
+
+def publish_eyes(position):
+    traj = JointTrajectory()
+    traj.joint_names = ["eyelids_joint"]
+    p = JointTrajectoryPoint()
+    p.positions = [position]
+    p.velocities = []
+    p.effort = []
+    p.time_from_start = rospy.Time(1)
+    traj.points = [p]
+    eyesPub.publish(traj)
+
+
+def publish_head(pan, tilt):
+    jointTrajectory = JointTrajectory()
+    jointTrajectory.joint_names = ["head_1_joint", "head_2_joint"]
+
+    point = JointTrajectoryPoint()
+    point.positions = [pan, tilt]
+    point.velocities = [0, 0]
+    point.time_from_start = rospy.Duration(1)
+
+    jointTrajectory.points.append(point)
+
+    headPub.publish(jointTrajectory)
+
+
+def move_to_pose(pose):
+    publish_eyes(pose["eyes"])
+    publish_head(pose["head"][0], pose["head"][1])
+
+
+def stop_all():
+    publish_base_velocity(0, 0, 0)
+    publish_head(latest_positions["head_1_joint"], latest_positions["head_2_joint"])
+    publish_eyes(latest_positions["eyelids_joint"])
+
+latest_positions = None
+
+
+def states_cb(msg):
+    global latest_positions
+    positions = {}
+    for name, i in zip(msg.name, range(len(msg.name))):
+        positions[name] = msg.position[i]
+    latest_positions = positions
+
+
+def vels(linear, angular):
+    return "Linear speed %.2f\tAngular speed %.2f " % (linear, angular)
+
+
+if __name__ == "__main__":
+    original_settings = termios.tcgetattr(sys.stdin)
+    rospy.init_node('keyboard_teleop', anonymous=True)
+    linear = 0.75
+    angular = 0.75
+
+    keyTranslator = None
+    if len(sys.argv) == 2:
+        if sys.argv[1] == "-d":
+            keyTranslator = dvorakTranslator
+
+    statesSub = rospy.Subscriber('/joint_states', JointState, states_cb)
+    velPub = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=1)
+    eyesPub = rospy.Publisher('/eyelids_controller/command', JointTrajectory, queue_size=1)
+    headPub = rospy.Publisher('/head_controller/command', JointTrajectory, queue_size=1)
+
+
+    x = 0
+    th = 0
+    y = 0
+
+
+    print(instructions)
+    print(vels(linear, angular), end="\r")
+    while not rospy.is_shutdown():
+        key = getKey(keyTranslator)
+        if key in move_bindings.keys():
+            x = linear * move_bindings[key][0]
+            y = 0
+            th = angular * move_bindings[key][1]
+            publish_base_velocity(x, y, th)
+        elif key in speed_bindings.keys():
+            linear = linear * speed_bindings[key][0]
+            angular = angular * speed_bindings[key][1]
+            print(vels(linear, angular), end="\r")
+        elif key in head_bindings.keys():
+            pan = 0.4 * head_bindings[key][0] + latest_positions["head_1_joint"]
+            tilt = 0.2 * head_bindings[key][1] + latest_positions["head_2_joint"]
+            publish_head(pan, tilt)
+        elif key in eyes_bindings.keys():
+            position = eyes_bindings[key]
+            publish_eyes(position)
+        elif key in pose_bindings.keys():
+            bound_to = pose_bindings[key][1]
+            move_to_pose(bound_to)
+        elif key == '\x03':
+            # Break on Control C
+            break
+        else:
+            print(key)
+            stop_all()
+
+    stop_all()
+    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, original_settings)

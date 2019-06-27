@@ -24,7 +24,7 @@
   <node name="base_odom_relay" pkg="topic_tools" type="relay" args="/mobile_base_controller/odom /odom" />
 
   <!-- Forward messages published on the real topic to the simulators cmd_vel interface -->
-  <node name="base_cmd_vel_relay" pkg="topic_tools" type="relay" args="/mobile_base/command/velocity /mobile_base_controller/cmd_vel" />
+  <node name="base_cmd_vel_relay" pkg="topic_tools" type="relay" args="/mobile_base/commands/velocity /mobile_base_controller/cmd_vel" />
 
   <!-- The robot muxes cmd_vel because there are multiple independent controllers (teleop, auto, ...). May eventually be necessary to replicate this. -->
   <!--<node name="base_cmd_mux" pkg="cmd_vel_mux" type="cmd_vel_mux" />-->

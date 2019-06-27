@@ -1,4 +1,6 @@
 import rospy
+import signal
+import sys
 
 import mayfield_msgs.msg
 import mayfield_utils
@@ -12,16 +14,12 @@ class MappingController:
     The mapping controller node allows you to create a map using kuri's
     mapping system, OORT.
 
-    Mapping will start once Kuri detects its on the dock.  The eyes will open
-    and Kuri will look forward as an indication that mapping is started
-
-    The user then drives Kuri using the keyboard teleop node.
+    The user drives Kuri using the keyboard teleop node.
 
     You can monitor the progress of mapping using a tool like rviz.  When the
     map reaches 20 squre meters, Kuri will start to smile.
 
-    To stop mapping, driver Kuri back onto the dock.  Kuri's eyes will close
-    and the head will go down.  The map will be saved to the user's home
+    To stop mapping, kill the node.  The map will be saved to the user's home
     directory:
 
     ~/oort_maps/<uuid>/map.map_capnp      - OORT map file
@@ -34,7 +32,7 @@ class MappingController:
     new map
     '''
 
-    def __init__(self):
+    def __init__(self, map_name):
 
         self._pub = rospy.Publisher(
             "node_online",
@@ -55,9 +53,15 @@ class MappingController:
 
         self._power_monitor = None  # Created when we start to run
         self._map_manager = OortMapManager()
-
-
+        
+        # catch ctrl-c and signal the main thread that we should save the map 
+        # and quit
+        def signal_handler(sig, frame):
+            self._mapping_complete = True
+        signal.signal(signal.SIGINT, signal_handler)
         self._mapping_complete = False
+        self.map_name = map_name
+        self._start_mapping()
 
 
     def run(self):
@@ -68,8 +72,8 @@ class MappingController:
         )
 
         self._power_monitor = PowerMonitor()
-        self._power_monitor.docked_event.connect(self._dock_changed_cb)
-        self._power_monitor.undocked_event.connect(self._dock_changed_cb)
+        #self._power_monitor.docked_event.connect(self._dock_changed_cb)
+        #self._power_monitor.undocked_event.connect(self._dock_changed_cb)
 
         # _start_mapping and _stop_mapping are called from ROS callbacks
         # once _stop mapping runs, it will set self._mapping_complete
@@ -86,11 +90,11 @@ class MappingController:
                     rospy.logwarn("Mapping complete.  Converting. . .")
                     self._map_manager.convert_map()
                     rospy.logwarn("Map conversion complete")
-                    rospy.spin()  # Hang until shutdown
                     return
                 rospy.sleep(0.5)
         except rospy.exceptions.ROSInterruptException:
             return
+  
 
     def shutdown(self):
         self._joint_states.shutdown()
@@ -100,31 +104,10 @@ class MappingController:
 
         self._map_manager.shutdown()
 
-    def _dock_changed_cb(self, msg):
-        '''
-        Called when the Power Monitor detects we've moved on or off the
-        dock
-
-        This callback will start mapping when we've moved onto the dock,
-        and will stop mapping when we're back on the dock with a large enough
-        map
-        '''
-
-        # Early-out.  If we've already mapped, we're all done here
-        if self._mapping_complete:
-            return
-
-        if msg == 'docked':
-            map_state = self._map_manager.get_map_state()
-            if map_state == "not_mapping":
-                self._start_mapping()
-            elif map_state == "mapping":
-                self._stop_mapping()
-
 
     def _start_mapping(self):
 
-        map_path = self._map_manager.start_mapping()
+        map_path = self._map_manager.start_mapping(self.map_name)
         # "dock" is a reserved waypoint name in OORT.  It's used for loop
         # closures as the map is added to
         self._map_manager.save_waypoint("dock", "dock")
@@ -133,12 +116,9 @@ class MappingController:
         rospy.logwarn("Started mapping.  Map stored at {}".format(map_path))
 
     def _stop_mapping(self):
-
-
-
         # Notifying OORT that we're docked will give it a hint about how to do
         # the final loop closure
-        self._map_manager.notify_docked()
+        #self._map_manager.notify_docked()
         # Telling OORT to finish off the map is time consuming.  We'll do that
         # from the main thread
         self._mapping_complete = True

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
-    <!--<arg name="map_file" />-->
+    <arg name="map_file" default="$(find kuri_navigation)/maps/empty_map.yaml"/>
 
     <!-- Kuri motor control, depthsensor, chest LED, and other sensors-->
     <include file="$(find mobile_base_driver)/launch/kuri_drive.launch"/>
@@ -13,6 +13,13 @@
 
     <!-- Audio processing pipeline -->
     <include file="$(find audio_realtime)/launch/audio_realtime.launch"/>
+    
+    <!-- Transcription service -->
+    <include file="$(find audio_realtime)/launch/audio_voice_delegate.launch">
+        <arg name="soundhound_client_id" value="-1" />
+        <arg name="soundhound_user_id" value="test" />
+        <arg name="soundhound_client_key" value="-1" />
+    </include>
 
     <!-- Volume manager -->
     <include file="$(find kuri_api)/launch/volume_interface.launch"/>
@@ -20,12 +27,8 @@
     <node name="safety_controller" pkg="kuri_navigation" type="safety_controller" />
 
     <!-- Autonomous Navigation -->
-    <!-- We're using the default Kuri stack for now, which means you'll only be able to
-         provide maps in their Cap'n serialized format. It should be possible to take
-         oort_mapping out of this stack and replace it with a typical map_server,
-         but will require some work to make sure amcl and may_nav come up okay -->
     <include file="$(find kuri_navigation)/launch/may_nav.launch">
-        <!--<arg name="map_file" value="$(arg map_file)" />-->
+        <arg name="map_file" value="$(arg map_file)" />
     </include>
 
 </launch>

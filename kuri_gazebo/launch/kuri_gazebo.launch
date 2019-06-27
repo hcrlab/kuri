@@ -3,7 +3,9 @@
 <launch>
   <arg name="world"  default="worlds/empty.world"/> 
   <arg name="robot"  default="full"/>          <!-- full, lower_body, foot -->
-  <arg name="gzpose" default="-x 0.0 -y 0.0 -z 0.0 -R 0.0 -P 0.0 -Y 0.0"/>
+  <arg name="initial_pose_x" default="0.0" />
+  <arg name="initial_pose_y" default="0.0" />
+  <arg name="initial_pose_a" default="0.0" />
   <arg name="gui" default="true"/>
   <arg name="debug" default="false"/>
   <arg name="navigation" default="true" />
@@ -20,13 +22,20 @@
 
   <!-- spawn robot in simulation -->
   <include file="$(find kuri_gazebo)/launch/kuri_spawn.launch">
-    <arg name="gzpose" value="$(arg gzpose)"/>
+    <arg name="gzpose" value="-x $(arg initial_pose_x) -y $(arg initial_pose_y) -z 0.0 -R 0.0 -P 0.0 -Y $(arg initial_pose_a)"/>
   </include>
 
   <!-- bring up robot -->
   <include file="$(find kuri_gazebo)/launch/kuri_bringup.launch"/>
 
+  <!-- vanilla nav stack -->
   <include file="$(find kuri_navigation)/launch/nav.launch" if="$(arg navigation)">
+      <arg name="initial_pose_x" value="$(arg initial_pose_x)" />
+      <arg name="initial_pose_y" value="$(arg initial_pose_y)" />
+      <arg name="initial_pose_a" value="$(arg initial_pose_a)" />
       <arg name="map_file" value="$(arg map_file)" />
   </include>
+  
+  <!-- mocked voice services -->
+  <include file="$(find kuri_audio)/launch/audio_voice_delegate.launch" ns="audio"/>
 </launch>

@@ -1,0 +1,12 @@
+<launch>
+    <arg name="wakeword_source" default="system-in.monitor"/>
+    <arg name="debug" default="yes"/>
+    <arg name="direction" default="none"/>
+    <arg name="disable_awake" default="False"/>
+    <arg name="disable_exchange" default="False"/>
+
+    <group>
+        <node name="voice_delegate" pkg="kuri_audio" type="audio_voice_delegate" respawn="true" respawn_delay="10">
+        </node>
+    </group>
+</launch>

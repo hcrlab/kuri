@@ -1,10 +1,16 @@
 <launch>
+    <arg name="initial_pose_x" default="0.0" />
+    <arg name="initial_pose_y" default="0.0" />
+    <arg name="initial_pose_a" default="0.0" />
     <arg name="map_file" default="$(find kuri_navigation)/maps/empty_map.yaml" />
 
     <!-- Autonomous Navigation -->
     <include file="$(find kuri_navigation)/launch/move_base_kuri.launch" />
 
     <include file="$(find kuri_navigation)/launch/amcl.launch">
+        <arg name="initial_pose_x" value="$(arg initial_pose_x)" />
+        <arg name="initial_pose_y" value="$(arg initial_pose_y)" />
+        <arg name="initial_pose_a" value="$(arg initial_pose_a)" />
         <arg name="auto_start" value="true" />
         <arg name="init_global_pose" value="true" />
     </include>

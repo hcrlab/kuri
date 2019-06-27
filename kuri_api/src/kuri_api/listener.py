@@ -58,9 +58,6 @@ class Listener(Events):
         self._stat = rospy.ServiceProxy(namespace + '/voice_delegate/stat', Stat)
         self._wake_up = rospy.ServiceProxy(namespace + '/voice_delegate/wake_up', WakeUp)
         self._snooze = rospy.ServiceProxy(namespace + '/voice_delegate/snooze', Snooze)
-        self._wake_pub = rospy.Publisher(namespace + '/voice/wake', Empty, queue_size=1)
-        self._recognized_pub = rospy.Publisher(namespace + '/voice/recognized', String, queue_size=1)
-        self._not_recognized_pub = rospy.Publisher(namespace + '/voice/not_recognized', Empty, queue_size=1)
         self._lock = threading.RLock()
         self._program_initiated = False
         self._awake_timeout = rospy.get_param('/audio_voice_delegate/awake_timeout', 10) + self.PROCESS_DELAY
@@ -89,8 +86,6 @@ class Listener(Events):
             self._wake_up()
         except rospy.ServiceException as e:
             logger.error(e.message)
-        except rospy.service.ServiceException as e:
-            logger.error(e.message)
 
     def snooze(self):
         self._program_initiated = False
@@ -98,42 +93,30 @@ class Listener(Events):
             self._snooze()
         except rospy.ServiceException as e:
             logger.error(e.message)
-        except rospy.service.ServiceException as e:
-            logger.error(e.message)
 
     def _on_awake(self, wake):
         if not self._program_initiated:
-            self._wake_pub.publish(Empty())
             self.wake_event(wake)
-
-    def _publish_voice_command(self, name, params):
-        p = params.copy()
-        if name == 'custom' and 'name' in p:
-            name = p.pop('name', '')
-        if name:
-            command = {'name': name}
-            if p:
-                command['params'] = p
-            self._recognized_pub.publish(String(json.dumps(command)))
-        else:
-            self._not_recognized_pub.publish(Empty())
 
     def _on_exchange(self, exchange):
         """
-        Stop transcription, generate a voice_command event for HFSM
+        Stop transcription, generate a voice_command event
         """
         self.snooze()
         if hasattr(exchange, 'error') and exchange.error:
             self.voice_trigger_event({'trigger': 'voice error',
                                       'params': {'input': exchange.error}})
             return
-        if len(exchange.commands) > 0:
+        if len(exchange.commands) > 0 and len(exchange.commands[0].params) == 0 and exchange.transcription != "":
+            name = 'custom'
+            params = {"transcript": exchange.transcription}
+        elif len(exchange.commands) > 0 and len(exchange.commands[0].params) > 0 and len(exchange.commands[0].params[0].k) > 0 and len(exchange.commands[0].params[0].v) > 0:
             command = exchange.commands[0]
             name = command.name.replace('Command', '').replace('Kuri', '').lower()
             params = {param.k: param.v for param in command.params}
+            params["transcript"] = exchange.transcription
         else:
-            name = ''
-            params = {}
-        self._publish_voice_command(name, params)
+            #print("empty exchange")
+            return
         command = VoiceCommand(name=name, params=params)
         self.voice_command_event(command)

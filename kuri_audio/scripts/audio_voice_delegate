@@ -1,0 +1,56 @@
+#!/usr/bin/env python
+
+import rospy
+
+import kuri_api.sound
+import tf
+from kuri_api.anim import AnimationPlayer
+from kuri_api.anim.helpers import generate_all_animations
+
+from kuri_api import HeadMux, BaseMux, LightsMux, JointStates, Voice, Head
+from std_msgs.msg import Empty
+
+from audio_msgs.msg import Awake, Exchange
+from audio_msgs.srv import Stat, WakeUp, Snooze
+from audio_msgs.srv import StatResponse, WakeUpResponse, SnoozeResponse
+
+
+class VoiceDelegate(object):
+    def __init__(self):
+        self.awake = rospy.Publisher('~awake',Awake, queue_size=1, latch=True)
+        self.exchange = rospy.Publisher('~exchange', Exchange, queue_size=1)
+        self.stat = rospy.Service('~stat', Stat, self._on_stat)
+        self.wake_up = rospy.Service('~wake_up', WakeUp, self._on_wake_up)
+        self.snooze = rospy.Service('~snooze', Snooze, self._on_snooze)
+        self.wake = rospy.Subscriber('~wake', Empty, self._wake_requested)
+        self.current_state = 'awake'
+
+    def _wake_requested(self, request):
+        print("wake requested")
+
+    def _on_stat(self, request):
+        print("stat requested")
+        result = StatResponse()
+        result.state = self.current_state
+        return result
+
+    def _on_wake_up(self, request):
+        print("wake up requested")
+        response = WakeUpResponse()
+        return response
+
+    def _on_snooze(self, request):
+        print("snooze requested")
+        response = SnoozeResponse()
+        return response
+
+
+# main
+def main():
+    rospy.init_node("voice_delegate")
+    VoiceDelegate()
+    rospy.spin()
+
+
+if __name__ == '__main__':
+    main()

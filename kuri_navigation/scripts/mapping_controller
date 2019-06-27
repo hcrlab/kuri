@@ -4,11 +4,15 @@ import rospy
 
 import kuri_navigation
 
+import sys
 if __name__ == '__main__':
 
     rospy.init_node('mapping_controller')
 
-    mapping_controller = kuri_navigation.MappingController()
+    map_name = None
+    if len(sys.argv) == 2:
+        map_name = sys.argv[1]
+    mapping_controller = kuri_navigation.MappingController(map_name)
 
     try:
         mapping_controller.run()

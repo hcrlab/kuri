@@ -53,15 +53,19 @@ class Base(Events):
 
     def __init__(self):
         super(Base, self).__init__()
-        self.vel_pub = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=10)
-        self._odom_sub = rospy.Subscriber('odom', nav_msgs.msg.Odometry, callback=self._odom_callback)
 
+        self._odom_sub = rospy.Subscriber('/odom', nav_msgs.msg.Odometry, callback=self._odom_callback)
+
+        # Move_base default
+        velocity_topic = "/mobile_base/commands/velocity"
+        # Are we not using sim time? Must be real robot
         if not rospy.get_param("use_sim_time", False):
             self.arc_move_client = ArcMove()
-            self._traj_pub = rospy.Publisher(trajectory_topic, mbdm.WheelTraj, queue_size=1)
         else:
             self.arc_move_client = None
-            self._traj_pub = None
+        self._traj_pub = rospy.Publisher(trajectory_topic, mbdm.WheelTraj, queue_size=1)
+
+        self.vel_pub = rospy.Publisher(velocity_topic, Twist, queue_size=10)
         self.latest_odom = None
         self.latest_pose = None
         self.latest_yaw = None
@@ -205,6 +209,12 @@ class Base(Events):
 
         self.vel_pub.publish(msg)
 
+    def get_yaw(self):
+        return self.latest_yaw
+
+    def get_pose(self):
+        return self.latest_pose
+
 
 class ArcMove(object):
     """
@@ -323,6 +333,12 @@ class BaseMux(Mux):
         def on_override(self):
             if not self.is_active and self.is_acquired:
                 super(BaseMux.Channel, self).stop()
+
+        def get_current_pose(self):
+            return super(BaseMux.Channel, self).get_pose()
+
+        def get_current_yaw(self):
+            return super(BaseMux.Channel, self).get_yaw()
 
     class __metaclass__(Events.__metaclass__, Mux.__metaclass__):
         pass

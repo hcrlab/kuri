@@ -178,16 +178,18 @@ class OortMapManager:
         # AMCL will use the first map it sees after it's started:
         self._map_republish_srv()
 
-    def start_mapping(self):
+    def start_mapping(self, name=None):
         '''
         Starts OORT mapping and returns the full path to the saved map data
 
         :returns: A path to the directory used to store the map
         '''
+        if not name:
+            name = str(uuid.uuid4())
         map_path = os.path.join(
             os.path.expanduser("~"),
             "oort_maps",
-            str(uuid.uuid4())
+            name
         )
         os.makedirs(map_path)  # Recursive
 

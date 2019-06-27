@@ -6,11 +6,12 @@ Nodes for working with Kuri's default navigation software. These are taken almos
 
 A wrapper for the OORT mapping process. When using this node:
 
-* Start with robot on dock
+* Use the mapping specific launch file from `kuri_launch`
+* Start the node to begin mapping. Pass a name as the only argument
 * Teleop the robot through some interface
 * Don't drive too quickly or mapping won't work well
 * Monitor map quality through Rviz
-* Drive it back onto the dock to save out the map.
+* Kill the node to save the map
 
 ## `safety_controller`
 

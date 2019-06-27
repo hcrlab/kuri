@@ -26,8 +26,8 @@ the mapping node will terminate
         <remap from="scan" to="scan_reduced_mapping"/>
     </node>
 
-
-    <node pkg="kuri_navigation" type="mapping_controller" name="mapping_controller"/> 
+    <!-- Launch this node in a separate shell to start mapping. Kill the node to save the map -->
+    <!--<node pkg="kuri_navigation" type="mapping_controller" name="mapping_controller" output="screen"/> -->
 
 
 </launch>
