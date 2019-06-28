@@ -238,7 +238,6 @@ if __name__ == "__main__":
             # Break on Control C
             break
         else:
-            print(key)
             stop_all()
 
     stop_all()
