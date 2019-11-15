@@ -1,0 +1,7 @@
+<launch>
+
+  <rosparam file="$(find kuri_camera)/config/tcp_params.yaml" command="load"/>
+
+  <node pkg="kuri_camera" type="uds_to_tcp" name="uds_to_tcp" output="screen"/>
+
+</launch>
