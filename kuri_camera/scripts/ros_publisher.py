@@ -3,18 +3,25 @@ import madmux
 import threading
 import cv2
 import numpy as np
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, CompressedImage
 from cv_bridge import CvBridge, CvBridgeError
 import rospy
 
 rospy.init_node("kuri_camera_ros_publisher")
+
+# Whether to publish the image msg as a CompressedImage or an Image
+useCompression = True
 
 # We'll treat this like reusable barriers
 image_received = threading.Event()
 image_published = threading.Event()
 
 bridge = CvBridge()
-publisher = rospy.Publisher("/upward_looking_camera/image_raw", Image, queue_size=10)
+baseTopic = "/upward_looking_camera/image_raw"
+if useCompression:
+    publisher = rospy.Publisher(baseTopic + "/compressed", CompressedImage, queue_size=10)
+else:
+    publisher = rospy.Publisher(baseTopic, Image, queue_size=10)
 
 image = None
 def stream_cb(data):
@@ -26,7 +33,10 @@ def stream_cb(data):
     data = np.fromstring(data, np.uint8)
     decoded = cv2.imdecode(data, cv2.CV_LOAD_IMAGE_COLOR)
     #cv2.cvtColor(decoded, image, cv2.CV_RGB2)
-    image = bridge.cv2_to_imgmsg(decoded, "rgb8")
+    if useCompression:
+        image = bridge.cv2_to_compressed_imgmsg(decoded)
+    else: 
+        image = bridge.cv2_to_imgmsg(decoded, "rgb8")
     image_received.set()
 
 
