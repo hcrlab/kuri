@@ -17,29 +17,38 @@ image_received = threading.Event()
 image_published = threading.Event()
 
 bridge = CvBridge()
-baseTopic = "/upward_looking_camera/image_raw"
+base_topic = "/upward_looking_camera/image_raw"
+
 if useCompression:
-    publisher = rospy.Publisher(baseTopic + "/compressed", CompressedImage, queue_size=10)
+    publisher = rospy.Publisher(base_topic + "/compressed", CompressedImage, queue_size=10)
 else:
-    publisher = rospy.Publisher(baseTopic, Image, queue_size=10)
+    publisher = rospy.Publisher(base_topic, Image, queue_size=10)
 
 image = None
 def stream_cb(data):
-    global image
+  global image
+  try:
+    stamp = rospy.get_rostime()
     # Make sure the previous message was sent before we take in the new one
     image_published.wait()
     image_published.clear()
-    #rospy.logdebug("Got image")
+
+    # Read the bytes as a jpeg image
     data = np.fromstring(data, np.uint8)
     decoded = cv2.imdecode(data, cv2.CV_LOAD_IMAGE_COLOR)
-    #cv2.cvtColor(decoded, image, cv2.CV_RGB2)
+
+    # Convert the decoded image to a ROS message
     if useCompression:
         image = bridge.cv2_to_compressed_imgmsg(decoded)
-    else: 
+    else:
         image = bridge.cv2_to_imgmsg(decoded, "rgb8")
+
+    image.header.stamp = stamp
     image_received.set()
+  except Exception as e:
+    print(e)
 
-
+# The MJPEG channel
 s = madmux.Stream("/var/run/madmux/ch3.sock")
 s.register_cb(stream_cb)
 
@@ -55,10 +64,10 @@ while not rospy.is_shutdown():
     # Make sure we've got a message to send
     image_received.wait()
     image_received.clear()
-    publisher.publish(image)
-    #rospy.logdebug("Image published")
 
-    # Let any pending stream callback threads know that they can scribble over image.
+    publisher.publish(image)
+
+    # Let any pending stream callback threads know that they can overwrite the image.
     image_published.set()
 
 s.close()
