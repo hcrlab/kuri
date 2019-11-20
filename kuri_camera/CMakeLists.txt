@@ -15,7 +15,7 @@ find_package(catkin REQUIRED
 
 )
 
-find_library(libmadmux NAMES libmadmux)
+#find_library(libmadmux NAMES libmadmux)
 
 catkin_package(
   CATKIN_DEPENDS
@@ -27,12 +27,15 @@ catkin_package(
 
 include_directories(${catkin_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
 
-# TODO: Figure out why we can't seem to link against madmux on the robot
-#if(libmadmux)
-#    message(WARNING "madmux wasn't found. Disabling C++ targets")
-#else()
-#add_executable(ros_publisher src/ros_publisher.cpp)
-#target_link_libraries(ros_publisher ${catkin_LIBRARIES} ${libmadmux})
+set(libmadmux "libmadmux-NOTFOUND")
+find_file(libmadmux libmadmux.so.0 /opt/gizmo-master-cbb8e0c/lib/x86_64-linux-gnu NO_DEFAULT_PATH)
+#find_file(libmadmux libmadmux.so.0 /opt/ros/indigo/lib NO_DEFAULT_PATH)
+message(WARNING "libmadmux path: ")
+message(WARNING ${libmadmux})
+add_executable(ros_publisher src/ros_publisher.cpp)
+target_link_libraries(ros_publisher  ${catkin_LIBRARIES} ${libmadmux})
+add_executable(ros_publisher_test src/ros_publisher_test.cpp)
+target_link_libraries(ros_publisher_test  ${catkin_LIBRARIES} ${libmadmux})
 #
 #add_executable(save_image src/save_image.cpp)
 #target_link_libraries(save_image ${catkin_LIBRARIES} ${libmadmux})

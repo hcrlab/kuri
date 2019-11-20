@@ -25,11 +25,14 @@ else:
 
 image = None
 def stream_cb(data):
-    global image
+  global image
+  try:  
+    stamp = rospy.Time.now()
     # Make sure the previous message was sent before we take in the new one
     image_published.wait()
     image_published.clear()
     #rospy.logdebug("Got image")
+    preCompression = rospy.Time.now()
     data = np.fromstring(data, np.uint8)
     decoded = cv2.imdecode(data, cv2.CV_LOAD_IMAGE_COLOR)
     #cv2.cvtColor(decoded, image, cv2.CV_RGB2)
@@ -37,8 +40,12 @@ def stream_cb(data):
         image = bridge.cv2_to_compressed_imgmsg(decoded)
     else: 
         image = bridge.cv2_to_imgmsg(decoded, "rgb8")
+    compLatency = rospy.Time.now() - preCompression
+    rospy.loginfo("Compression latency %f", compLatency.secs + compLatency.nsecs/1000000000.0)
+    image.header.stamp = stamp
     image_received.set()
-
+  except Exception as e:
+    print(e)
 
 s = madmux.Stream("/var/run/madmux/ch3.sock")
 s.register_cb(stream_cb)
@@ -55,6 +62,7 @@ while not rospy.is_shutdown():
     # Make sure we've got a message to send
     image_received.wait()
     image_received.clear()
+    #image.header.stamp = rospy.Time.now()
     publisher.publish(image)
     #rospy.logdebug("Image published")
 
