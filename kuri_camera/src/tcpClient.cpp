@@ -11,8 +11,8 @@ int main(int argc, char **arcv) {
   boost::asio::ip::tcp::resolver::query query("cococutkuri.personalrobotics.cs.washington.edu", "1234");
   boost::asio::ip::tcp::resolver::iterator iter = resolver.resolve(query);
   ROS_INFO("Before connect");
-  socket.connect(boost::asio::ip::tcp::endpoint(iter->endpoint()));  
-  
+  socket.connect(boost::asio::ip::tcp::endpoint(iter->endpoint()));
+
   uint8_t buf[256] = {0};
 
   size_t len = 0, readSize = 0;
@@ -38,7 +38,7 @@ int main(int argc, char **arcv) {
       }
     }
 
-    
+
 
   return 0;
 }
