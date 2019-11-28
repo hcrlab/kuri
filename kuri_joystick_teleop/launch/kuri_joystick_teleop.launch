@@ -1,0 +1,9 @@
+<launch>
+
+  <node respawn="true" pkg="joy" type="joy_node" name="joy_node">
+    <param name="dev" type="string" value="/dev/input/js0"/>
+  </node>
+
+  <node pkg="kuri_joystick_teleop" type="kuri_joystick_teleop" name="kuri_joystick_teleop" output="screen"/>
+
+</launch>
