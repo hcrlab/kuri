@@ -42,7 +42,7 @@ struct KuriCameraROSPublisher {
 
   void listen_publish_loop() {
     ros::Rate sub_poll(1);
-    ros::Rate fps(20);
+    ros::Rate fps(60);
     cv::Mat image;
     ros::Time timeForMsg;
     while (ros::ok()) {
@@ -71,7 +71,6 @@ struct KuriCameraROSPublisher {
   }
 
   void data_callback(uint8_t *buffer, uint32_t size) {
-    if (size < 1000) return;
     std::unique_lock<std::mutex> imageLock(imageMutex);
     imageMat = cv::Mat(1, size, CV_8UC1, buffer).clone();
     recvTime = ros::Time::now();

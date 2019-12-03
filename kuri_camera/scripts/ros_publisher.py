@@ -42,7 +42,7 @@ def stream_cb(data):
     else:
         image = bridge.cv2_to_imgmsg(decoded, "rgb8")
 
-    image.header.stamp = stamp
+    image.header.stamp = rospy.get_rostime();
     image_received.set()
   except Exception as e:
     print(e)

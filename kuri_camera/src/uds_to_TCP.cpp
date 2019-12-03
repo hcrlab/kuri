@@ -43,7 +43,7 @@ int main(int argc, char **arcv) {
         ROS_INFO("Error writing to TCP socket: %s", err.message().c_str());
         break;
       }
-    len += readSize;
+    /*len += readSize;
       for (uint32_t i = 0; i < readSize; i++)
       {
           if (i < readSize-5 && buf[i] == 0 && buf[i+1] == 0 && buf[i+2] == 0 && buf[i+3] == 1 && buf[i+4] == 9) {
@@ -53,15 +53,15 @@ int main(int argc, char **arcv) {
 
               std::cout << "read " << len << " " << now << std::endl;
               len = readSize-i;
-              /*for (uint32_t j = 0; j < readSize; j++)
-              {
-                  if (j > 0) printf(":");
-                  printf("%02X", buf[j]);
-              }
-              printf("\n");*/
+              //for (uint32_t j = 0; j < readSize; j++)
+              //{
+              //    if (j > 0) printf(":");
+              //    printf("%02X", buf[j]);
+              //}
+              //printf("\n");
               break;
           }
-      }
+      }*/
     }
 
     uds_socket.close();
