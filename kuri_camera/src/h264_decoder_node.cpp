@@ -14,18 +14,17 @@ void avframeToMat(const AVFrame * frame, cv::Mat& image)
     int cvLinesizes[1];
     cvLinesizes[0] = image.step1();
 
-    // Convert the colour format and write directly to the opencv matrix
+    // Convert the color format and write directly to the opencv matrix
     SwsContext* conversion = sws_getContext(width, height, (AVPixelFormat) frame->format, width, height, PIX_FMT_BGR24, SWS_FAST_BILINEAR, NULL, NULL, NULL);
     sws_scale(conversion, frame->data, frame->linesize, 0, height, &image.data, cvLinesizes);
     sws_freeContext(conversion);
 }
 
 void frameCallback(AVFrame* frame, AVPacket* pkt, void* user) {
-  // ROS_ERROR("Got frame!");
   cv::Mat cvImage;
   avframeToMat(frame, cvImage);
-  uint64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-  std::cout << "got cv::Mat " << *((int*)user) << " " << now << std::endl;
+  // uint64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+  // std::cout << "got cv::Mat " << *((int*)user) << " " << now << std::endl;
   cv::imshow("view", cvImage);
   cv::waitKey(1);
 }
@@ -34,16 +33,12 @@ int main(int argc, char **argv) {
 	ros::init(argc, argv, "h264_decoder_node");
   ros::Time::init();
   cv::namedWindow("view");
-  ROS_INFO("Pre-Create");
-	H264_Decoder h264Decoder(frameCallback, NULL);
-  ROS_INFO("Pre-Load");
+	H264Decoder h264Decoder(frameCallback, NULL);
+
   h264Decoder.load("cococutkuri.personalrobotics.cs.washington.edu", "1234");
-  // ros::Duration(5.0).sleep();
-  ROS_INFO("Pre-StartRead");
+
   h264Decoder.startRead();
-  ROS_INFO("Pre-RosSpin");
 	ros::spin();
-  ROS_INFO("Pre-StopRead");
   h264Decoder.stopRead();
 	return 0;
 }

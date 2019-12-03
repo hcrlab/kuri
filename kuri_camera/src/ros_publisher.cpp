@@ -32,7 +32,7 @@ struct KuriCameraROSPublisher {
     hasNewImage = false;
     imagePublisher = nh.advertise<sensor_msgs::CompressedImage>("upward_looking_camera/image_raw/compressed", 1);
     stream = mdx_open("/var/run/madmux/ch3.sock");
-    
+
     mdx_register_cb(stream, stream_callback_thunk, static_cast<void *>(this));
   }
 
@@ -45,7 +45,6 @@ struct KuriCameraROSPublisher {
     ros::Rate fps(20);
     cv::Mat image;
     ros::Time timeForMsg;
-    //cv::Mat imageMat;
     while (ros::ok()) {
       ros::spinOnce();
       fps.sleep();
@@ -79,7 +78,6 @@ struct KuriCameraROSPublisher {
     hasNewImage = true;
     imageLock.unlock();
   }
-
 };
 
 int main(int argc, char **arcv) {
