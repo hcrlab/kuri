@@ -28,6 +28,7 @@ image = None
 def stream_cb(data):
   global image
   try:
+    stamp = rospy.get_rostime()
     # Make sure the previous message was sent before we take in the new one
     image_published.wait()
     image_published.clear()
@@ -42,7 +43,7 @@ def stream_cb(data):
     else:
         image = bridge.cv2_to_imgmsg(decoded, "rgb8")
 
-    image.header.stamp = rospy.get_rostime();
+    image.header.stamp = stamp
     image_received.set()
   except Exception as e:
     print(e)
