@@ -9,11 +9,12 @@ int main(int argc, char **arcv) {
   // Parameters
   const char* udsSocketPath = "/var/run/madmux/ch1.sock";
   const int bufferSize = 16384; // bytes
-  int tcpPort = 1234;
+  int tcpSocketPort;
+  ros::param::param<int>("tcpSocketPort", tcpSocketPort, 1234);
 
   // Create the TCP Socket
   boost::asio::io_service tcp_io_service;
-  boost::asio::ip::tcp::acceptor tcp_acceptor(tcp_io_service, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), tcpPort));
+  boost::asio::ip::tcp::acceptor tcp_acceptor(tcp_io_service, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), tcpSocketPort));
   boost::asio::ip::tcp::socket tcp_socket(tcp_io_service);
 
   // Main loop -- only connect to the Unix Domain Socket once a TCP connection has been established

@@ -36,6 +36,11 @@ H264Decoder::~H264Decoder() {
     picture = NULL;
   }
 
+  if(packet) {
+    av_free_packet(packet);
+    packet = NULL;
+  }
+
   if (is_alive) {
     is_alive = false;
     read_buffer_thread.join();
@@ -74,6 +79,7 @@ bool H264Decoder::load(std::string hostname, std::string port) {
   picture = avcodec_alloc_frame();
   parser = av_parser_init(AV_CODEC_ID_H264);
   packet = new AVPacket;
+  av_init_packet(packet);
 
   if(!parser) {
     printf("Erorr: cannot create H264 parser.\n");
@@ -111,7 +117,10 @@ void H264Decoder::readFrame() {
 void H264Decoder::decodeFrame(uint8_t* data, int size) {
   int got_picture = 0;
   int len = 0;
-  av_init_packet(packet);
+
+  if (size <= 0) {
+    return;
+  }
 
   packet->data = data;
   packet->size = size;
@@ -159,13 +168,34 @@ int H264Decoder::findBeginningOfH264Message(int bytes_read) {
   return i;
 }
 
+void H264Decoder::establishTCPConnection() {
+  boost::system::error_code error = boost::asio::error::host_not_found;
+
+  while (is_alive && error) {
+    tcp_socket.connect(boost::asio::ip::tcp::endpoint(iter->endpoint()), error);
+    if (error) {
+      std::cout << "Error connecting, will keep trying. Error: " << error.message() << std::endl;
+      tcp_socket.close();
+    }
+  }
+}
+
 void H264Decoder::readBuffer() {
   // Connect to the TCP socket
-  tcp_socket.connect(boost::asio::ip::tcp::endpoint(iter->endpoint()));
+  establishTCPConnection();
   bool got_frameBool;
 
   while (is_alive) {
-    int bytes_read = tcp_socket.read_some(boost::asio::buffer(inbuf, H264_INBUF_SIZE));
+    boost::system::error_code error = boost::asio::error::host_not_found;;
+    int bytes_read;
+    while (is_alive && error) {
+      bytes_read = tcp_socket.read_some(boost::asio::buffer(inbuf, H264_INBUF_SIZE), error);
+      if (error) {
+        std::cout << "Error reading, will disconnect and reconnect. Error: " << error.message() << std::endl;
+        tcp_socket.close();
+        establishTCPConnection();
+      }
+    }
     got_frameBool = false;
     if(bytes_read) {
       int i = findBeginningOfH264Message(bytes_read);
@@ -185,6 +215,7 @@ void H264Decoder::readBuffer() {
       }
     }
   }
+  got_frame.notify_all(); // to allow readFrame to terminate
 }
 
 void H264Decoder::startRead() {

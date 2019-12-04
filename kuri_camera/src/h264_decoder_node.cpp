@@ -35,7 +35,11 @@ int main(int argc, char **argv) {
   cv::namedWindow("view");
 	H264Decoder h264Decoder(frameCallback, NULL);
 
-  h264Decoder.load("cococutkuri.personalrobotics.cs.washington.edu", "1234");
+  std::string tcpSocketHostname;
+  int tcpSocketPort;
+  ros::param::param<std::string>("tcpSocketHostname", tcpSocketHostname, "cococutkuri.personalrobotics.cs.washington.edu");
+  ros::param::param<int>("tcpSocketPort", tcpSocketPort, 1234);
+  h264Decoder.load(tcpSocketHostname, std::to_string(tcpSocketPort));
 
   h264Decoder.startRead();
 	ros::spin();

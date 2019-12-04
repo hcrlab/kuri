@@ -41,6 +41,7 @@ class H264Decoder {
   void readBuffer();                                                             /* loops and continuously reads from the TCP socket */
   void decodeFrame(uint8_t* data, int size);                                     /* decode a frame we read from the buffer */
   int findBeginningOfH264Message(int bytes_read);                                /* as we readBuffer, this function finds the beginning of H264 messages */
+  void establishTCPConnection();                                                 /* keep retrying until it establishes a TCP connection */
 
  public:
   AVCodec* codec;                                                                /* the AVCodec* which represents the H264 decoder */
