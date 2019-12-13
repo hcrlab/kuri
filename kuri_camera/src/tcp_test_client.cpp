@@ -3,9 +3,23 @@
 #include <iostream>
 #include <mutex>
 #include <thread>
+#include <boost/thread.hpp>
 #include <condition_variable>
 
+void async_io_service_run(boost::asio::io_service& io_service) {
+  ROS_INFO("async_io_service_run");
+  boost::thread t(boost::bind(&boost::asio::io_service::run, &io_service));
+  t.detach();
+}
+
+void deestablishConnection(boost::asio::ip::tcp::socket& socket, boost::asio::io_service& io_service) {
+  socket.close();
+  io_service.reset();
+  async_io_service_run(io_service);
+}
+
 void establishConnection(boost::asio::ip::tcp::socket& socket, const boost::asio::ip::tcp::endpoint& endpoint, boost::asio::io_service& io_service) {
+
   std::mutex connectMutex;
   std::condition_variable connectCvar;
 
@@ -14,20 +28,27 @@ void establishConnection(boost::asio::ip::tcp::socket& socket, const boost::asio
 
   while (ros::ok() && error) {
     std::unique_lock<std::mutex> connectLock(connectMutex);
-    std::cout << "before async connect\n";
-    socket.async_connect(endpoint, [&error, &connectCvar](const boost::system::error_code& err){std::cout << "in connect handler\n"; error = err; connectCvar.notify_all();});
-    std::cout << "after async connect\n";
-    if (connectCvar.wait_for(connectLock, std::chrono::seconds(5)) == std::cv_status::timeout) {
-      std::cout << "time out\n";
+    socket.async_connect(endpoint, [&error, &connectCvar, &connectMutex](const boost::system::error_code& err) {
+      // ROS_ERROR("In connect handler");
+      std::unique_lock<std::mutex> connectLock2(connectMutex);
+      error = err;
+      connectLock2.unlock();
+      connectCvar.notify_all();
+    });
+    // async_io_service_run(io_service);
+    std::cv_status timerResult = connectCvar.wait_for(connectLock, std::chrono::seconds(5));
+    if (timerResult == std::cv_status::timeout) {
+      ROS_ERROR("Connect Timeout");
       error = boost::asio::error::timed_out;
     } else {
-      std::cout << "not timeout Error: " << error.message() << "\n";
-      }
+      // ROS_ERROR("Connect No timeout");
+    }
     if (error) {
       ROS_ERROR("Error connecting, will keep trying. Error: %s", error.message().c_str());
-      socket.close();
+      deestablishConnection(socket, io_service);
       retryRate.sleep();
     }
+    connectLock.unlock();
   }
 }
 
@@ -36,7 +57,7 @@ int main(int argc, char **arcv) {
   ros::Time::init();
 
   boost::asio::io_service io_service;
-  boost::asio::io_service::work work(io_service);
+  // boost::asio::io_service::work work(io_service);
   boost::asio::ip::tcp::socket socket(io_service);
   boost::asio::ip::tcp::resolver resolver(io_service);
 
@@ -49,21 +70,39 @@ int main(int argc, char **arcv) {
   boost::asio::ip::tcp::resolver::iterator iter = resolver.resolve(query);
 
   ROS_INFO("Before connect");
+  boost::asio::io_service::work work(io_service);
+  async_io_service_run(io_service);
   establishConnection(socket, boost::asio::ip::tcp::endpoint(iter->endpoint()), io_service);
-
 
   uint8_t buf[256] = {0};
 
   size_t len = 0, readSize = 0;
 
   boost::system::error_code error;
+  std::mutex readSomeMutex;
+  std::condition_variable readSomeCvar;
 
   while(ros::ok()) {
-    //printf("%d:", len);
-    readSize = socket.read_some(boost::asio::buffer(buf, 256), error);
+    std::unique_lock<std::mutex> readSomeLock(readSomeMutex);
+    socket.async_read_some(boost::asio::buffer(buf, 256), [&error, &readSize, &readSomeCvar, &readSomeMutex](const boost::system::error_code& err, std::size_t bytes_transferred) {
+      // ROS_ERROR("In readSome handler");
+      std::unique_lock<std::mutex> readSomeLock2(readSomeMutex);
+      error = err;
+      readSize = bytes_transferred;
+      readSomeLock2.unlock();
+      readSomeCvar.notify_all();
+    });
+    // async_io_service_run(io_service);
+    std::cv_status timerResult = readSomeCvar.wait_for(readSomeLock, std::chrono::seconds(5));
+    if (timerResult == std::cv_status::timeout) {
+      ROS_ERROR("Read Timeout");
+      error = boost::asio::error::timed_out;
+    } else {
+      // ROS_ERROR("Read No timeout");
+    }
     if (error) {
       ROS_ERROR("Error reading, will disconnect and reconnect. Error: %s", error.message().c_str());
-      socket.close();
+      deestablishConnection(socket, io_service);
       establishConnection(socket, boost::asio::ip::tcp::endpoint(iter->endpoint()), io_service);
     }
     len += readSize;
@@ -82,6 +121,7 @@ int main(int argc, char **arcv) {
               break;
           }
       }
+      readSomeLock.unlock();
     }
 
 
