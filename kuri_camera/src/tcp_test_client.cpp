@@ -1,14 +1,28 @@
 #include <ros/ros.h>
 #include <boost/asio.hpp>
 #include <iostream>
+#include <mutex>
+#include <thread>
+#include <condition_variable>
 
-void establishConnection(boost::asio::ip::tcp::socket& socket, const boost::asio::ip::tcp::endpoint& endpoint) {
+void establishConnection(boost::asio::ip::tcp::socket& socket, const boost::asio::ip::tcp::endpoint& endpoint, boost::asio::io_service& io_service) {
+  std::mutex connectMutex;
+  std::condition_variable connectCvar;
 
   ros::Rate retryRate(1.0);
   boost::system::error_code error = boost::asio::error::host_not_found;
 
   while (ros::ok() && error) {
-    socket.connect(endpoint, error);
+    std::unique_lock<std::mutex> connectLock(connectMutex);
+    std::cout << "before async connect\n";
+    socket.async_connect(endpoint, [&error, &connectCvar](const boost::system::error_code& err){std::cout << "in connect handler\n"; error = err; connectCvar.notify_all();});
+    std::cout << "after async connect\n";
+    if (connectCvar.wait_for(connectLock, std::chrono::seconds(5)) == std::cv_status::timeout) {
+      std::cout << "time out\n";
+      error = boost::asio::error::timed_out;
+    } else {
+      std::cout << "not timeout Error: " << error.message() << "\n";
+      }
     if (error) {
       ROS_ERROR("Error connecting, will keep trying. Error: %s", error.message().c_str());
       socket.close();
@@ -22,6 +36,7 @@ int main(int argc, char **arcv) {
   ros::Time::init();
 
   boost::asio::io_service io_service;
+  boost::asio::io_service::work work(io_service);
   boost::asio::ip::tcp::socket socket(io_service);
   boost::asio::ip::tcp::resolver resolver(io_service);
 
@@ -34,7 +49,8 @@ int main(int argc, char **arcv) {
   boost::asio::ip::tcp::resolver::iterator iter = resolver.resolve(query);
 
   ROS_INFO("Before connect");
-  establishConnection(socket, boost::asio::ip::tcp::endpoint(iter->endpoint()));
+  establishConnection(socket, boost::asio::ip::tcp::endpoint(iter->endpoint()), io_service);
+
 
   uint8_t buf[256] = {0};
 
@@ -48,7 +64,7 @@ int main(int argc, char **arcv) {
     if (error) {
       ROS_ERROR("Error reading, will disconnect and reconnect. Error: %s", error.message().c_str());
       socket.close();
-      establishConnection(socket, boost::asio::ip::tcp::endpoint(iter->endpoint()));
+      establishConnection(socket, boost::asio::ip::tcp::endpoint(iter->endpoint()), io_service);
     }
     len += readSize;
       for (uint32_t i = 0; i < readSize; i++)
