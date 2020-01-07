@@ -14,6 +14,8 @@ struct H264DecoderNode {
   bool haveImage;
   std::mutex cvImageMutex;
   std::mutex waitForFirstFrameMutex;
+  std::mutex waitForNewCvImageMutex;
+  std::condition_variable gotNewCvImage;
 
   std::thread publishImageThread;
   std::thread cvDisplayThread;
@@ -65,6 +67,7 @@ struct H264DecoderNode {
         haveImage = true;
       }
       cvImageLock.unlock();
+      gotNewCvImage.notify_all();
       // ROS_INFO("getImages unlock cvImageLock");
     }
   }
@@ -77,6 +80,10 @@ struct H264DecoderNode {
     waitForFirstFrameLock.unlock();
     ROS_INFO("publishImage post wait for first frame");
     ros::Rate waitingRate(1);
+
+    std::unique_lock<std::mutex> waitForNewCvImageLock(waitForNewCvImageMutex);
+    waitForNewCvImageLock.unlock();
+
     while (ros::ok()) {
       ros::spinOnce();
       // ROS_INFO("publishImage, %s", bool(decoderObject->haveGottenFirstFrame) ? "true" : "false");
@@ -89,6 +96,9 @@ struct H264DecoderNode {
       // uint64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
       // std::cout << "got cv::Mat " << *((int*)user) << " " << now << std::endl;
       if (imagePublisher.getNumSubscribers() > 0) {
+        waitForNewCvImageLock.lock();
+        gotNewCvImage.wait(waitForNewCvImageLock);
+        waitForNewCvImageLock.unlock();
 
         //std::unique_lock<std::mutex> copyFrameLock(copyFrameMutex);
         std::unique_lock<std::mutex> cvImageLock(cvImageMutex);
@@ -120,6 +130,10 @@ struct H264DecoderNode {
     waitForFirstFrameLock.unlock();
     // ROS_INFO("cvDisplay post wait for first frame");
     // ros::Rate haveGottenFirstFrameRate(1);
+
+    std::unique_lock<std::mutex> waitForNewCvImageLock(waitForNewCvImageMutex);
+    waitForNewCvImageLock.unlock();
+
     while (ros::ok()) {
       ros::spinOnce();
       // ROS_INFO("cvDisplay, %s", bool(decoderObject->haveGottenFirstFrame) ? "true" : "false");
@@ -130,6 +144,11 @@ struct H264DecoderNode {
       // }
 
       // ROS_INFO("cvDisplay pre acquire cvImageLock");
+
+      waitForNewCvImageLock.lock();
+      gotNewCvImage.wait(waitForNewCvImageLock);
+      waitForNewCvImageLock.unlock();
+
       std::unique_lock<std::mutex> cvImageLock(cvImageMutex);
       // ROS_INFO("cvDisplay post acquire cvImageLock");
       if (haveImage) {

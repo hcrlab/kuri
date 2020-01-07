@@ -142,10 +142,11 @@ void H264Decoder::readFrame() {
       // std::cout << "got bytes " << (index1-index0) << " " << now;
 
       int decodedAmount = decodeFrame(&buffer[index0], index1-index0);
-      buffer.erase(buffer.begin(), buffer.begin() + decodedAmount);
+      int amountToDelete = index0 + decodedAmount;
+      buffer.erase(buffer.begin(), buffer.begin() + amountToDelete);
       buffer_frame_begin_indices.erase(buffer_frame_begin_indices.begin());
       for (int i = 0; i < buffer_frame_begin_indices.size(); i++) {
-        buffer_frame_begin_indices[i] = buffer_frame_begin_indices[i] - decodedAmount;
+        buffer_frame_begin_indices[i] = buffer_frame_begin_indices[i] - amountToDelete;
       }
     }
     buffer_lock.unlock();
@@ -304,6 +305,7 @@ void H264Decoder::readBuffer() {
       std::unique_lock<std::mutex> buffer_lock(buffer_mutex);
       std::copy(inbuf, inbuf + bytes_read, std::back_inserter(buffer));
       int lastFrameBeginning = buffer_frame_begin_indices.size() > 0 ? buffer_frame_begin_indices[buffer_frame_begin_indices.size()-1] : 0;
+      // std::cout << buffer_frame_begin_indices.size() << " ";
 
       uint8_t* data = NULL;
       int size = 0;

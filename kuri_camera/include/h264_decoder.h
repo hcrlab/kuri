@@ -37,7 +37,6 @@ class H264Decoder {
   int getMostRecentFrame(cv::Mat &image);
   // std::atomic<bool> haveGottenFirstFrame;
   std::condition_variable decodedNewFrame;
-  bool foo;
 
  private:
   void readFrame();                                                              /* loops and reads a frame as it become available */
