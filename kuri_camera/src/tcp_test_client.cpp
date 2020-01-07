@@ -108,13 +108,20 @@ int main(int argc, char **arcv) {
     len += readSize;
       for (uint32_t i = 0; i < readSize; i++)
       {
+          // std::ostringstream oldBufStream;
+          // oldBufStream << "oldBufStream: ";
+          // for (uint32_t j = 0; j < readSize; j++)
+          // {
+          //     if (j > 0) oldBufStream << ":";
+          //     oldBufStream <<std::hex << buf[j];
+          // }
           if (i < readSize-5 && buf[i] == 0 && buf[i+1] == 0 && buf[i+2] == 0 && buf[i+3] == 1 && buf[i+4] == 9) {
               len -= readSize-i;
               std::cout << "read " << len << std::endl;
               len = readSize-i;
-              for (uint32_t j = 0; j < readSize; j++)
+              for (uint32_t j = i; j < readSize; j++)
               {
-                  if (j > 0) printf(":");
+                  if (j > i) printf(":");
                   printf("%02X", buf[j]);
               }
               printf("\n");

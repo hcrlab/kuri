@@ -13,6 +13,7 @@ struct H264DecoderNode {
   cv::Mat cvImage;
   bool haveImage;
   std::mutex cvImageMutex;
+  std::mutex waitForFirstFrameMutex;
 
   std::thread publishImageThread;
   std::thread cvDisplayThread;
@@ -41,26 +42,49 @@ struct H264DecoderNode {
   }
 
   void getImages() {
+    std::unique_lock<std::mutex> waitForFirstFrameLock(waitForFirstFrameMutex);
+    // ROS_INFO("getImages pre wait for first frame");
+    // (decoderObject->decodedNewFrame).wait(waitForFirstFrameLock);
+    // ROS_INFO("getImages post wait for first frame");
+    // ros::Rate haveGottenFirstFrameRate(1);
     while (ros::ok()) {
+      // ROS_INFO("getImages pre wait for first frame");
+      (decoderObject->decodedNewFrame).wait(waitForFirstFrameLock);
+      // ROS_INFO("getImages post wait for first frame");
+      // ROS_INFO("getImages, %s", bool(decoderObject->haveGottenFirstFrame) ? "true" : "false");
+      // if (!bool(decoderObject->haveGottenFirstFrame)) {
+      //   ROS_INFO("About to sleep getImages");
+      //   haveGottenFirstFrameRate.sleep();
+      //   continue;
+      // }
+      // ROS_INFO("getImages lock cvImageLock");
       std::unique_lock<std::mutex> cvImageLock(cvImageMutex);
+      // ROS_INFO("getImages post acquire cvImageLock");
       int gotError = decoderObject->getMostRecentFrame(cvImage);
       if (!gotError) {
         haveImage = true;
       }
       cvImageLock.unlock();
+      // ROS_INFO("getImages unlock cvImageLock");
     }
   }
 
 
   void publishImage() {
+    std::unique_lock<std::mutex> waitForFirstFrameLock(waitForFirstFrameMutex);
+    ROS_INFO("publishImage pre wait for first frame");
+    (decoderObject->decodedNewFrame).wait(waitForFirstFrameLock);
+    waitForFirstFrameLock.unlock();
+    ROS_INFO("publishImage post wait for first frame");
     ros::Rate waitingRate(1);
     while (ros::ok()) {
       ros::spinOnce();
-      if (!decoderObject->haveGottenFirstFrame) {
-	      ROS_INFO("About to sleep publishImage");
-        waitingRate.sleep();
-	      continue;
-      }
+      // ROS_INFO("publishImage, %s", bool(decoderObject->haveGottenFirstFrame) ? "true" : "false");
+      // if (!bool(decoderObject->haveGottenFirstFrame)) {
+	    //   ROS_INFO("About to sleep publishImage");
+      //   waitingRate.sleep();
+	    //   continue;
+      // }
 
       // uint64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
       // std::cout << "got cv::Mat " << *((int*)user) << " " << now << std::endl;
@@ -90,18 +114,28 @@ struct H264DecoderNode {
 
   void cvDisplay() {
     cv::namedWindow("view");
-    ros::Rate haveGottenFirstFrameRate(1);
+    std::unique_lock<std::mutex> waitForFirstFrameLock(waitForFirstFrameMutex);
+    // ROS_INFO("cvDisplay pre wait for first frame");
+    (decoderObject->decodedNewFrame).wait(waitForFirstFrameLock);
+    waitForFirstFrameLock.unlock();
+    // ROS_INFO("cvDisplay post wait for first frame");
+    // ros::Rate haveGottenFirstFrameRate(1);
     while (ros::ok()) {
       ros::spinOnce();
-      if (!decoderObject->haveGottenFirstFrame) {
-        ROS_INFO("About to sleep cvDisplay");
-        haveGottenFirstFrameRate.sleep();
-        continue;
-      }
+      // ROS_INFO("cvDisplay, %s", bool(decoderObject->haveGottenFirstFrame) ? "true" : "false");
+      // if (!bool(decoderObject->haveGottenFirstFrame)) {
+      //   ROS_INFO("About to sleep cvDisplay");
+      //   haveGottenFirstFrameRate.sleep();
+      //   continue;
+      // }
 
+      // ROS_INFO("cvDisplay pre acquire cvImageLock");
       std::unique_lock<std::mutex> cvImageLock(cvImageMutex);
+      // ROS_INFO("cvDisplay post acquire cvImageLock");
       if (haveImage) {
+        // ROS_INFO("pre imshow");
         cv::imshow("view", cvImage);
+        // ROS_INFO("post imshow");
         cvImageLock.unlock();
       } else {
         cvImageLock.unlock();
@@ -120,17 +154,24 @@ int main(int argc, char **argv) {
 
   ros::NodeHandle nh;
 
+  ROS_INFO("Before creating H264Decoder");
   H264Decoder* h264Decoder = new H264Decoder();
+  // // ROS_INFO("Have gotten first frame %s", bool(h264Decoder->haveGottenFirstFrame) ? "true" : "false");
+  ROS_INFO("Before creating H264DecoderNode");
   H264DecoderNode* node = new H264DecoderNode(nh, h264Decoder);
 
   std::string tcpSocketHostname;
   int tcpSocketPort;
   ros::param::param<std::string>("tcpSocketHostname", tcpSocketHostname, "cococutkuri.personalrobotics.cs.washington.edu");
   ros::param::param<int>("tcpSocketPort", tcpSocketPort, 1234);
+  ROS_INFO("Before H264Decoder load hostname %s, port %d", tcpSocketHostname.c_str(), tcpSocketPort);
   h264Decoder->load(tcpSocketHostname, std::to_string(tcpSocketPort));
 
+  ROS_INFO("Before H264Decoder startRead");
   h264Decoder->startRead();
+  // ROS_INFO("Before ros spin");
   ros::spin();
+  // ROS_INFO("Before H264Decoder stopRead");
   h264Decoder->stopRead();
   free(h264Decoder);
   return 0;
