@@ -16,7 +16,6 @@ H264Decoder::H264Decoder()
 {
   len_callback_value = new int;
   avcodec_register_all();
-  // haveGottenFirstFrame = false;
 }
 
 H264Decoder::~H264Decoder() {
@@ -66,19 +65,16 @@ void H264Decoder::avframeToMat(const AVFrame * frame, cv::Mat& image)
     cvLinesizes[0] = image.step1();
 
     // Convert the color format and write directly to the opencv matrix
-    SwsContext* conversion = sws_getContext(width, height, (AVPixelFormat) frame->format, width, height, AV_PIX_FMT_BGR24 /* PIX_FMT_BGR24 */, SWS_FAST_BILINEAR, NULL, NULL, NULL);
+    SwsContext* conversion = sws_getContext(width, height, /*(AVPixelFormat) frame->format*/AV_PIX_FMT_YUV420P, width, height, AV_PIX_FMT_BGR24 /* PIX_FMT_BGR24 */, SWS_FAST_BILINEAR, NULL, NULL, NULL);
     sws_scale(conversion, frame->data, frame->linesize, 0, height, &image.data, cvLinesizes); // copies data
     sws_freeContext(conversion);
 }
 
 int H264Decoder::getMostRecentFrame(cv::Mat &image) {
-  // std::cout << "getMostRecentFrame\n";
   int retVal = 0;
   std::unique_lock<std::mutex> pictureLock(pictureMutex);
   if (got_picture) {
-    // std::cout << "pre avFrrameToMat\n";
     avframeToMat(picture, image);
-    // std::cout << "post avFrrameToMat\n";
     pictureLock.unlock();
   } else {
     pictureLock.unlock();
@@ -112,7 +108,9 @@ bool H264Decoder::load(std::string hostname, std::string port) {
   iter = resolver.resolve(query);
 
   std::unique_lock<std::mutex> pictureLock(pictureMutex);
-  picture = avcodec_alloc_frame(); // av_frame_alloc(); //
+  // NOTE: depending on your version of libav, you may need the first or second
+  // function below to allocate a frame.
+  picture = av_frame_alloc(); // avcodec_alloc_frame(); //
   pictureLock.unlock();
   parser = av_parser_init(AV_CODEC_ID_H264);
   packet = new AVPacket;
@@ -128,15 +126,14 @@ bool H264Decoder::load(std::string hostname, std::string port) {
 
 void H264Decoder::readFrame() {
   while (is_alive) {
-    // std::cout << "readFrame \n";
     std::unique_lock<std::mutex> got_frame_lock(got_frame_mutex);
     got_frame.wait(got_frame_lock);
 
     std::unique_lock<std::mutex> buffer_lock(buffer_mutex);
     if (buffer_frame_begin_indices.size() > 1) {
 
-      size_t index0 = buffer_frame_begin_indices[0];
-      size_t index1 = buffer_frame_begin_indices[1];
+      size_t index0 = buffer_frame_begin_indices[buffer_frame_begin_indices.size()-2];
+      size_t index1 = buffer_frame_begin_indices[buffer_frame_begin_indices.size()-1];
 
       // uint64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
       // std::cout << "got bytes " << (index1-index0) << " " << now;
@@ -144,17 +141,14 @@ void H264Decoder::readFrame() {
       int decodedAmount = decodeFrame(&buffer[index0], index1-index0);
       int amountToDelete = index0 + decodedAmount;
       buffer.erase(buffer.begin(), buffer.begin() + amountToDelete);
-      buffer_frame_begin_indices.erase(buffer_frame_begin_indices.begin());
-      for (int i = 0; i < buffer_frame_begin_indices.size(); i++) {
-        buffer_frame_begin_indices[i] = buffer_frame_begin_indices[i] - amountToDelete;
-      }
+      buffer_frame_begin_indices.clear();
+      buffer_frame_begin_indices.push_back(index1-amountToDelete);
     }
     buffer_lock.unlock();
   }
 }
 
 int H264Decoder::decodeFrame(uint8_t* data, int size) {
-  // std::cout << "decodeFrame\n";
   int len = 0;
 
   if (size <= 0) {
@@ -183,33 +177,31 @@ int H264Decoder::decodeFrame(uint8_t* data, int size) {
   // of cb_user)
   (*len_callback_value) = len;
 
-  // haveGottenFirstFrame = true;
-  // std::cout << "pre decodedNewFrame.notify_all()\n";
   decodedNewFrame.notify_all();
 
   return len;
 }
 
-// NOTE: this function assumes there is maximally one beginning of a message
-// per read. This is not strictly true -- however, decode still seems to work
-// even if the "frame" is actually 2 frames, so I have left it at this for
-// efficiency
-int H264Decoder::findBeginningOfH264Message(int bytes_read) {
-  int i = -1;
-  for (int j = 0; j < bytes_read-initial_sequence_len; j++) {
-    int k;
-    for (k = 0; k < initial_sequence_len; k++) {
-      if (inbuf[j+k] != initial_sequence[k]) {
-        break;
-      }
-    }
-    if (k == initial_sequence_len) { // found initial sequence!
-      i = j;
-      break;
-    }
-  }
-  return i;
-}
+// // NOTE: this function assumes there is maximally one beginning of a message
+// // per read. This is not strictly true -- however, decode still seems to work
+// // even if the "frame" is actually 2 frames, so I have left it at this for
+// // efficiency
+// int H264Decoder::findBeginningOfH264Message(int bytes_read) {
+//   int i = -1;
+//   for (int j = 0; j < bytes_read-initial_sequence_len; j++) {
+//     int k;
+//     for (k = 0; k < initial_sequence_len; k++) {
+//       if (inbuf[j+k] != initial_sequence[k]) {
+//         break;
+//       }
+//     }
+//     if (k == initial_sequence_len) { // found initial sequence!
+//       i = j;
+//       break;
+//     }
+//   }
+//   return i;
+// }
 
 void H264Decoder::deestablishTCPConnection() {
   tcp_socket.close();
@@ -259,7 +251,6 @@ void H264Decoder::readBuffer() {
   bool got_frame_bool;
 
   while (is_alive) {
-    // std::cout << "readBuffer\n";
     boost::system::error_code error = boost::asio::error::host_not_found;;
     int bytes_read;
     while (is_alive && error) {
@@ -267,9 +258,7 @@ void H264Decoder::readBuffer() {
       std::unique_lock<std::mutex> tcpReadSomeLock(tcpReadSomeMutex);
       tcp_socket.async_read_some(boost::asio::buffer(inbuf, H264_INBUF_SIZE),
         [&error, &bytes_read, this](const boost::system::error_code& err, std::size_t bytes_transferred) {
-          // std::cout << "before tcpReadSomeLockInHandler\n";
           std::unique_lock<std::mutex> tcpReadSomeLockInHandler(tcpReadSomeMutex); // ensure that the timeout timer has started before we start the handler
-          // std::cout << "after tcpReadSomeLockInHandler\n";
           error = err;
           bytes_read = bytes_transferred;
           tcpReadSomeLockInHandler.unlock();
@@ -290,22 +279,9 @@ void H264Decoder::readBuffer() {
     got_frame_bool = false;
     if(bytes_read) {
 
-      // int i = findBeginningOfH264Message(bytes_read);
-      // std::unique_lock<std::mutex> buffer_lock(buffer_mutex);
-      //
-      // if (i >= 0) {
-      //   buffer_frame_begin_indices.push_back(i+buffer.size());
-      //   got_frame_bool = true;
-      // }
-      //
-      // std::copy(inbuf, inbuf + bytes_read, std::back_inserter(buffer));
-      //
-      // buffer_lock.unlock();
-
       std::unique_lock<std::mutex> buffer_lock(buffer_mutex);
       std::copy(inbuf, inbuf + bytes_read, std::back_inserter(buffer));
       int lastFrameBeginning = buffer_frame_begin_indices.size() > 0 ? buffer_frame_begin_indices[buffer_frame_begin_indices.size()-1] : 0;
-      // std::cout << buffer_frame_begin_indices.size() << " ";
 
       uint8_t* data = NULL;
       int size = 0;
@@ -320,7 +296,6 @@ void H264Decoder::readBuffer() {
 
 
       if (got_frame_bool) {
-        // std::cout << "pre gotFrame notify_all\n";
         got_frame.notify_all();
       }
     }
@@ -330,7 +305,6 @@ void H264Decoder::readBuffer() {
 
 void H264Decoder::startRead() {
   is_alive = true;
-  // haveGottenFirstFrame = false;
 
   read_buffer_thread = std::thread(&H264Decoder::readBuffer, this);
   read_frame_thread = std::thread(&H264Decoder::readFrame, this);

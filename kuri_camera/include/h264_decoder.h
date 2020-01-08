@@ -35,14 +35,13 @@ class H264Decoder {
   void startRead();                                                              /* start the readBuffer and readFrame threads */
   void stopRead();                                                               /* stop reading */
   int getMostRecentFrame(cv::Mat &image);
-  // std::atomic<bool> haveGottenFirstFrame;
   std::condition_variable decodedNewFrame;
 
  private:
   void readFrame();                                                              /* loops and reads a frame as it become available */
   void readBuffer();                                                             /* loops and continuously reads from the TCP socket */
   int decodeFrame(uint8_t* data, int size);                                      /* decode a frame we read from the buffer */
-  int findBeginningOfH264Message(int bytes_read);                                /* as we readBuffer, this function finds the beginning of H264 messages */
+  // int findBeginningOfH264Message(int bytes_read);                                /* as we readBuffer, this function finds the beginning of H264 messages */
   void establishTCPConnection();                                                 /* keep retrying until it establishes a TCP connection */
   void deestablishTCPConnection();                                               /* close the socket and reset the io_service */
   static void avframeToMat(const AVFrame * frame, cv::Mat& image);
