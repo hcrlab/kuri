@@ -9,87 +9,96 @@
 #include <boost/thread/shared_mutex.hpp>
 
 struct H264DecoderNode {
-  ros::Publisher imagePublisher;
+  ros::Publisher image_publisher;
 
-  cv::Mat cvImage;
-  bool haveImage;
-  boost::shared_mutex cvImageMutex;
-  std::mutex waitForDecodedFrameMutex;
-  std::mutex waitForCvImageMutex;
-  std::condition_variable gotNewCvImage;
+  cv::Mat cv_image;
+  uint64_t cv_image_recv_timestamp;
+  bool have_image;
+  boost::shared_mutex cv_image_mutex;
+  std::mutex wait_for_decoded_frame_mutex;
+  std::mutex wait_for_cv_image_mutex;
+  std::condition_variable got_new_cv_image;
 
-  std::thread publishImageThread;
-  std::thread cvDisplayThread;
-  std::thread getImagesThread;
+  std::thread publish_image_thread;
+  std::thread cv_display_thread;
+  std::thread get_images_thread;
+  // std::thread sample_function_thread;
 
-  ros::Time frameCallbackPreviousTime;
+  H264Decoder* decoder_object;
 
-  H264Decoder* decoderObject;
+  H264DecoderNode(ros::NodeHandle &nh, H264Decoder* h264_decoder) {
+    have_image = false;
 
-  H264DecoderNode(ros::NodeHandle &nh, H264Decoder* h264Decoder) {
-    haveImage = false;
+    image_publisher = nh.advertise<sensor_msgs::Image>("upward_looking_camera/image_raw", 1);
 
-    imagePublisher = nh.advertise<sensor_msgs::Image>("upward_looking_camera/image_raw", 1);
+    publish_image_thread = std::thread(&H264DecoderNode::publishImage, this);
+    cv_display_thread = std::thread(&H264DecoderNode::cvDisplay, this);
+    get_images_thread = std::thread(&H264DecoderNode::getImages, this);
+    // sample_function_thread = std::thread(&H264DecoderNode::sampleFunctionForUsingImages, this);
 
-    frameCallbackPreviousTime = ros::Time::now();
-
-    publishImageThread = std::thread(&H264DecoderNode::publishImage, this);
-    cvDisplayThread = std::thread(&H264DecoderNode::cvDisplay, this);
-    getImagesThread = std::thread(&H264DecoderNode::getImages, this);
-
-    decoderObject = h264Decoder;
+    decoder_object = h264_decoder;
   }
 
   ~H264DecoderNode() {
-
+    publish_image_thread.join();
+    cv_display_thread.join();
+    get_images_thread.join();
+    // sample_function_thread.join();
   }
 
   void getImages() {
-    std::unique_lock<std::mutex> waitForDecodedFrameLock(waitForDecodedFrameMutex);
+    std::unique_lock<std::mutex> wait_for_decoded_frame_lock(wait_for_decoded_frame_mutex);
     while (ros::ok()) {
-      (decoderObject->decodedNewFrame).wait(waitForDecodedFrameLock);
-      boost::unique_lock<boost::shared_mutex> cvImageLock(cvImageMutex);
-      int gotError = decoderObject->getMostRecentFrame(cvImage);
-      if (!gotError) {
-        haveImage = true;
+      (decoder_object->decoded_new_frame).wait(wait_for_decoded_frame_lock);
+      boost::unique_lock<boost::shared_mutex> cv_image_lock(cv_image_mutex);
+      int go_error = decoder_object->getMostRecentFrame(cv_image, cv_image_recv_timestamp);
+
+      /* // Uncomment these to print processing latency
+      uint64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+      ROS_INFO("From receiving the frame to having it availble as a cv::Mat, it took %lu ms", now-cv_image_recv_timestamp);
+      */
+
+      if (!go_error) {
+        have_image = true;
       }
-      cvImageLock.unlock();
-      gotNewCvImage.notify_all();
+      cv_image_lock.unlock();
+      got_new_cv_image.notify_all();
     }
   }
 
 
   void publishImage() {
-    ros::Rate waitingRate(1);
+    ros::Rate waiting_rate(0.3);
 
-    std::unique_lock<std::mutex> waitForCvImageLock(waitForCvImageMutex);
-    waitForCvImageLock.unlock();
+    std::unique_lock<std::mutex> wait_for_cv_image_lock(wait_for_cv_image_mutex);
+    wait_for_cv_image_lock.unlock();
 
     while (ros::ok()) {
-      ros::spinOnce();
 
-      if (imagePublisher.getNumSubscribers() > 0) {
-        waitForCvImageLock.lock();
-        gotNewCvImage.wait(waitForCvImageLock);
-        waitForCvImageLock.unlock();
+      // Because publishing ros Images is expensive, only do so when we have a
+      // subscriber
+      if (image_publisher.getNumSubscribers() > 0) {
+        wait_for_cv_image_lock.lock();
+        got_new_cv_image.wait(wait_for_cv_image_lock);
+        wait_for_cv_image_lock.unlock();
 
-        boost::shared_lock<boost::shared_mutex> cvImageLock(cvImageMutex);
+        boost::shared_lock<boost::shared_mutex> cv_image_lock(cv_image_mutex);
         sensor_msgs::ImagePtr msg;
-        if (haveImage) {
-          msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", cvImage).toImageMsg();
-          cvImageLock.unlock();
+        if (have_image) {
+          msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", cv_image).toImageMsg();
+          cv_image_lock.unlock();
         } else {
-          cvImageLock.unlock();
+          cv_image_lock.unlock();
           continue;
         }
 
-        msg->header.stamp = ros::Time::now(); // TODO: can change it so that this is the time the tcp socket receives the image, and that timestamp is given by getMostRecentFrame
+        msg->header.stamp = cv_image_recv_timestamp; // When the H264 frame was received
         msg->header.frame_id = "upward_looking_camera";
 
-        imagePublisher.publish(msg);
+        image_publisher.publish(msg);
       } else {
         ROS_INFO("No subscribers to upward_looking_camera/image_raw . Not published");
-        waitingRate.sleep();
+        waiting_rate.sleep();
       }
     }
   }
@@ -97,25 +106,54 @@ struct H264DecoderNode {
   void cvDisplay() {
     cv::namedWindow("view");
 
-    std::unique_lock<std::mutex> waitForCvImageLock(waitForCvImageMutex);
-    waitForCvImageLock.unlock();
+    std::unique_lock<std::mutex> wait_for_cv_image_lock(wait_for_cv_image_mutex);
+    wait_for_cv_image_lock.unlock();
 
     while (ros::ok()) {
-      ros::spinOnce();
 
-      waitForCvImageLock.lock();
-      gotNewCvImage.wait(waitForCvImageLock);
-      waitForCvImageLock.unlock();
+      wait_for_cv_image_lock.lock();
+      got_new_cv_image.wait(wait_for_cv_image_lock);
+      wait_for_cv_image_lock.unlock();
 
-      boost::shared_lock<boost::shared_mutex> cvImageLock(cvImageMutex);
-      if (haveImage) {
-        cv::imshow("view", cvImage);
-        cvImageLock.unlock();
+      boost::shared_lock<boost::shared_mutex> cv_image_lock(cv_image_mutex);
+      if (have_image) {
+        cv::imshow("view", cv_image);
+        cv_image_lock.unlock();
       } else {
-        cvImageLock.unlock();
+        cv_image_lock.unlock();
         continue;
       }
       cv::waitKey(1);
+    }
+  }
+
+  void sampleFunctionForUsingImages() {
+    // Create the lock that will be used with a condition_variable to determine
+    // when the getImages() function has acquired a new image
+    std::unique_lock<std::mutex> wait_for_cv_image_lock(wait_for_cv_image_mutex);
+    wait_for_cv_image_lock.unlock();
+
+    // Loop forever while ROS is running
+    while (ros::ok()) {
+      // Wait for getImages() to receive a new image
+      wait_for_cv_image_lock.lock();
+      got_new_cv_image.wait(wait_for_cv_image_lock);
+      wait_for_cv_image_lock.unlock();
+
+      // Put a *read lock* on the cv_image.
+      // NOTE: If you will be writing to the cv_image, use a boost::unique_lock.
+      // However, that is not recommended because then other threads will not be
+      // able to use the unedited cv_image
+      boost::shared_lock<boost::shared_mutex> cv_image_lock(cv_image_mutex);
+      if (have_image) {
+
+        // PROCESS and/or READ THE IMAGE HERE
+
+        cv_image_lock.unlock();
+      } else {
+        cv_image_lock.unlock();
+        continue;
+      }
     }
   }
 
@@ -128,18 +166,19 @@ int main(int argc, char **argv) {
 
   ros::NodeHandle nh;
 
-  H264Decoder* h264Decoder = new H264Decoder();
-  H264DecoderNode* node = new H264DecoderNode(nh, h264Decoder);
+  H264Decoder* h264_decoder = new H264Decoder();
+  H264DecoderNode* node = new H264DecoderNode(nh, h264_decoder);
 
-  std::string tcpSocketHostname;
-  int tcpSocketPort;
-  ros::param::param<std::string>("tcpSocketHostname", tcpSocketHostname, "cococutkuri.personalrobotics.cs.washington.edu");
-  ros::param::param<int>("tcpSocketPort", tcpSocketPort, 1234);
-  h264Decoder->load(tcpSocketHostname, std::to_string(tcpSocketPort));
+  std::string tcp_socket_hostname;
+  int tc_socket_port;
+  ros::param::param<std::string>("tcp_socket_hostname", tcp_socket_hostname, "cococutkuri.personalrobotics.cs.washington.edu");
+  ros::param::param<int>("tc_socket_port", tc_socket_port, 1234);
+  h264_decoder->load(tcp_socket_hostname, std::to_string(tc_socket_port));
 
-  h264Decoder->startRead();
+  h264_decoder->startRead();
   ros::spin();
-  h264Decoder->stopRead();
-  free(h264Decoder);
+  h264_decoder->stopRead();
+
+  free(h264_decoder);
   return 0;
 }
