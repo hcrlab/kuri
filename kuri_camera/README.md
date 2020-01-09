@@ -27,14 +27,18 @@ This package provides multiple nodes for working with Kuri's camera, depending o
 - `display_compressed_images` will read a CompressedImage rosmsg, display it, and print out the delay between when the message was received and the timestamp on the message. This can be used in conjunction with the `ros_publisher` nodes.
 
 ## Latency Analysis
-- To determine end-to-end latency, we set up a computer near our remote computer and ran a stopwatch on it. This was our ground truth. We then pointed the Kuri's camera at this computer and used the above node(s) to display Kuri's image on the remote computer. We then took a video of the ground truth computer and the adjacent remote computer. We then played bacl the video and paused it at certain frames. The difference is the end-to-end latency. We have seen it as low as 300-400 ms when just displaying the cv::Mat (it goes to 400-500 ms when also publishing a ros Image msg).
-- Note that the **end-to-end latency** is the sum of multiple latencies:
+- To determine **end-to-end latency**, we set up a computer near our remote computer and ran a stopwatch on it. This was our ground truth. We then pointed the Kuri's camera at this computer and used the above node(s) to display Kuri's image on the remote computer. We then took a video of the ground truth computer and the adjacent remote computer. We then played bacl the video and paused it at certain frames. The difference is the end-to-end latency. We have seen it as low as 300-400 ms when just displaying the cv::Mat (it goes to 400-500 ms when also publishing a ros Image msg).
+- Note that for the h264 setup, end-to-end latency is the sum of multiple latencies:
     1) the latency from when Kuri's camera sees the image to when it is written to the UDS socket;
     2) the latency from when it is written to the UDS socket to when it is read from the UDS socket;
     3) the latency from when we read it from the UDS socket and write it to the TCP socket;
     4) the latency from when we write it to the TCP socket on the Kuri to when we read it from the TCP socket on the remote computer (network latency);
     5) the latency from when we read it from the TCP socket to when we convert it into a cv::Mat (processing latency);
-    6) the latency from when we have a cv::Mat to when the cv::Mat is rendered (rendering latency).
+    6) the latency from when we have a cv::Mat to when the cv::Mat is rendered (rendering latency, which is dependent on the processing capabilities of your remote machine).
 - Of these, latencies 1-3 are likely very low, so we do not measure them. Latencies 4-6 are likely the bottleneck. Below, we have instructions for measuring 4 and 5 independently. Approximately speaking, 6 will be the difference between the end-to-end latency and the sum of 4 and 5.
 - To investigate **network latency**, make sure both the Kuri and the remote computer have a time synchronization program such as chronyc running. Then, uncomment the lines in uds_to_TCP.cpp (roughly lines 47-66) and in h264_decoder.cpp (roughly line 308-310). Now, when you run it, for every received H264 frame both the Kuri and the remote computer will print out the timestep they sent/received it at. The difference is network latency. Of course it depends on the network, but we got this to be as low as 3 ms.
 - To investigate **processing latency**, comment out the lines in h264_decoder_node.cpp (roughly lines 60-63). We got as low as 5 ms.
+
+## Notes
+- Depending on your version of libavm you may need to change the frame alloc function on line 126 of `h264_decoder.cpp`
+- Sometimes while making the package you will get a warning due to a cycle in the constraint graph. Ignore that -- the code compiles properly despite that.
