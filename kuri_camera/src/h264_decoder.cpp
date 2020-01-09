@@ -123,7 +123,7 @@ bool H264Decoder::load(std::string hostname, std::string port) {
   std::unique_lock<std::mutex> picture_lock(picture_mutex);
   // NOTE: depending on your version of libav, you may need the first or second
   // function below to allocate a frame.
-  picture = avcodec_alloc_frame(); // av_frame_alloc(); //
+  picture = av_frame_alloc(); // avcodec_alloc_frame(); // 
   picture_lock.unlock();
   parser = av_parser_init(AV_CODEC_ID_H264);
   packet = new AVPacket;
