@@ -7,7 +7,7 @@ int main(int argc, char **arcv) {
   ros::init(argc, arcv, "uds_to_tcp");
 
   // Parameters
-  const char* udsSocketPath = "/var/run/madmux/ch1.sock";
+  const char* udsSocketPath = "/var/run/madmux/ch2.sock";
   const int bufferSize = 16384; // bytes
   int tcpSocketPort;
   ros::param::param<int>("tcpSocketPort", tcpSocketPort, 1234);

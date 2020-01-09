@@ -92,7 +92,7 @@ struct H264DecoderNode {
           continue;
         }
 
-        msg->header.stamp = cv_image_recv_timestamp; // When the H264 frame was received
+        msg->header.stamp = ros::Time(((double)cv_image_recv_timestamp)/1000.0); // When the H264 frame was received
         msg->header.frame_id = "upward_looking_camera";
 
         image_publisher.publish(msg);
