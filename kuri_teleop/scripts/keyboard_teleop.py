@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 from __future__ import print_function
 import rospy
 
@@ -17,7 +16,7 @@ Reading from the keyboard and publishing to Twist!
 Moving around:
    u    i    o
    j    k    l
-        ,    
+        ,
 
 q/z : increase/decrease max speeds by 10%
 w/x : increase/decrease only linear speed by 10%

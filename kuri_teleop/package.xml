@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package format="2">
 
-  <name>kuri_joystick_teleop</name>
+  <name>kuri_teleop</name>
   <version>0.0.0</version>
-  <description>A joystick teleoperation package for Kuri</description>
+  <description>A teleoperation package for Kuri</description>
   <maintainer email="amaln@cs.uw.edu">Amal Nanavati</maintainer>
   <license>None</license>
 
@@ -14,6 +14,7 @@
   <depend>geometry_msgs</depend>
   <depend>trajectory_msgs</depend>
   <depend>roscpp</depend>
+  <depend>rospy</depend>
   <depend>std_msgs</depend>
   <depend>control_msgs</depend>
   <depend>joy</depend>
