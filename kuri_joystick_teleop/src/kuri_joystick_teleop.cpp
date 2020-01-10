@@ -3,7 +3,7 @@
 KuriJoystickTeleop::KuriJoystickTeleop() :
   head_action_srv("head_controller/follow_joint_trajectory"),
   eye_action_srv("eyelids_controller/follow_joint_trajectory") {
-  linear_max = 0.7; // meter / sec
+  linear_max = 0.4; // meter / sec
   angular_max = M_PI / 3; // rad / sec
   head_tilt_speed = 2.0; // position units / sec (based on controlLoop_hz)
   head_tilt_max = 0.3; // position units
@@ -99,6 +99,7 @@ void KuriJoystickTeleop::controlLoop() {
   int last_joystick_head_tilt_value = 0;
   double current_head_tilt_value = 0.0;
   int last_joystick_head_pan_value = 0;
+  int last_joystick_head_pan_reset_value = 0;
   double current_head_pan_value = 0.0;
   bool have_received_head_state_value = false;
   double target_eye_pos = eye_open_position;
@@ -199,6 +200,7 @@ void KuriJoystickTeleop::controlLoop() {
   		if (new_head_state_command) {
   			new_head_state_command = false;
   			last_joystick_head_tilt_value = head_tilt_command;
+        last_joystick_head_pan_reset_value = head_pan_reset;
         last_joystick_head_pan_value = head_pan_command;
   			head_state_command_lock.unlock();
   			was_new_head_state_command_received = true;
@@ -209,9 +211,9 @@ void KuriJoystickTeleop::controlLoop() {
 
     // publish the head goal
     last_published_head_goal.trajectory.header.stamp = ros::Time::now();
-    last_published_head_goal.trajectory.points[0].positions[0] = std::min(std::max(current_head_pan_value + -1.0 * ((double)last_joystick_head_pan_value) * head_pan_speed * head_eye_movement_duration, head_pan_min), head_pan_max);
+    last_published_head_goal.trajectory.points[0].positions[0] = last_joystick_head_pan_reset_value == 1 ? ((head_pan_max + head_pan_min) / 2.0) : std::min(std::max(current_head_pan_value + -1.0 * ((double)last_joystick_head_pan_value) * head_pan_speed * head_eye_movement_duration, head_pan_min), head_pan_max);
     last_published_head_goal.trajectory.points[0].positions[1] = std::min(std::max(current_head_tilt_value + -1.0 * ((double)last_joystick_head_tilt_value) * head_tilt_speed * head_eye_movement_duration, head_tilt_min), head_tilt_max);
-    if (last_joystick_head_pan_value != 0 || last_joystick_head_tilt_value != 0) {
+    if (last_joystick_head_pan_value != 0 || last_joystick_head_tilt_value != 0 || last_joystick_head_pan_reset_value == 1) {
       head_action_srv.sendGoal(last_published_head_goal);
     }
 
@@ -277,6 +279,7 @@ void KuriJoystickTeleop::joystickCallback(const sensor_msgs::Joy &msg) {
       - Arrow Keys U-D head tilt
       - Arrow Keys L-R head pan
       - Button A will toggle the eyes open/close
+      - Button X centers the head (pan)
 
     */
 
@@ -333,6 +336,7 @@ void KuriJoystickTeleop::joystickCallback(const sensor_msgs::Joy &msg) {
     int head_tilt = msg.axes[7];
     int head_pan = msg.axes[6];
     std::unique_lock<std::mutex> head_state_command_lock(head_state_command_mutex);
+    head_pan_reset = msg.buttons[2];
     head_tilt_command = head_tilt;
     head_pan_command = head_pan;
     new_head_state_command = true;

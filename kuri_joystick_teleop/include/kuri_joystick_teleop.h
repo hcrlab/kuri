@@ -50,6 +50,7 @@ class KuriJoystickTeleop
 
   int head_tilt_command;               // -1, 0, 1
   int head_pan_command;                // -1, 0, 1
+  int head_pan_reset;                  // 1, 0
 	std::mutex head_state_command_mutex; // used to synchronize access to head_tilt_command and head_pan_command
   bool new_head_state_command;         // whether we have an unread head_tilt_command and head_pan_command value or not
 
