@@ -40,7 +40,11 @@ H264Decoder::~H264Decoder() {
   picture_lock.lock();
 
   if(packet) {
+    #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,28,1)
     av_free_packet(packet);
+    #else
+    av_packet_unref(packet);
+    #endif
     packet = NULL;
   }
 
@@ -100,7 +104,7 @@ bool H264Decoder::load(std::string hostname, std::string port) {
 
   codec = avcodec_find_decoder(AV_CODEC_ID_H264);
   if(!codec) {
-    printf("Error: cannot find the h264 codec: %s:%s\n", hostname.c_str(), port.c_str());
+    std::cout << "Error: cannot find the h264 codec" << std::endl;
     return false;
   }
 
@@ -111,7 +115,7 @@ bool H264Decoder::load(std::string hostname, std::string port) {
   }
 
   if(avcodec_open2(codec_context, codec, NULL) < 0) {
-    printf("Error: could not open codec.\n");
+    std::cout << "Error: could not open codec." << std::endl;
     return false;
   }
 
@@ -121,9 +125,11 @@ bool H264Decoder::load(std::string hostname, std::string port) {
   iter = resolver.resolve(query);
 
   std::unique_lock<std::mutex> picture_lock(picture_mutex);
-  // NOTE: depending on your version of libav, you may need the first or second
-  // function below to allocate a frame.
-  picture = av_frame_alloc(); // avcodec_alloc_frame(); // 
+  #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,28,1)
+  picture = avcodec_alloc_frame();
+  #else
+  picture = av_frame_alloc();
+  #endif
   picture_lock.unlock();
   parser = av_parser_init(AV_CODEC_ID_H264);
   packet = new AVPacket;
@@ -146,15 +152,15 @@ void H264Decoder::readFrame() {
     if (buffer_frame_begin_indices.size() > 1) {
 
       // Only process the most recent frame (to prevent buffer overflow)
-      size_t index0 = buffer_frame_begin_indices[buffer_frame_begin_indices.size()-2];
-      size_t index1 = buffer_frame_begin_indices[buffer_frame_begin_indices.size()-1];
+      size_t index_0 = buffer_frame_begin_indices[buffer_frame_begin_indices.size()-2];
+      size_t index_1 = buffer_frame_begin_indices[buffer_frame_begin_indices.size()-1];
 
-      int decodedAmount = decodeFrame(&buffer[index0], index1-index0);
+      int decoded_amount = decodeFrame(&buffer[index_0], index_1-index_0);
       picture_recv_timestamp = buffer_frame_recv_timestamps[buffer_frame_recv_timestamps.size()-1];
-      int amountToDelete = index0 + decodedAmount;
-      buffer.erase(buffer.begin(), buffer.begin() + amountToDelete);
+      int amount_to_delete = index_0 + decoded_amount;
+      buffer.erase(buffer.begin(), buffer.begin() + amount_to_delete);
       buffer_frame_begin_indices.clear();
-      buffer_frame_begin_indices.push_back(index1-amountToDelete);
+      buffer_frame_begin_indices.push_back(index_1-amount_to_delete);
       buffer_frame_recv_timestamps.clear();
     }
     buffer_lock.unlock();
@@ -173,10 +179,28 @@ int H264Decoder::decodeFrame(uint8_t* data, int size) {
   packet->size = size;
 
   std::unique_lock<std::mutex> picture_lock(picture_mutex);
+  #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,28,1)
   len = avcodec_decode_video2(codec_context, picture, &got_picture, packet);
+  #else
+  int did_send = avcodec_send_packet(codec_context, packet);
+  if (did_send == 0) {
+    int did_receive = avcodec_receive_frame(codec_context, picture);
+    if (did_receive == 0) {
+      got_picture = 1;
+      len = size;
+    } else {
+      got_picture = 0;
+      len = -1;
+    }
+  } else {
+    got_picture = 0;
+    len = -1;
+  }
+  #endif
+
   picture_lock.unlock();
   if(len < 0) {
-    printf("Error while decoding a frame.\n");
+    std::cout << "Error while decoding a frame." << std::endl;
   }
 
   if(got_picture == 0) {
@@ -252,7 +276,7 @@ void H264Decoder::establishTCPConnection() {
     }
 
     if (error) {
-      std::cout << "Error connecting, will keep trying. Error: " << error.message() << std::endl;
+      std::cout << "Error connecting, will keep trying. Are you sure the uds_to_tcp node is running on the Kuri? Error: " << error.message() << std::endl;
       deestablishTCPConnection();
     }
     tcp_connect_lock.unlock();
@@ -285,7 +309,7 @@ void H264Decoder::readBuffer() {
       }
 
       if (error) {
-        std::cout << "Error reading, will disconnect and reconnect. Error: " << error.message() << std::endl;
+        std::cout << "Error reading, will disconnect and reconnect. Are you sure the uds_to_tcp node is running on the Kuri? Error: " << error.message() << std::endl;
         deestablishTCPConnection();
         establishTCPConnection();
       }

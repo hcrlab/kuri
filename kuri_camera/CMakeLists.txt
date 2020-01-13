@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(kuri_camera)
 # NOTE: You may have to change the following paths
-set(libav_path /usr/lib/x86_64-linux-gnu)
 set(libmadmux_path /opt/gizmo-master-cbb8e0c/lib/x86_64-linux-gnu)
 set(OpenCV_DIR /usr/share/OpenCV/)
 
@@ -28,13 +27,13 @@ include_directories(include ${catkin_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
 
 # find libavcodec
 set(libavcodec "libavcodec-NOTFOUND")
-find_file(libavcodec libavcodec.so ${libav_path} NO_DEFAULT_PATH)
+find_library(libavcodec libavcodec.so)
 # find libavutil
 set(libavutil "libavutil-NOTFOUND")
-find_file(libavutil libavutil.so ${libav_path} NO_DEFAULT_PATH)
+find_library(libavutil libavutil.so)
 # find libswscale
 set(libswscale "libswscale-NOTFOUND")
-find_file(libswscale libswscale.so ${libav_path} NO_DEFAULT_PATH)
+find_library(libswscale libswscale.so)
 if (libavcodec AND libavutil AND libswscale)
   message(STATUS "Found libavcodec, libavutil, and libswscale. Building h264_decoder_node")
   add_library(h264_decoder src/h264_decoder.cpp)
@@ -64,13 +63,9 @@ else()
   message(WARNING ${libmadmux})
 endif()
 
-add_executable(uds_to_TCP src/uds_to_TCP.cpp)
-target_link_libraries(uds_to_TCP ${catkin_LIBRARIES})
+add_executable(uds_to_tcp src/uds_to_tcp.cpp)
+target_link_libraries(uds_to_tcp ${catkin_LIBRARIES})
 add_executable(tcp_test_client src/tcp_test_client.cpp)
 target_link_libraries(tcp_test_client ${catkin_LIBRARIES})
 add_executable(display_compressed_images src/display_compressed_images.cpp)
 target_link_libraries(display_compressed_images ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
-
-
-#add_executable(save_image src/save_image.cpp)
-#target_link_libraries(save_image ${catkin_LIBRARIES} ${libmadmux})

@@ -12,13 +12,13 @@
 
 struct KuriCameraROSPublisher {
 
-  ros::Publisher imagePublisher;
+  ros::Publisher image_publisher;
   mdx_stream *stream;
 
-  std::mutex imageMutex;
-  bool hasNewImage;
-  cv::Mat imageMat;
-  ros::Time recvTime;
+  std::mutex image_mutex;
+  bool has_new_image;
+  cv::Mat image_mat;
+  ros::Time recv_time;
 
   // You can read about this pattern in the boost docs:
   // http://www.crystalclearsoftware.com/cgi-bin/boost_wiki/wiki.pl?Generalizing_C-Style_Callbacks
@@ -29,8 +29,8 @@ struct KuriCameraROSPublisher {
   }
 
   KuriCameraROSPublisher(ros::NodeHandle &nh) {
-    hasNewImage = false;
-    imagePublisher = nh.advertise<sensor_msgs::CompressedImage>("upward_looking_camera/image_raw/compressed", 1);
+    has_new_image = false;
+    image_publisher = nh.advertise<sensor_msgs::CompressedImage>("upward_looking_camera/image_raw/compressed", 1);
     stream = mdx_open("/var/run/madmux/ch3.sock");
 
     mdx_register_cb(stream, stream_callback_thunk, static_cast<void *>(this));
@@ -44,38 +44,38 @@ struct KuriCameraROSPublisher {
     ros::Rate sub_poll(1);
     ros::Rate fps(60);
     cv::Mat image;
-    ros::Time timeForMsg;
+    ros::Time time_for_msg;
     while (ros::ok()) {
       ros::spinOnce();
       fps.sleep();
-      if (imagePublisher.getNumSubscribers() == 0) {
+      if (image_publisher.getNumSubscribers() == 0) {
         ROS_INFO("Waiting for subscribers");
         sub_poll.sleep();
         continue;
       }
 
-      std::unique_lock<std::mutex> imageLock(imageMutex);
-      if (hasNewImage) {
-        hasNewImage = false;
-        image = cv::imdecode(imageMat, CV_LOAD_IMAGE_UNCHANGED);
-        timeForMsg = recvTime;
-        imageLock.unlock();
+      std::unique_lock<std::mutex> image_lock(image_mutex);
+      if (has_new_image) {
+        has_new_image = false;
+        image = cv::imdecode(image_mat, CV_LOAD_IMAGE_UNCHANGED);
+        time_for_msg = recv_time;
+        image_lock.unlock();
         sensor_msgs::CompressedImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", image).toCompressedImageMsg();
-        msg->header.stamp = timeForMsg;
+        msg->header.stamp = time_for_msg;
         msg->header.frame_id = "upward_looking_camera";
-        imagePublisher.publish(msg);
+        image_publisher.publish(msg);
       } else {
-        imageLock.unlock();
+        image_lock.unlock();
       }
     }
   }
 
   void data_callback(uint8_t *buffer, uint32_t size) {
-    std::unique_lock<std::mutex> imageLock(imageMutex);
-    imageMat = cv::Mat(1, size, CV_8UC1, buffer).clone();
-    recvTime = ros::Time::now();
-    hasNewImage = true;
-    imageLock.unlock();
+    std::unique_lock<std::mutex> image_lock(image_mutex);
+    image_mat = cv::Mat(1, size, CV_8UC1, buffer).clone();
+    recv_time = ros::Time::now();
+    has_new_image = true;
+    image_lock.unlock();
   }
 };
 

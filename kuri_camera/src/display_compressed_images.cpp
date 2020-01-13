@@ -14,33 +14,33 @@ DisplayCompressedImages::~DisplayCompressedImages() {
 }
 
 void DisplayCompressedImages::controlLoop() {
-  ros::Rate controlLoopRate(100.0);
+  ros::Rate control_loop_rate(100.0);
 
   cv::namedWindow("view");
   // cv::startWindowThread();
 
-  sensor_msgs::CompressedImage imageInControlLoop;
-  cv::Mat cvImage;
+  sensor_msgs::CompressedImage image_in_control_loop;
+  cv::Mat cv_image;
 
   while (!ros::isShuttingDown()) {
-    controlLoopRate.sleep();
+    control_loop_rate.sleep();
 
-    std::unique_lock<std::mutex> imageLock(image_mutex);
+    std::unique_lock<std::mutex> image_lock(image_mutex);
     if (has_new_image) {
-      imageInControlLoop = image;
+      image_in_control_loop = image;
       has_new_image = false;
-      imageLock.unlock();
+      image_lock.unlock();
       try {
-        cvImage = cv::imdecode(cv::Mat(imageInControlLoop.data),1);//convert compressed image data to cv::Mat
+        cv_image = cv::imdecode(cv::Mat(image_in_control_loop.data),1);//convert compressed image data to cv::Mat
         // ROS_INFO("Before imshow");
-        cv::imshow("view", cvImage);
+        cv::imshow("view", cv_image);
         // ROS_INFO("Before waitKey");
         cv::waitKey(1);
       } catch (cv_bridge::Exception& e) {
         ROS_ERROR("Could not convert to image!");
       }
     } else {
-      imageLock.unlock();
+      image_lock.unlock();
     }
 
   }
@@ -50,11 +50,11 @@ void DisplayCompressedImages::controlLoop() {
 }
 
 void DisplayCompressedImages::imageCallback(boost::shared_ptr<sensor_msgs::CompressedImage> msg) {
-  std::unique_lock<std::mutex> imageLock(image_mutex);
+  std::unique_lock<std::mutex> image_lock(image_mutex);
   image = *(msg.get());
   has_new_image = true;
   delay = ros::Time::now() - image.header.stamp;
-  imageLock.unlock();
+  image_lock.unlock();
   ROS_INFO("Recv image, delay %f", delay.toSec());
 }
 

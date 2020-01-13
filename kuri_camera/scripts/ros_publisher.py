@@ -10,7 +10,7 @@ import rospy
 rospy.init_node("kuri_camera_ros_publisher")
 
 # Whether to publish the image msg as a CompressedImage or an Image
-useCompression = True
+use_compression = rospy.get_param('use_compression', True)
 
 # We'll treat this like reusable barriers
 image_received = threading.Event()
@@ -19,7 +19,7 @@ image_published = threading.Event()
 bridge = CvBridge()
 base_topic = "/upward_looking_camera/image_raw"
 
-if useCompression:
+if use_compression:
     publisher = rospy.Publisher(base_topic + "/compressed", CompressedImage, queue_size=10)
 else:
     publisher = rospy.Publisher(base_topic, Image, queue_size=10)
@@ -38,7 +38,7 @@ def stream_cb(data):
     decoded = cv2.imdecode(data, cv2.CV_LOAD_IMAGE_COLOR)
 
     # Convert the decoded image to a ROS message
-    if useCompression:
+    if use_compression:
         image = bridge.cv2_to_compressed_imgmsg(decoded)
     else:
         image = bridge.cv2_to_imgmsg(decoded, "rgb8")

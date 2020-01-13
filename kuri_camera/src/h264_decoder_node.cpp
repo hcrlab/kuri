@@ -4,12 +4,18 @@
 #include <chrono>
 #include <mutex>
 #include <thread>
+#include <image_transport/image_transport.h>
+#include <image_transport/camera_publisher.h>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/Image.h>
+#include <sensor_msgs/CameraInfo.h>
 #include <boost/thread/shared_mutex.hpp>
+#include <boost/range/algorithm.hpp>
 
 struct H264DecoderNode {
-  ros::Publisher image_publisher;
+  image_transport::ImageTransport transport;
+  image_transport::CameraPublisher publisher;
+  sensor_msgs::CameraInfo camera_info;
 
   cv::Mat cv_image;
   uint64_t cv_image_recv_timestamp;
@@ -26,10 +32,40 @@ struct H264DecoderNode {
 
   H264Decoder* decoder_object;
 
-  H264DecoderNode(ros::NodeHandle &nh, H264Decoder* h264_decoder) {
+  H264DecoderNode(ros::NodeHandle &nh, H264Decoder* h264_decoder) : transport(ros::NodeHandle()) {
     have_image = false;
 
-    image_publisher = nh.advertise<sensor_msgs::Image>("upward_looking_camera/image_raw", 1);
+    // Load the camera_info parameters
+    int camera_info_width, camera_info_height;
+    std::string camera_info_distortion_model;
+    std::vector<double> camera_info_D;
+    std::vector<double> camera_info_K;
+    std::vector<double> camera_info_R;
+    std::vector<double> camera_info_P;
+    if (!nh.getParam("image_width", camera_info_width)) ROS_WARN("Camera Calibration: image_width not set");
+    if (!nh.getParam("image_height", camera_info_height)) ROS_WARN("Camera Calibration: image_height not set");
+    if (!nh.getParam("camera_model", camera_info_distortion_model)) ROS_WARN("Camera Calibration: camera_model not set");
+    if (!nh.getParam("distortion_coefficients/data", camera_info_D)) ROS_WARN("Camera Calibration: distortion_coefficients/data not set");
+    if (!nh.getParam("rectification_matrix/data", camera_info_R)) ROS_WARN("Camera Calibration: rectification_matrix/data not set");
+    if (!nh.getParam("projection_matrix/data", camera_info_P)) ROS_WARN("Camera Calibration: projection_matrix/data not set");
+    // Construct K from P -- valid since the camera is monocular
+    if (camera_info_P.size() == 12) {
+      camera_info_K.insert(camera_info_K.end(), camera_info_P.begin(), camera_info_P.begin() + 3);
+      camera_info_K.insert(camera_info_K.end(), camera_info_P.begin() + 4, camera_info_P.begin() + 7);
+      camera_info_K.insert(camera_info_K.end(), camera_info_P.begin() + 8, camera_info_P.begin() + 11);
+
+      // Only copy data over if the params were set
+      camera_info.header.frame_id = "upward_looking_camera_optical_frame";
+      camera_info.width = camera_info_width;
+      camera_info.height = camera_info_height;
+      camera_info.distortion_model = camera_info_distortion_model;
+      camera_info.D = camera_info_D;
+      boost::range::copy(camera_info_K, camera_info.K.begin());
+      boost::range::copy(camera_info_R, camera_info.R.begin());
+      boost::range::copy(camera_info_P, camera_info.P.begin());
+    }
+
+    publisher = transport.advertiseCamera("upward_looking_camera", 1);
 
     publish_image_thread = std::thread(&H264DecoderNode::publishImage, this);
     cv_display_thread = std::thread(&H264DecoderNode::cvDisplay, this);
@@ -77,7 +113,7 @@ struct H264DecoderNode {
 
       // Because publishing ros Images is expensive, only do so when we have a
       // subscriber
-      if (image_publisher.getNumSubscribers() > 0) {
+      if (publisher.getNumSubscribers() > 0) {
         wait_for_cv_image_lock.lock();
         got_new_cv_image.wait(wait_for_cv_image_lock);
         wait_for_cv_image_lock.unlock();
@@ -92,12 +128,14 @@ struct H264DecoderNode {
           continue;
         }
 
-        msg->header.stamp = ros::Time(((double)cv_image_recv_timestamp)/1000.0); // When the H264 frame was received
-        msg->header.frame_id = "upward_looking_camera";
+        ros::Time frame_recv_time = ros::Time(((double)cv_image_recv_timestamp)/1000.0); // When the H264 frame was received;
 
-        image_publisher.publish(msg);
+        msg->header.stamp = frame_recv_time;
+        msg->header.frame_id = "upward_looking_camera_optical_frame";
+
+        publisher.publish(*msg, camera_info, frame_recv_time);
       } else {
-        ROS_INFO("No subscribers to upward_looking_camera/image_raw . Not published");
+        ROS_INFO("No subscribers to upward_looking_camera . Not published");
         waiting_rate.sleep();
       }
     }
@@ -164,16 +202,22 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "h264_decoder_node");
   ros::Time::init();
 
-  ros::NodeHandle nh;
+  ros::NodeHandle nh(ros::this_node::getName());
 
   H264Decoder* h264_decoder = new H264Decoder();
   H264DecoderNode* node = new H264DecoderNode(nh, h264_decoder);
 
   std::string tcp_socket_hostname;
-  int tc_socket_port;
-  ros::param::param<std::string>("tcp_socket_hostname", tcp_socket_hostname, "cococutkuri.personalrobotics.cs.washington.edu");
-  ros::param::param<int>("tc_socket_port", tc_socket_port, 1234);
-  h264_decoder->load(tcp_socket_hostname, std::to_string(tc_socket_port));
+  int tcp_socket_port;
+  if (!nh.getParam("/tcp_socket_hostname", tcp_socket_hostname)) {
+    ROS_ERROR("No hostname set at param /tcp_socket_hostname . Exiting.");
+    return -1;
+  }
+  if (!nh.getParam("/tcp_socket_port", tcp_socket_port)) {
+    ROS_ERROR("No port set at param /tcp_socket_port . Exiting.");
+    return -1;
+  }
+  h264_decoder->load(tcp_socket_hostname, std::to_string(tcp_socket_port));
 
   h264_decoder->startRead();
   ros::spin();
