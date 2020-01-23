@@ -7,13 +7,14 @@
 
     <!-- Kuri's eye camera -->
     <include file="$(find madmux)/launch/madmux_daemon.launch"/>
+    <include file="$(find kuri_camera)/launch/uds_to_tcp.launch"/>
 
     <!-- Kuri's face recognition -->
     <include file="$(find vision_bridge)/launch/vision_bridge.launch"/>
 
     <!-- Audio processing pipeline -->
     <include file="$(find audio_realtime)/launch/audio_realtime.launch"/>
-    
+
     <!-- Transcription service -->
     <include file="$(find audio_realtime)/launch/audio_voice_delegate.launch">
         <arg name="soundhound_client_id" value="-1" />
