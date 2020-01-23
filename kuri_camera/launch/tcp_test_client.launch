@@ -1,0 +1,7 @@
+<launch>
+
+  <rosparam file="$(find kuri_camera)/config/tcp_params.yaml" command="load"/>
+
+  <node pkg="kuri_camera" type="tcp_test_client" name="tcp_test_client" output="screen"/>
+
+</launch>

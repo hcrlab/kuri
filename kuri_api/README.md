@@ -10,6 +10,12 @@ Provides Python wrappers for hardware capabilities and some high level functiona
 
 ## Usage
 
+### Dependencies
+
+You may need to install the following packages:
+- `sudo pip install timer`
+- `sudo pip install pyttsx`
+
 ### Simulation
 
 You may need to install `alsaaudio` on your machine

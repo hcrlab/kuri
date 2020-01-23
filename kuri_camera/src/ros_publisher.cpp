@@ -8,20 +8,17 @@
 #include <cv_bridge/cv_bridge.h>
 #include <mutex>
 #include <condition_variable>
-
-using std::string;
-using std::vector;
-
+#include <sensor_msgs/CompressedImage.h>
 
 struct KuriCameraROSPublisher {
 
-  image_transport::ImageTransport transport;
-  image_transport::CameraPublisher publisher;
+  ros::Publisher image_publisher;
   mdx_stream *stream;
-  sensor_msgs::CameraInfo::Ptr camera_info;
-  std::mutex m;
-  std::condition_variable got_frame;
-  bool frame_processed;
+
+  std::mutex image_mutex;
+  bool has_new_image;
+  cv::Mat image_mat;
+  ros::Time recv_time;
 
   // You can read about this pattern in the boost docs:
   // http://www.crystalclearsoftware.com/cgi-bin/boost_wiki/wiki.pl?Generalizing_C-Style_Callbacks
@@ -31,9 +28,11 @@ struct KuriCameraROSPublisher {
     static_cast<KuriCameraROSPublisher *>(self)->data_callback(buffer, size);
   }
 
-  KuriCameraROSPublisher(const ros::NodeHandle &nh) : transport(nh), publisher(transport.advertiseCamera("/blah", 1)),
-                                                      camera_info(new sensor_msgs::CameraInfo()), frame_processed(false), stream(nullptr) {
-    stream = mdx_open("/var/run/madmux/ch4.sock");
+  KuriCameraROSPublisher(ros::NodeHandle &nh) {
+    has_new_image = false;
+    image_publisher = nh.advertise<sensor_msgs::CompressedImage>("upward_looking_camera/image_raw/compressed", 1);
+    stream = mdx_open("/var/run/madmux/ch3.sock");
+
     mdx_register_cb(stream, stream_callback_thunk, static_cast<void *>(this));
   }
 
@@ -43,46 +42,41 @@ struct KuriCameraROSPublisher {
 
   void listen_publish_loop() {
     ros::Rate sub_poll(1);
+    ros::Rate fps(60);
+    cv::Mat image;
+    ros::Time time_for_msg;
     while (ros::ok()) {
       ros::spinOnce();
-      if (publisher.getNumSubscribers() == 0) {
-        ROS_INFO("No subs");
+      fps.sleep();
+      if (image_publisher.getNumSubscribers() == 0) {
+        ROS_INFO("Waiting for subscribers");
         sub_poll.sleep();
-        //continue;
-      }
-      ROS_INFO("Heard sub");
-      // Someone is subscribed! Get a frame
-      {
-        std::unique_lock<std::mutex> lock(m);
-        frame_processed = false;
-        got_frame.wait(lock, [this]() { return frame_processed; });
-        ROS_ERROR("LOOP SEES PROCESSED");
+        continue;
       }
 
-
+      std::unique_lock<std::mutex> image_lock(image_mutex);
+      if (has_new_image) {
+        has_new_image = false;
+        image = cv::imdecode(image_mat, CV_LOAD_IMAGE_UNCHANGED);
+        time_for_msg = recv_time;
+        image_lock.unlock();
+        sensor_msgs::CompressedImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", image).toCompressedImageMsg();
+        msg->header.stamp = time_for_msg;
+        msg->header.frame_id = "upward_looking_camera";
+        image_publisher.publish(msg);
+      } else {
+        image_lock.unlock();
+      }
     }
   }
 
   void data_callback(uint8_t *buffer, uint32_t size) {
-    std::unique_lock<std::mutex> lock(m);
-    std::cout << size << std::endl;
-    std::cout << (void*)buffer << std::endl;
-    std::cout << buffer[0] << std::endl;
-
-    if (size < 1000) {
-      return;
-    }
-    cv::Mat image_nv12(640, 480, CV_8UC1, buffer);
-    cv::Mat image_bgr;
-    cv::cvtColor(image_nv12, image_bgr, CV_YUV2BGR_YV12);
-    sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", image_bgr).toImageMsg();
-    publisher.publish(msg, camera_info);
-    frame_processed = true;
-    lock.unlock();
-    got_frame.notify_all();
-    ROS_ERROR("CALLBACK RETURNING");
+    std::unique_lock<std::mutex> image_lock(image_mutex);
+    image_mat = cv::Mat(1, size, CV_8UC1, buffer).clone();
+    recv_time = ros::Time::now();
+    has_new_image = true;
+    image_lock.unlock();
   }
-
 };
 
 int main(int argc, char **arcv) {
