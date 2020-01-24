@@ -20,6 +20,8 @@ catkin_package(
   CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs trajectory_msgs control_msgs joy actionlib tf
 )
 
+catkin_add_env_hooks(${PROJECT_NAME} SHELLS sh DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/env-hooks)
+
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}

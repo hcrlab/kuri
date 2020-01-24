@@ -7,10 +7,7 @@ add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED
   COMPONENTS
-
 )
-
-catkin_add_env_hooks(${PROJECT_NAME} SHELLS sh DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/env-hooks)
 
 catkin_python_setup()
 
@@ -18,6 +15,5 @@ catkin_package(
   CATKIN_DEPENDS
 
 )
-
 
 include_directories(${catkin_INCLUDE_DIRS})
