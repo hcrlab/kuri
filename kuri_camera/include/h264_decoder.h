@@ -46,7 +46,7 @@ class H264Decoder {
   // int findBeginningOfH264Message(int bytes_read);                                /* as we readBuffer, this function finds the beginning of H264 messages */
   void establishTCPConnection();                                                 /* keep retrying until it establishes a TCP connection */
   void deestablishTCPConnection();                                               /* close the socket and reset the io_service */
-  static void avframeToMat(const AVFrame * frame, cv::Mat& image);
+  static void avframeToMat(const AVFrame * frame, cv::Mat& image);               /* Convert the AV Frames to CV Matrices */
 
   AVCodec* codec;                                                                /* the AVCodec* which represents the H264 decoder */
   AVCodecContext* codec_context;                                                 /* the context; keeps generic state */
@@ -85,6 +85,7 @@ class H264Decoder {
   std::condition_variable tcp_connect_cvar;                                      /* used to synchronize the asynchronous tcp connection function with the timeout */
   std::mutex tcp_read_some_mutex;                                                /* mutex for tcp_read_some_cvar */
   std::condition_variable tcp_read_some_cvar;                                    /* used to synchronize the asynchronous tcp read_some function with the timeout */
+  int connection_sleep_time;                                                     /* if the connection fails, how long to sleep before trying again */
 };
 
 #endif

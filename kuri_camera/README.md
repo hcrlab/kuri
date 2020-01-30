@@ -43,3 +43,7 @@ This package provides multiple nodes for working with Kuri's camera, depending o
 ## Notes
 - This package includes camera configuration parameters that work for our Kuri. We do not provide guarantees that the same calibration parameters will work for other Kuri's. If your camera work requires a perfectly calibrated camera, we recommend you follow [ROS's monocular camera calibration tutorial](http://wiki.ros.org/camera_calibration/Tutorials/MonocularCalibration) and replace the parameters in config/camera_Calibration_parameters.yaml.
 - Sometimes while making the package you will get a warning due to a cycle in the constraint graph. Ignore that -- the code compiles properly despite that.
+
+## Known Issues
+- When accepting a TCP connection, `uds_to_tcp.cpp` uses the blocking `tcp_acceptor.accept()` as opposed to the non-blocking `async_accept()`. As a result, if you terminate it while it is waiting for a TCP connection, it will have to escalate to a SIGTERM.
+- If you terminate `uds_to_tcp.cpp` while it is working (i.e., not while it is waiting for a TCP connection), the UDS socket's read_some throws an error. This is likely because the madmux-daemon closes before the `uds_to_tcp` node, so the UDS socket is no longer a valid source to read from. There does not seem to be a simple way to ensure the `uds_to_tcp` closes before the madmux-daemon, but maybe this error can be handled within a try-catch statement.

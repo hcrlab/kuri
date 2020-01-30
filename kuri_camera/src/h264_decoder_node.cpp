@@ -207,12 +207,8 @@ int main(int argc, char **argv) {
   H264Decoder* h264_decoder = new H264Decoder();
   H264DecoderNode* node = new H264DecoderNode(nh, h264_decoder);
 
-  std::string tcp_socket_hostname;
+  std::string tcp_socket_hostname = ros::master::getHost();
   int tcp_socket_port;
-  if (!nh.getParam("/tcp_socket_hostname", tcp_socket_hostname)) {
-    ROS_ERROR("No hostname set at param /tcp_socket_hostname . Exiting.");
-    return -1;
-  }
   if (!nh.getParam("/tcp_socket_port", tcp_socket_port)) {
     ROS_ERROR("No port set at param /tcp_socket_port . Exiting.");
     return -1;

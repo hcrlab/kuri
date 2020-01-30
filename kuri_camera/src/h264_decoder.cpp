@@ -12,7 +12,8 @@ H264Decoder::H264Decoder()
   ,is_alive(false)
   ,tcp_socket(io_service)
   ,work(NULL)
-  ,tcp_timeout(5)
+  ,tcp_timeout(1)
+  ,connection_sleep_time(1)
 {
   got_picture = 0;
   len_callback_value = new int;
@@ -242,7 +243,6 @@ int H264Decoder::decodeFrame(uint8_t* data, int size) {
 // }
 
 void H264Decoder::deestablishTCPConnection() {
-  tcp_socket.close();
   if (work) {
     work->~work();
     free(work);
@@ -250,18 +250,18 @@ void H264Decoder::deestablishTCPConnection() {
   }
   io_service.stop();
   async_io_service_thread.join(); // should be joinable since we destroyed the work and stopped the io_service
+  tcp_socket.close();
 }
 
 void H264Decoder::establishTCPConnection() {
-  // Create work and start running the io_service, to enbale asynchronous operation
-  work = new boost::asio::io_service::work(io_service);
-  io_service.reset();
-  async_io_service_thread = boost::thread(boost::bind(&boost::asio::io_service::run, &io_service));
-
   boost::system::error_code error = boost::asio::error::host_not_found;
-
   while (is_alive && error) {
-    // Run an synchronous connect with a timeout of tcp_timeout
+    // Create work and start running the io_service, to enbale asynchronous operation
+    work = new boost::asio::io_service::work(io_service);
+    io_service.reset();
+    async_io_service_thread = boost::thread(boost::bind(&boost::asio::io_service::run, &io_service));
+
+    // Run an asynchronous connect with a timeout of tcp_timeout
     std::unique_lock<std::mutex> tcp_connect_lock(tcp_connect_mutex);
     tcp_socket.async_connect(boost::asio::ip::tcp::endpoint(iter->endpoint()),
       [&error, this](const boost::system::error_code& err) {
@@ -278,6 +278,8 @@ void H264Decoder::establishTCPConnection() {
     if (error) {
       std::cout << "Error connecting, will keep trying. Are you sure the uds_to_tcp node is running on the Kuri? Error: " << error.message() << std::endl;
       deestablishTCPConnection();
+      std::cout << "Disconnected. Will sleep for " << connection_sleep_time << " seconds before trying to reconnect." << std::endl;
+      std::this_thread::sleep_for(std::chrono::seconds(connection_sleep_time));
     }
     tcp_connect_lock.unlock();
   }
@@ -309,11 +311,14 @@ void H264Decoder::readBuffer() {
       }
 
       if (error) {
+        tcp_read_some_lock.unlock(); // It is *CRUCIAL* that this be unlocked so that the handler can execute, and therefore io_service.run() can terminate to close the connection.
         std::cout << "Error reading, will disconnect and reconnect. Are you sure the uds_to_tcp node is running on the Kuri? Error: " << error.message() << std::endl;
         deestablishTCPConnection();
+        std::cout << "Disconnected, will try reconnecting." << std::endl;
         establishTCPConnection();
+      } else {
+        tcp_read_some_lock.unlock();
       }
-      tcp_read_some_lock.unlock();
     }
     // Check if we have received a full frame yet
     got_frame_bool = false;

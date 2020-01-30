@@ -63,12 +63,8 @@ int main(int argc, char **arcv) {
   boost::asio::ip::tcp::socket socket(io_service);
   boost::asio::ip::tcp::resolver resolver(io_service);
 
-  std::string tcp_socket_hostname;
+  std::string tcp_socket_hostname = ros::master::getHost();
   int tcp_socket_port;
-  if (!nh.getParam("/tcp_socket_hostname", tcp_socket_hostname)) {
-    ROS_ERROR("No hostname set at param /tcp_socket_hostname . Exiting.");
-    return -1;
-  }
   if (!nh.getParam("/tcp_socket_port", tcp_socket_port)) {
     ROS_ERROR("No port set at param /tcp_socket_port . Exiting.");
     return -1;
