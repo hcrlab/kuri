@@ -16,6 +16,13 @@ int main(int argc, char **arcv) {
     return -1;
   }
 
+  // The number of seconds to sleep between successive attempts to reconnect to madmux's UDS stream
+  int sleep_secs;
+  if (!ros::param::get(ros::this_node::getName()+"/sleep_secs", sleep_secs))
+  {
+    sleep_secs = 1;
+  }
+
   // Create the TCP Socket
   boost::asio::io_service tcp_io_service;
   boost::asio::ip::tcp::acceptor tcp_acceptor(tcp_io_service, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), tcp_socket_port));
@@ -32,9 +39,15 @@ int main(int argc, char **arcv) {
     // Create a connection to the Madmux Unix Domain Socket
     boost::asio::io_service uds_io_service;
     boost::asio::local::stream_protocol::socket uds_socket(uds_io_service);
-    boost::system::error_code err;
+    boost::system::error_code err = boost::asio::error::host_not_found;
 
-    uds_socket.connect(boost::asio::local::stream_protocol::endpoint(uds_socket_path));
+    while (err) {
+      uds_socket.connect(boost::asio::local::stream_protocol::endpoint(uds_socket_path), err);
+      if (err) {
+        ROS_INFO("Error connecting to the UDS socket, will retry after %d seconds: %s", sleep_secs, err.message().c_str());
+        ros::Duration(sleep_secs).sleep();
+      }
+    }
 
     uint8_t buf[buffer_size] = {0};
 

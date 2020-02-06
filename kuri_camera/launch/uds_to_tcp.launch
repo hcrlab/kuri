@@ -2,6 +2,11 @@
 
   <rosparam file="$(find kuri_camera)/config/tcp_params.yaml" command="load"/>
 
-  <node pkg="kuri_camera" type="uds_to_tcp" name="uds_to_tcp" output="screen"/>
+  <include file="$(find madmux)/launch/madmux_daemon.launch"/>
+
+  <node pkg="kuri_camera" type="uds_to_tcp" name="uds_to_tcp" output="screen">
+    <!-- The number of seconds to sleep before retrying to connect to the madmux UDS stream. -->
+    <param name="sleep_secs" type="int" value="1"/>
+  </node>
 
 </launch>

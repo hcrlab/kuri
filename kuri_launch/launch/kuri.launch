@@ -6,7 +6,6 @@
     <include file="$(find mobile_base_driver)/launch/kuri_drive.launch"/>
 
     <!-- Kuri's eye camera -->
-    <include file="$(find madmux)/launch/madmux_daemon.launch"/>
     <include file="$(find kuri_camera)/launch/uds_to_tcp.launch"/>
 
     <!-- Kuri's face recognition -->

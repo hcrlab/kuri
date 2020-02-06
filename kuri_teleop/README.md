@@ -25,6 +25,7 @@ In some cases, one may want the joystick velocity commands to override commands 
 
 ## Notes
 - kuri_edu does have a [joystick_teleop node](https://github.com/MayfieldRoboticsPublic/kuri_edu/blob/master/kuri_edu/src/kuri_edu/joystick_teleop.py). However, that node must be run **on the Kuri** (since it sends commands directly to the mobile_base_driver), although the joystick likely has to be connected to a remote computer (due to the difficulty of pairing a joystick directly to the Kuri). On the other hand, our joystick_teleop node sends commands to the Kuri using ros messages, so both the joystick and the joystick_teleop code can be run on the remote computer. To avoid the complex setup in the kuri_edu joystick_teleop node, we do not include that node in this package.
+- ~~If the Kuri's head lags behind the body in RVIZ when the global frame is an odometry frame, you likely have to increase the publish rate of the robot_state_publisher. On the kuri, open `/opt/gizmo/share/mobile_base_driver/launch/includes/robot.launch.xml` and increase the publish rate (you may need root permissions to write to this file).~~ (This fix does not work. We have not yet found a fix).
 
 ## TODO
 - Convert the hardcoded values in `joystick_teleop.cpp`that users may want to change (such as head pan speech, head pan duration, controll loop hertz, etc.) to ros params.
