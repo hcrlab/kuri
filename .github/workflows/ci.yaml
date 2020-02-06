@@ -4,12 +4,32 @@ on: [push, pull_request]
 
 jobs:
   industrial_ci:
+    env:
+      AFTER_INSTALL_TARGET_DEPENDENCIES: 'pip2 install --upgrade pip && pip2 install --upgrade "setuptools<0.45"'
+      CATKIN_LINT: true
+      ROS_REPO: main
     strategy:
       matrix:
         env:
-          - {ROS_DISTRO: indigo, ROS_REPO: main}
+          - {ROS_DISTRO: indigo}
+          - {ROS_DISTRO: noetic}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-      - uses: 'ros-industrial/industrial_ci@master'
-        env: ${{matrix.env}}
+    - uses: actions/checkout@v2
+    - uses: 'ros-industrial/industrial_ci@master'
+      env: ${{matrix.env}}
+      continue-on-error: ${{ matrix.env.ROS_DISTRO == 'noetic' }}
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 2.7
+    - name: Install dependencies
+      run: |
+        pip install flake8 pep8-naming
+    - name: Lint
+      run: |
+        flake8 -v
