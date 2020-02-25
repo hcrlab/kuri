@@ -7,6 +7,15 @@ This package provides multiple nodes for working with Kuri's camera, depending o
 - OpenCV
 - libav: `apt-get install libav-tools` (you can also maybe install it by installing FFMPEG or through https://libav.org/)
 
+## Compilation
+
+There is a [known bug](https://github.com/KuriRobot/Kuri-Documentation/issues/33) where the the Kuri has an unnecessary and incomplete [madmux](https://github.com/KuriRobot/Kuri-Documentation/blob/master/reference/ros-packages/madmux.md) library in the `/opt/ros/indigo` folder (the correct one is in `/opt/gizmo`). To prevent ROS from linking to the wrong madmux library, move or delete all remnants of madmux from the `/opt/ros/indigo` folder *before compiling* the code. (If you have already compiled the code, you may have to clean your workspace before re-compiling). Specifically, run the following commands (these will delete the files -- if you would rather move the files for backup, modify the commands appropriately):
+`sudo rm -r /opt/ros/indigo/include/madmux`
+`sudo rm /opt/ros/indigo/lib/libmadmux.so`
+`sudo rm /opt/ros/indigo/lib/libmadmux.so.0`
+`sudo rm /opt/ros/indigo/lib/libmadmux.so.0.2.0`
+`sudo rm -r /opt/ros/indigo/share/madmux`
+
 ## Nodes
 
 ### Python

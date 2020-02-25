@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(kuri_camera)
 # NOTE: You may have to change the following paths
-set(libmadmux_path /opt/gizmo-master-cbb8e0c/lib/x86_64-linux-gnu)
+set(libmadmux_path /opt/gizmo/lib/x86_64-linux-gnu)
 set(OpenCV_DIR /usr/share/OpenCV/)
 
 add_compile_options(-std=c++11)
