@@ -6,40 +6,51 @@ This package provides multiple nodes for working with Kuri's camera, depending o
 
 - OpenCV
 - libav: `apt-get install libav-tools` (you can also maybe install it by installing FFMPEG or through https://libav.org/)
+- compressed_image_transport: https://github.com/ros-perception/image_transport_plugins
 
 ## Compilation
 
 There is a [known bug](https://github.com/KuriRobot/Kuri-Documentation/issues/33) where the the Kuri has an unnecessary and incomplete [madmux](https://github.com/KuriRobot/Kuri-Documentation/blob/master/reference/ros-packages/madmux.md) library in the `/opt/ros/indigo` folder (the correct one is in `/opt/gizmo`). To prevent ROS from linking to the wrong madmux library, move or delete all remnants of madmux from the `/opt/ros/indigo` folder *before compiling* the code. (If you have already compiled the code, you may have to clean your workspace before re-compiling). Specifically, run the following commands (these will delete the files -- if you would rather move the files for backup, modify the commands appropriately):
+
 `sudo rm -r /opt/ros/indigo/include/madmux`
+
 `sudo rm /opt/ros/indigo/lib/libmadmux.so`
+
 `sudo rm /opt/ros/indigo/lib/libmadmux.so.0`
+
 `sudo rm /opt/ros/indigo/lib/libmadmux.so.0.2.0`
+
 `sudo rm -r /opt/ros/indigo/share/madmux`
 
 ## Nodes
 
+### Overview
+This package provides many nodes. The one that we most actively use (because it provides the lowest-latency camera feed) is the CPP `kuri_camera_publisher` node. Therefore, that node is also most actively maintained. The other nodes are provided for convenience and as code examples, but may not contain all the newest features (such as publishing `camera_info`).
+
 ### Python
 
-- `ros_publisher.py` is the simplest to use and slowest node in this package. It registers a callback from madmux's MJPEG stream, converts the images into CompressedImage rosmsgs, and then publishes them.
+- `kuri_camera_publisher.py` registers a callback from madmux's MJPEG stream, converts the images into CompressedImage rosmsgs, and then publishes them.
 
 ### C++
 
-- NOTE: For the C++ code to compile, you have to manually link to `libmadmux` and multiple other libraries. This requires finding the paths to these libraries. The CMake file contains the paths to those libraries on **our** computers -- use those as pointers to find those libraries on **your** computers, andthen change the paths accordingly.
-- `ros_publisher` is the second-simplest and second-slowest node to use. This does the same thing as `ros_publisher.py`, except in C++.
-- The fastest way to receive images is to use H264 compression (which compresses the image in space and time, as opposed to the `ros_publisher`s which only compress them in space). Our approach involves porting the Unix Domain Socket (UDS) data stream published by Kuri's camera directly to a TCP socket, and then reading from that TCP socket on a remote computer and processing the images.
-  - NOTE: as all these nodes require that the tcp socket hostname and port be given as params, it is recommended to run these nodes through the launchfiles of the same name, as opposed to through rosrun.
+- NOTE: For the C++ code to compile, you have to manually link to `libmadmux` and multiple other libraries. This requires finding the paths to these libraries. The CMake file contains the paths to those libraries on **our** computers -- use those as pointers to find those libraries on **your** computers, and then change the paths accordingly.
+- `kuri_camera_publisher` is our node of choice. This uses ROS's image_transport (we recommend using the [compressed_image_transport](https://github.com/ros-perception/image_transport_plugins) to lower the latency) to publish images as well as `camera_info`.
+- Another option is using H264 compression. In theory H264 compression should be faster, since it compresses the image stream across both space and time. However, creating the H264 compression stream itself adds significant latency (0.175s in our calculations), which outweights the lower network latency due to increased compression. We include our code in case it is useful to anyone. Our approach involves porting the Unix Domain Socket (UDS) data stream published by Kuri's camera directly to a TCP socket, and then reading from that TCP socket on a remote computer and processing the images.
+  - NOTE: since all these nodes require that the tcp socket port be given as params, it is recommended to run these nodes through the launchfiles of the same name, as opposed to through rosrun.
   - `uds_to_tcp` is the node that reads bytes from the UDS socket and ports them over to a TCP socket. This must be run **on the Kuri**.
   - `tcp_test_client` is just a test client you can run to ensure that data is getting streamed to the TCP socket as expected. It will partition the stream into H264 frames and print the size and beginning bytes of each frame.
-  - `h264_decoder_node` subscribes to the TCP socket, decodes the H264 stream, and converts the image to a cv::Mat. The current code then displays it using OpenCV's imshow and publishes it as a ros Image msg -- however, there is a sample function demonstrating how to use the cv::Mat for arbitrary processing, while remaining thread-safe. This node should be run **on a remote computer**. (NOTE: if you would like to use the H264 stream but process images on-board the Kuri, we recommend you change `h264_decoder.cpp` to read directly from the UDS socket, instead of the TCP socket that is generated by `uds_to_TCP`).
+  - `h264_decoder_node` subscribes to the TCP socket, decodes the H264 stream, and converts the image to a cv::Mat. The current code then displays it using OpenCV's imshow and publishes it as a ros Image msg -- however, there is a sample function demonstrating how to use the cv::Mat for arbitrary processing, while remaining thread-safe. This node should be run **on a remote computer**. (NOTE: if you would like to use the H264 stream but process images on-board the Kuri, we recommend you change `h264_decoder.cpp` to get bytes directly from the madmux daemon instead of the TCP socket that is generated by `uds_to_TCP`).
 - NOTE: Since we use TCP socket connections, only one remote computer can run the `h264_decoder_node` at a time. If you need multiple remote computers to access Kuri's images, we would recommend modifying uds_to_tcp to publish the same data on two TCP sockets.
 
-### Miscellaneous
-- `display_compressed_images` will read a CompressedImage rosmsg, display it, and print out the delay between when the message was received and the timestamp on the message. This can be used in conjunction with the `ros_publisher` nodes.
-
 ## Latency Analysis
-- To determine **end-to-end latency**, we set up a computer near our remote computer and ran a stopwatch on it. This was our ground truth. We then pointed the Kuri's camera at this computer and used the above node(s) to display Kuri's image on the remote computer. We then took a video of the ground truth computer and the adjacent remote computer. We then played back the video and paused it at certain frames. The difference is the end-to-end latency. We have seen it as low as 300-400 ms when just displaying the cv::Mat (it goes to 400-500 ms when also publishing a ros Image msg).
-- Note that for the h264 setup, end-to-end latency is the sum of multiple latencies:
-    1) the latency from when Kuri's camera sees the image to when it is written to the UDS socket;
+- To determine **end-to-end latency**, we set up a computer near our remote computer and ran a stopwatch on it. This was our ground truth. We then pointed the Kuri's camera at this computer and used the above node(s) to display Kuri's image on the remote computer. We then took a video of the ground truth computer and the adjacent remote computer. We then played back the video and paused it at certain frames. The difference is the end-to-end latency. We have seen it as low as 250-350 ms when just displaying the cv::Mat (it increases when using the RVIZ Camera display).
+- To further analyze latency, we connected an HDMI cable to the Kuri. For this analysis, we considered three steps of the latency: 1) from when Kuri's camera sees an image to when the madmux daemon makes it available to our code; 2) from when our code receives it to when we send it to be rendered; and 3) from when we send it to be rendered to when it is actually rendered on the screen. We found that on ch1 and ch2 (H264), 1+3 was ~0.375s, while on ch3 (MJPEG) 1+3 was ~0.2s. Hence, we concluded that the process of encoding the H264 stream itself takes ~0.175s. Further, even on ch3 the camera drivers add non-trivial latency to the camera stream.
+- For additional information on Kuri's camera latency, see this [GitHub issue](https://github.com/KuriRobot/Kuri-Documentation/issues/34).
+
+### Investigating Latency With our H264 Code (old)
+
+- Note that for the H264 setup, end-to-end latency is the sum of multiple latencies:
+    1) the latency from when Kuri's camera sees the image to when it is read from the UDS socket;
     2) the latency from when it is written to the UDS socket to when it is read from the UDS socket;
     3) the latency from when we read it from the UDS socket and write it to the TCP socket;
     4) the latency from when we write it to the TCP socket on the Kuri to when we read it from the TCP socket on the remote computer (network latency);

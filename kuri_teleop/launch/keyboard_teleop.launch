@@ -2,4 +2,10 @@
 
   <node pkg="kuri_teleop" type="keyboard_teleop.py" name="keyboard_teleop" output="screen"/>
 
+  <!-- Launch the display heading arrow node  -->
+  <node pkg="kuri_teleop" type="display_heading_arrow" name="display_heading_arrow" output="screen"/>
+
+  <!-- Launch RVIZ to visualize the camera and heading arrow -->
+  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find kuri_teleop)/rviz/kuri_teleop.rviz" />
+
 </launch>

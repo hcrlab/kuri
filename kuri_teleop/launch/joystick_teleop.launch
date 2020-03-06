@@ -8,9 +8,6 @@
   <!-- Launch the joystick teleop code -->
   <node pkg="kuri_teleop" type="joystick_teleop" name="joystick_teleop" output="screen"/>
 
-  <!-- Launch the camera -->
-  <include file="$(find kuri_camera)/launch/h264_decoder_node.launch"/>
-
   <!-- Launch the display heading arrow node  -->
   <node pkg="kuri_teleop" type="display_heading_arrow" name="display_heading_arrow" output="screen"/>
 
