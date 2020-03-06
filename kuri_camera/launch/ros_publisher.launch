@@ -1,0 +1,9 @@
+<launch>>
+
+  <!-- <include file="$(find madmux)/launch/madmux_daemon.launch"/> -->
+
+  <param name="is_compressed" type="bool" value="true"/>
+
+  <node pkg="kuri_camera" type="ros_publisher" name="ros_publisher" output="screen"/>
+
+</launch>

@@ -1,0 +1,11 @@
+<launch>
+
+  <rosparam file="$(find kuri_camera)/cfg/tcp_params.yaml" command="load"/>
+
+  <include file="$(find madmux)/launch/madmux_daemon.launch"/>
+
+  <node pkg="kuri_camera" type="h264_decoder_node_on_kuri" name="h264_decoder_node_on_kuri" output="screen">
+    <rosparam file="$(find kuri_camera)/cfg/camera_calibration_parameters.yaml" command="load"/>
+  </node>
+
+</launch>

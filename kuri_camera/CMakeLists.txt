@@ -14,6 +14,7 @@ find_package(catkin REQUIRED
         image_transport
         madmux
         compressed_image_transport
+        dynamic_reconfigure
 )
 
 catkin_package(
@@ -23,12 +24,12 @@ catkin_package(
         image_transport
         sensor_msgs
         compressed_image_transport
+        dynamic_reconfigure
 )
 
 include_directories(include ${catkin_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
 
 # Uncomment this if you would like to use the camera's h264 encoding
-################################################################################
 # # find libavcodec
 # set(libavcodec "libavcodec-NOTFOUND")
 # find_library(libavcodec libavcodec.so)
@@ -53,11 +54,6 @@ include_directories(include ${catkin_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
 #   message(WARNING "libswscale path: ")
 #   message(WARNING ${libswscale})
 # endif()
-# add_executable(uds_to_tcp src/uds_to_tcp.cpp)
-# target_link_libraries(uds_to_tcp ${catkin_LIBRARIES})
-# add_executable(tcp_test_client src/tcp_test_client.cpp)
-# target_link_libraries(tcp_test_client ${catkin_LIBRARIES})
-################################################################################
 
 # find libmadmux
 set(libmadmux "libmadmux-NOTFOUND")
@@ -72,3 +68,30 @@ else()
   message(WARNING "libmadmux path: ")
   message(WARNING ${libmadmux})
 endif()
+
+if (libavcodec AND libavutil AND libswscale AND libmadmux)
+  message(STATUS "Found everything. Building h264_decoder_node_on_kuri")
+  #add_library(h264_decoder_on_kuri src/h264_decoder_on_kuri.cpp)
+  #target_link_libraries(h264_decoder_on_kuri ${libavcodec} ${libavutil} ${libswscale} ${OpenCV_LIBRARIES} ${libmadmux})
+  #add_executable(h264_decoder_node_on_kuri src/h264_decoder_node_on_kuri.cpp)
+  #target_link_libraries(h264_decoder_node_on_kuri ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} h264_decoder_on_kuri)
+else()
+  message(WARNING "Did not find libavcodec, libavutil, libswscale, and/or libmadmux. Skipping h264_decoder_node_on_kuri")
+  message(WARNING "libavcodec path: ")
+  message(WARNING ${libavcodec})
+  message(WARNING "libavutil path: ")
+  message(WARNING ${libavutil})
+  message(WARNING "libswscale path: ")
+  message(WARNING ${libswscale})
+  message(WARNING "libmadmux path: ")
+  message(WARNING ${libmadmux})
+endif()
+
+#add_executable(uds_to_tcp src/uds_to_tcp.cpp)
+#target_link_libraries(uds_to_tcp ${catkin_LIBRARIES})
+#add_executable(tcp_test_client src/tcp_test_client.cpp)
+#target_link_libraries(tcp_test_client ${catkin_LIBRARIES})
+add_executable(display_compressed_images src/display_compressed_images.cpp)
+target_link_libraries(display_compressed_images ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+add_executable(kuri_camera_subscriber src/kuri_camera_subscriber.cpp)
+target_link_libraries(kuri_camera_subscriber ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})

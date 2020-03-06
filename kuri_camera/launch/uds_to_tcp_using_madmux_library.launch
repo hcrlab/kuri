@@ -1,0 +1,11 @@
+<launch>
+
+  <rosparam file="$(find kuri_camera)/cfg/tcp_params.yaml" command="load"/>
+
+  <include file="$(find madmux)/launch/madmux_daemon.launch"/>
+
+  <node pkg="kuri_camera" type="uds_to_tcp" name="uds_to_tcp_using_madmux_library" output="screen">
+    <param name="sleep_secs" type="int" value="2"/>
+  </node>
+
+</launch>
