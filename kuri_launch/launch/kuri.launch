@@ -6,7 +6,7 @@
     <include file="$(find mobile_base_driver)/launch/kuri_drive.launch"/>
 
     <!-- Kuri's eye camera -->
-    <include file="$(find kuri_camera)/launch/uds_to_tcp.launch"/>
+    <include file="$(find kuri_camera)/launch/kuri_camera_publisher.launch"/>
 
     <!-- Kuri's face recognition -->
     <include file="$(find vision_bridge)/launch/vision_bridge.launch"/>

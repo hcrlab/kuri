@@ -45,15 +45,12 @@ struct H264DecoderNode {
     if (!nh.getParam("image_width", camera_info_width)) ROS_WARN("Camera Calibration: image_width not set");
     if (!nh.getParam("image_height", camera_info_height)) ROS_WARN("Camera Calibration: image_height not set");
     if (!nh.getParam("camera_model", camera_info_distortion_model)) ROS_WARN("Camera Calibration: camera_model not set");
+    if (!nh.getParam("camera_matrix/data", camera_info_K)) ROS_WARN("Camera Calibration: camera_matrix/data not set");
     if (!nh.getParam("distortion_coefficients/data", camera_info_D)) ROS_WARN("Camera Calibration: distortion_coefficients/data not set");
     if (!nh.getParam("rectification_matrix/data", camera_info_R)) ROS_WARN("Camera Calibration: rectification_matrix/data not set");
     if (!nh.getParam("projection_matrix/data", camera_info_P)) ROS_WARN("Camera Calibration: projection_matrix/data not set");
     // Construct K from P -- valid since the camera is monocular
     if (camera_info_P.size() == 12) {
-      camera_info_K.insert(camera_info_K.end(), camera_info_P.begin(), camera_info_P.begin() + 3);
-      camera_info_K.insert(camera_info_K.end(), camera_info_P.begin() + 4, camera_info_P.begin() + 7);
-      camera_info_K.insert(camera_info_K.end(), camera_info_P.begin() + 8, camera_info_P.begin() + 11);
-
       // Only copy data over if the params were set
       camera_info.header.frame_id = "upward_looking_camera_optical_frame";
       camera_info.width = camera_info_width;

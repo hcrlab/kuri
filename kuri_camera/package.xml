@@ -16,6 +16,8 @@
   <depend>madmux</depend>
   <depend>roscpp</depend>
   <depend>sensor_msgs</depend>
+  <depend>compressed_image_transport</depend>
+  <depend>dynamic_reconfigure</depend>
 
 
 </package>
