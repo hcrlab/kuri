@@ -71,8 +71,8 @@ Now, click on the white page to make sure it's selected. Your keyboard now contr
 
 `arrowkeys` - to move Kuri's head around
 
-### Making your own modifications
+### Modifying Network Stuff
 
-Currently, the only way to add your own keyboard bindings is to clone this repo and edit the keyboard interface class in the keyboard.js file. 
+In `frontend/config/network_info.js`, you can specify the ip your rosbridge instance is hosted on, default is localhost for local testing.
 
 > Maintained by Nikita Filippov

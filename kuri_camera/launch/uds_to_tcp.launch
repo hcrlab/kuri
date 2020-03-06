@@ -1,6 +1,6 @@
 <launch>
 
-  <rosparam file="$(find kuri_camera)/config/tcp_params.yaml" command="load"/>
+  <rosparam file="$(find kuri_camera)/cfg/tcp_params.yaml" command="load"/>
 
   <include file="$(find madmux)/launch/madmux_daemon.launch"/>
 

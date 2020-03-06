@@ -1,8 +1,7 @@
 <launch>
-  <rosparam file="$(find kuri_camera)/config/camera_calibration_parameters.yaml" command="load"/>
+  <rosparam file="$(find kuri_camera)/cfg/camera_calibration_parameters.yaml" command="load"/>
 	
   <node pkg="tf" type="static_transform_publisher" name="link0_broadcaster" args="2.0 0.0 0.0 -0.5 0.5 -0.5 0.5 base_link camera_rendering_frame_a 100" />
-  <!-- <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="2.0 -0.15 0.0 -0.5 0.5 -0.5 0.5 base_link camera_rendering_frame_b 100" /> -->
 
   <!-- Launch rosbridge_server -->
   <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
@@ -10,7 +9,7 @@
   <!-- Launch web_video_server -->
   <node name="web_video_server_node" pkg="web_video_server" type="web_video_server" args="_port:=8081"/>
 
-  <node pkg="web_teleop" type="add_image_overlay" name="add_image_overlay" output="screen"/>
+  <node pkg="kuri_web_teleop" type="add_image_overlay" name="add_image_overlay" output="screen"/>
 
   <!-- YOU HAVE TO LAUNCH http-server IN THE frontend/ DIR YOURSELF -->
 </launch>

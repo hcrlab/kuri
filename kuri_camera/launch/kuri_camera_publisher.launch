@@ -1,0 +1,13 @@
+<launch>
+
+  <!-- The jpeg quality itself is dynamically reconfigurable through
+       compressed_image_transport. This merely sets the initial value -->
+  <param name="initial_jpeg_quality" type="int" value="20"/>
+
+  <rosparam file="$(find kuri_camera)/cfg/camera_calibration_parameters.yaml" command="load"/>
+
+  <include file="$(find madmux)/launch/madmux_daemon.launch"/>
+
+  <node pkg="kuri_camera" type="kuri_camera_publisher" name="kuri_camera_publisher" output="screen"/>
+
+</launch>
