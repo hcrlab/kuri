@@ -141,6 +141,7 @@ struct KuriCameraPublisher {
 
           sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", image).toImageMsg();
           msg->header.frame_id = "upward_looking_camera_optical_frame";
+          msg->header.stamp = time_for_msg;
           publisher.publish(*msg, camera_info, msg->header.stamp);
         }
       }
