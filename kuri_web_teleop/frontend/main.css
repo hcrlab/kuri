@@ -1,0 +1,16 @@
+.bodycontainer {
+    width: 50%;
+    margin: 2% auto;
+    border-bottom: 2px solid #afb8c7;
+}
+
+.imagecontainer {
+    width: 100%;
+    height: auto;
+    margin: 2%;
+} 
+
+#scancontainer {
+    width: 70%;
+    height: 20px;
+}

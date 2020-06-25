@@ -1,0 +1,7 @@
+<launch>
+  <node pkg="kuri_slack_bot" type="dummy_publisher.py" name="dummy_publisher" output="screen"/>
+  
+  <!-- Launch "python app.py" yourself, this will start a server that can accept slack event notifications, 
+       use ngrok (or portforwarding or any other means) to get a publicly facing url and configure your bot's 
+       event subscriptions to use this url, configurable through the bots settings page -->
+</launch>

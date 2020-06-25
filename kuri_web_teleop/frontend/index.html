@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+	<title>Page Title</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" type="text/css" media="screen" href="main.css" />
+
+	<!-- roslibjs -->
+  <script type="text/javascript" src="https://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
+
+  <!-- heatmap.js -->
+  <script src="src/heatmap.js"></script>
+
+	<script src="main.js" type="module"></script>
+</head>
+<body>
+  <div class="container" id="maincontainer">
+    <div class="bodycontainer">
+      <h3> Kuri Web-Teleop</h3>
+    </div>
+    <div class="bodycontainer">
+      <h4> Controls</h4>
+      <p>wasd - move Kuri</p>
+      <p>arrow keys - move Kuri's head</p>
+    </div>
+    <div class="bodycontainer">
+      <!-- contains camera feed -->
+      <img class="imagecontainer" 
+           style="-webkit-user-select: none;margin: auto;" 
+	   src="http://73.83.27.214:8081/stream?topic=/upward_looking_camera_overlay&amp;type=ros_compressed" />
+    </div>
+    <div class="bodycontainer" id="scancontainer">
+      <!-- contains scan bar -->
+    </div>
+  </div>
+</body>
+</html>
