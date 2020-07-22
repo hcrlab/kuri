@@ -7,7 +7,7 @@ from sensor_msgs.msg import Image, CompressedImage
 from cv_bridge import CvBridge, CvBridgeError
 import rospy
 
-rospy.init_node("kuri_camera_ros_publisher")
+rospy.init_node("kuri_camera_publisher")
 
 # Whether to publish the image msg as a CompressedImage or an Image
 use_compression = rospy.get_param('use_compression', True)

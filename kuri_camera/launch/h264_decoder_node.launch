@@ -1,9 +1,9 @@
 <launch>
 
-  <rosparam file="$(find kuri_camera)/config/tcp_params.yaml" command="load"/>
+  <rosparam file="$(find kuri_camera)/cfg/tcp_params.yaml" command="load"/>
 
   <node pkg="kuri_camera" type="h264_decoder_node" name="h264_decoder_node" output="screen">
-    <rosparam file="$(find kuri_camera)/config/camera_calibration_parameters.yaml" command="load"/>
+    <rosparam file="$(find kuri_camera)/cfg/camera_calibration_parameters.yaml" command="load"/>
   </node>
 
 </launch>
