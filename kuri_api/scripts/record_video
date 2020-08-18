@@ -1,0 +1,17 @@
+#!/usr/bin/env python
+from kuri_api.record import LivePhoto
+
+import time
+from mayvision.services import Vision
+
+# Trigger a 3 second capture
+ph = LivePhoto(Vision(), None, None, None)
+
+
+def decision():
+    print(ph.save())
+    ph.shutdown()
+    exit()
+
+
+ph.capture(3, cb=decision)
