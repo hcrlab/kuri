@@ -1,5 +1,6 @@
 from __future__ import print_function
 import collections, functools, logging, madmux, os
+import shutil
 from Queue import Queue
 import subprocess, tempfile, threading, time
 
@@ -199,8 +200,6 @@ def _metadata(vision, tf_srv=None, map_srv=None, image_wp_srv=None):
     pose_se2 = [0, 0, 0]
     if tf_srv:
         pose_se2 = tf_srv.robot_pose_se2() or pose_se2
-    if map_srv:
-        waypoint['map_uuid'] = map_srv.current_map_uuid()
     m_check = vision.last_post_check
     return {'version': '1.0',
             'timestamp': _clean_value(m_check, 'start_time', float, 0.0),
@@ -278,7 +277,7 @@ class LivePhoto(object):
     """
     DEFAULT_DURATION = 5.0
 
-    def __init__(self, vision, tf_srv, map_srv, image_wp_srv):
+    def __init__(self, vision, tf_srv, map_srv, image_wp_srv, vid_channel=1):
         self.vision = vision
         self._tf_srv = tf_srv
         self._map_srv = map_srv
@@ -288,7 +287,7 @@ class LivePhoto(object):
         self.metadata = None
         self.moment_post_check = False
         self.encoder = _WorkQueue(self._encode)
-        self.video_src = _MadmuxSource(channel=1)
+        self.video_src = _MadmuxSource(channel=vid_channel)
         self.snap_src = _MadmuxSource(channel=3)
         self.bufcam = _BufferCamera(self.video_src)
         self.snapcam = _SnapCamera(self.snap_src)
@@ -330,7 +329,7 @@ class LivePhoto(object):
             os.unlink(h264)
 
         video_uuid = video_metadata['media_uuid']
-        print(mp4)
+        shutil.move(mp4, os.getcwd() +"/"+  video_uuid + ".mp4")
 
     def cut(self, capture=True):
         """ clear the rolling buffer, trigger any video
@@ -345,7 +344,7 @@ class LivePhoto(object):
                 self.snapcam.scrap()
         self.bufcam.flush(trigger=capture)
 
-    def capture(self, duration=DEFAULT_DURATION, cb=None, source='', trigger=None):
+    def capture(self, name, duration=DEFAULT_DURATION, cb=None, source='', trigger=None):
         """ launch a new video capture
             this will use the default duration
             when done, the video will be encoded
@@ -355,8 +354,8 @@ class LivePhoto(object):
             self.moment_post_check = False
             self.data = None
             self.metadata = None
-        thumb_uuid = "xt"
-        video_uuid = "xv"
+        thumb_uuid = name
+        video_uuid = name
 
         def capture_cb(buf):
             with self.lock:
