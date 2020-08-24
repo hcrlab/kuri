@@ -1,25 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
     <arg name="map_file" default="$(find kuri_navigation)/maps/empty_map.yaml"/>
-
+    <arg name="use_navigation" default="true"/>
+    <arg name="use_transcription" default="true"/>
+    <arg name="use_vision" default="true"/>
+    <arg name="use_web_teleop" default="false" />
     <!-- Kuri motor control, depthsensor, chest LED, and other sensors-->
     <include file="$(find mobile_base_driver)/launch/kuri_drive.launch"/>
 
-    <!-- Kuri's eye camera -->
-    <include file="$(find kuri_camera)/launch/kuri_camera_publisher.launch"/>
+    <include file="$(find madmux)/launch/madmux_daemon.launch"/>
 
     <!-- Kuri's face recognition -->
-    <include file="$(find vision_bridge)/launch/vision_bridge.launch"/>
+    <include if="$(arg use_vision)" file="$(find vision_bridge)/launch/vision_bridge.launch"/>
 
     <!-- Audio processing pipeline -->
     <include file="$(find audio_realtime)/launch/audio_realtime.launch"/>
 
     <!-- Transcription service -->
-    <include file="$(find audio_realtime)/launch/audio_voice_delegate.launch">
+    <include if="$(arg use_transcription)" file="$(find audio_realtime)/launch/audio_voice_delegate.launch">
         <arg name="soundhound_client_id" value="-1" />
         <arg name="soundhound_user_id" value="test" />
         <arg name="soundhound_client_key" value="-1" />
     </include>
+
+    <include if="$(arg use_web_teleop)" file="$(find gizmo)/launch/gizmo_webrtc.launch"/>
 
     <!-- Volume manager -->
     <include file="$(find kuri_api)/launch/volume_interface.launch"/>
@@ -27,7 +31,7 @@
     <node name="safety_controller" pkg="kuri_navigation" type="safety_controller" />
 
     <!-- Autonomous Navigation -->
-    <include file="$(find kuri_navigation)/launch/may_nav.launch">
+    <include if="$(arg use_navigation)" file="$(find kuri_navigation)/launch/may_nav.launch">
         <arg name="map_file" value="$(arg map_file)" />
     </include>
 
