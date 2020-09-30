@@ -1,0 +1,8 @@
+<launch>
+  <!-- set to false to stop showing the camera view and bounding boxes -->
+  <arg name="display" default="false" />
+
+  <param name="display" value="$(arg display)"/>
+
+  <node pkg="kuri_person_tracking" type="person_detection.py" name="bounding_box_publisher" output="screen" cwd="node"/>
+</launch>
