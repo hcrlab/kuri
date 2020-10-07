@@ -1,6 +1,8 @@
 <launch>
+  <arg name="display" default="false" />
+
   <!-- Launch the person detection node, publishes to '/upward_looking_camera/bounding_boxes' -->
-  <include file="$(find kuri_person_tracking)/launch/person_detection.launch"/>
+  <include file="$(find kuri_person_tracking)/launch/person_detection.launch" pass_all_args="true"/>
 
   <!-- Launch the person tracking node -->
   <node pkg="kuri_person_tracking" type="move_towards.py" name="move_towards" output="screen"/>

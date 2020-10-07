@@ -5,18 +5,20 @@ import math
 from statistics import mean
 import random
 import time
+from collections import deque
+import numpy as np
 
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from sensor_msgs.msg import JointState, LaserScan
 from geometry_msgs.msg import Twist
-from simple_person_detection.msg import BoundingBoxes
+from kuri_person_tracking.msg import BoundingBoxes
 
 import kuri_params as params
 
 ROTATION_SPEED = 0.8
 
 BOUNDING_BOXES_TOPIC = '/upward_looking_camera/bounding_boxes'
-VELOCITY_TOPIC = 'kuri_navigation_command_velocity'#'/mobile_base/commands/velocity'
+VELOCITY_TOPIC = '/mobile_base/commands/velocity' # 'kuri_navigation_command_velocity'
 HEAD_TOPIC = '/head_controller/command'
 JOINTS_TOPIC = '/joint_states'
 SCAN_TOPIC = '/scan'
@@ -35,6 +37,10 @@ center = None
 center_time_recv = None
 latest_positions = None
 scan_density = None
+
+scan_window = deque()
+scan_timestamps_window = deque()
+SCAN_LIFESPAN = 1 # in secs
 
 def main():
     """ Tracks a person if one is in view
@@ -62,28 +68,22 @@ def main():
     # Rate in Hz
     rate = rospy.Rate(2)
 
+    state = "idle"
+    available_states = ["idle", "following", "waiting"]
+
     idle_animation_velocities = [-0.4, 0.4]
     num_cycles_remaining_for_idle_animation = 0
+    
+    following_start = None
+    sig_following_duration = 3.0 # secs
+
+    waiting_start = None
+    waiting_duration = 5.0 # secs
+
 
     while not rospy.is_shutdown():
-
-        if center:
-            print("Moving towards person")
-            rotation = pixels_to_rotation(center[0], center[1])
-            # if abs(rotation) > 0.1:
-            ang_z = -rotation * ROTATION_SPEED
-
-            # print('Publishing to base', ang_z)
-
-            if close_enough():
-                print("close enough")
-                publish_base_cmd(base_publisher, 0.0, ang_z)
-            else:
-                print("move at 0.2")
-                publish_base_cmd(base_publisher, 0.0, ang_z)
-            num_cycles_remaining_for_idle_animation = 0
-        else:
-            print("idle animation")
+        print(state)
+        if state == "idle":
             # idle animation
             if num_cycles_remaining_for_idle_animation == 0:
                 num_cycles_remaining_for_idle_animation = random.randint(6, 16) # 3 - 8 secs at a rate of of 2Hz
@@ -92,8 +92,37 @@ def main():
             publish_base_cmd(base_publisher, 0.0, idle_ang_z)
             num_cycles_remaining_for_idle_animation -= 1
 
-        # just to tilt the head at a good angle
-        # publish_head_pos(head_publisher, 0.0, -0.6)
+            if center:
+                state = "following"
+                following_start = time.time()
+            
+        elif state == "following":
+            # Immediately transition if no center
+            if (close_enough() or not center) \
+                    and time.time() - following_start > sig_following_duration:
+                state = "waiting"
+                publish_base_cmd(base_publisher, 0.0, 0.0)
+                waiting_start = time.time()
+                continue
+            elif not center:
+                state = "idle"
+                publish_base_cmd(base_publisher, 0.0, 0.0)
+                continue
+
+            rotation = pixels_to_rotation(center[0], center[1])
+            ang_z = -rotation * ROTATION_SPEED
+
+            publish_base_cmd(base_publisher, 0.2, ang_z)
+
+            num_cycles_remaining_for_idle_animation = 0
+        
+        elif state == "waiting":
+            # pass
+
+            # Transition
+            if time.time() - waiting_start > waiting_duration:
+                state = "idle"
+
         rate.sleep()
 
     rospy.spin()
@@ -132,23 +161,51 @@ def joint_states_callback(data):
 
 
 def scan_callback(data):
-    global scan_density
+    global scan_window, scan_timestamps_window
 
     range_max = data.range_max
 
     ranges = data.ranges
+    scan_window.append(ranges)
     original_len = len(ranges)
 
-    filtered_ranges = list( filter(lambda x: x != float('inf') and not math.isnan(x), ranges) )
-    filtered_len = len(filtered_ranges)
+    timestamp = rospy.Time(secs=data.header.stamp.secs, nsecs=data.header.stamp.nsecs)
+    scan_timestamps_window.append(timestamp)
 
-    # print(filtered_ranges)
+    # check if oldest scan is expired
+    if (timestamp.to_sec() - scan_timestamps_window[0].to_sec() > SCAN_LIFESPAN):
+        scan_window.popleft()
+        scan_timestamps_window.popleft()
 
-    scale = original_len / filtered_len
 
-    mean_range = mean(filtered_ranges) * scale
+def close_enough():
+    global scan_window, scan_timestamps_window
 
-    scan_density = mean_range
+    if len(scan_window) <= 1:
+        return False
+
+    scan_window_arr = np.array(scan_window)
+
+    scan_window_arr[scan_window_arr == float('inf')] = float('nan')
+
+    num_scan_points = scan_window_arr.shape[1]
+
+    # print("num_scan_points ", num_scan_points)
+
+    scan_window_arr = scan_window_arr[: , num_scan_points // 3 : num_scan_points // 3 * 2]
+
+    scan_mean = np.nanmean(scan_window_arr, axis=0)     
+
+    scan_mean = scan_mean[~ np.isnan(scan_mean)]
+
+    # print("scan window")
+    # print(scan_mean.shape)
+    
+    scan_mean_mean = np.mean(scan_mean)
+
+    # print('scan mean', scan_mean_mean)
+
+    return scan_mean_mean < 1.0 # 1.0 # 2.0
 
 
 def get_center(bounding_box):
@@ -193,14 +250,6 @@ def pick_center(centers):
     return center_x, center_y
 
 
-def close_enough():
-    global scan_density
-
-    print("scan_density", scan_density)
-
-    return scan_density < 0.5 # 1.0 # 2.0
-
-
 def publish_base_cmd(base_publisher, lin_x, ang_z):
     twist = Twist()
     twist.linear.x = lin_x
@@ -232,7 +281,6 @@ def pixels_to_rotation(px_x, px_y):
         coordinates are from the bottom left corner of the image, with x along
         the horizontal axis and y the vertical.
     """
-    print("Proportion", px_x)
     return (px_x - 0.5)
 
 def _wait_for_time():
