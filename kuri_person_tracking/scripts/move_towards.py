@@ -13,15 +13,21 @@ from sensor_msgs.msg import JointState, LaserScan
 from geometry_msgs.msg import Twist
 from kuri_person_tracking.msg import BoundingBoxes
 
+from position_head import position_head
+
 import kuri_params as params
 
-ROTATION_SPEED = 0.8
+ROTATION_SPEED = rospy.get_param('robot/rotational_speed', 0.8)
+FORWARD_SPEED = rospy.get_param('robot/forward_speed', 0.2)
 
-BOUNDING_BOXES_TOPIC = '/upward_looking_camera/bounding_boxes'
-VELOCITY_TOPIC = '/mobile_base/commands/velocity' # 'kuri_navigation_command_velocity'
-HEAD_TOPIC = '/head_controller/command'
-JOINTS_TOPIC = '/joint_states'
-SCAN_TOPIC = '/scan'
+BOUNDING_BOXES_TOPIC = rospy.get_param('subscribers/bounding/box/topic', '/upward_looking_camera/bounding_boxes')
+BOUNDING_BOXES_QSIZE = rospy.get_param('subscribers/bounding/box/queue_size', 1)
+SCAN_TOPIC = rospy.get_param('subscribers/scan/topic', '/scan')
+SCAN_QSIZE = rospy.get_param('subscribers/scan/queue_size', 1)
+
+VELOCITY_TOPIC = rospy.get_param('publishers/velocity/topic', '/mobile_base/commands/velocity') # 'kuri_navigation_command_velocity'
+VELOCITY_QSIZE = rospy.get_param('publishers/velocity/queue_size', 1)
+
 
 CENTER_PICKING_STYLE = 2
 _center_picking_styles = [
@@ -47,23 +53,21 @@ def main():
     """
     global center, pending_update
 
-    rospy.init_node('eye_publisher')
+    rospy.init_node('move_towards_node')
 
     _wait_for_time()
 
+    position_head()
+
     params._get_camera_parameters()
 
-    # Head joints topic publisher
-    head_publisher = rospy.Publisher(HEAD_TOPIC, JointTrajectory, queue_size=1)
     # Base velocity topic publisher
-    base_publisher = rospy.Publisher(VELOCITY_TOPIC, Twist, queue_size=1)
+    base_publisher = rospy.Publisher(VELOCITY_TOPIC, Twist, queue_size=VELOCITY_QSIZE)
 
     # Subscribe to the person bounding boxes
-    bb_sub = rospy.Subscriber(BOUNDING_BOXES_TOPIC, BoundingBoxes, bounding_boxes_callback, queue_size=1)
-    # Subscribe to the joint states
-    joint_sub = rospy.Subscriber(JOINTS_TOPIC, JointState, joint_states_callback, queue_size=1)
+    bb_sub = rospy.Subscriber(BOUNDING_BOXES_TOPIC, BoundingBoxes, bounding_boxes_callback, queue_size=BOUNDING_BOXES_QSIZE)
     # Subscribe to the scans
-    scan_sub = rospy.Subscriber(SCAN_TOPIC, LaserScan, scan_callback, queue_size=1)
+    scan_sub = rospy.Subscriber(SCAN_TOPIC, LaserScan, scan_callback, queue_size=SCAN_QSIZE)
 
     # Rate in Hz
     rate = rospy.Rate(2)
@@ -112,7 +116,7 @@ def main():
             rotation = pixels_to_rotation(center[0], center[1])
             ang_z = -rotation * ROTATION_SPEED
 
-            publish_base_cmd(base_publisher, 0.2, ang_z)
+            publish_base_cmd(base_publisher, FORWARD_SPEED, ang_z)
 
             num_cycles_remaining_for_idle_animation = 0
         
@@ -260,20 +264,6 @@ def publish_base_cmd(base_publisher, lin_x, ang_z):
     twist.angular.z = ang_z
     # print("Publish to base", lin_x, ang_z)
     base_publisher.publish(twist)
-
-
-def publish_head_pos(head_publisher, pan, tilt):
-
-    traj = JointTrajectory()
-    traj.joint_names = ["head_1_joint", "head_2_joint"]
-    p = JointTrajectoryPoint()
-    p.positions = [pan, tilt]
-    p.velocities = []
-    p.effort = []
-    p.time_from_start = rospy.Time(1)
-    traj.points = [p]
-
-    head_publisher.publish(traj)
 
 
 def pixels_to_rotation(px_x, px_y):

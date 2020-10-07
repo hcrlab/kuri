@@ -12,19 +12,25 @@ from kuri_person_tracking.msg import BoundingBox, BoundingBoxes
 
 import os
 
-DISPLAY = rospy.get_param('display') # is already a bool
+DISPLAY = rospy.get_param('person_detection/image_display', False) # is already a bool
 
 # Change this based on your own setup
-NET_CFG_DIR = '/home/nikitaf/workspaces/main_workspace/src/kuri/kuri_person_tracking/net_cfg'
+NET_CFG_DIR = rospy.get_param('person_detection/net_cfg_dir', '.')
+
+IMAGE_TOPIC = rospy.get_param('subscribers/compressed_image/topic', '/upward_looking_camera/compressed')
+IMAGE_QSIZE = rospy.get_param('subscribers/compressed_image/queue_size', 1)
+
+BOUNDING_BOXES_TOPIC = rospy.get_param('subscribers/bounding/box/topic', '/upward_looking_camera/bounding_boxes')
+BOUNDING_BOXES_QSIZE = rospy.get_param('subscribers/bounding/box/queue_size', 1)
+
+CONF_THRESHOLD = rospy.get_param('person_detection/confidence_threshold', 0.1)
+NMS_THRESHOLD = rospy.get_param('person_detection/nms_threshold', 0.3)
+BLOB_SIZE = rospy.get_param('person_detection/blob_size', 416)
+COLORS = None
 
 net = None
 output_layers = None
 classes = None
-
-CONF_THRESHOLD = 0.1
-NMS_THRESHOLD = 0.3
-COLORS = None
-BLOB_SIZE = 416
 
 hog = None
 cascade_body = None
@@ -70,9 +76,9 @@ def init_ros():
     process_image_thread = threading.Thread(target=process_image_loop)
     process_image_thread.start()
 
-    rospy.Subscriber("/upward_looking_camera/compressed", CompressedImage, image_callback, queue_size=1)
+    rospy.Subscriber(IMAGE_TOPIC, CompressedImage, image_callback, queue_size=IMAGE_QSIZE)
 
-    bb_publisher = rospy.Publisher("/upward_looking_camera/bounding_boxes", BoundingBoxes, queue_size=1)
+    bb_publisher = rospy.Publisher(BOUNDING_BOXES_TOPIC, BoundingBoxes, queue_size=BOUNDING_BOXES_QSIZE)
 
     rospy.spin()
 

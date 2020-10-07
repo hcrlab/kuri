@@ -9,20 +9,21 @@ OPEN_EYES = 0.04
 HEAD_UP = [0.0, -0.4]
 
 
-def wait_for_time():
-    while rospy.Time().now().to_sec() == 0:
-        pass
-
 def main():
+    rospy.init_node('position_head_node')
+
+    wait_for_time()
+
+    position_head()
+
+
+def position_head():
     """ Opens Kuri's eyes and raises head
     """
-    rospy.init_node('eye_publisher')
  
-    wait_for_time()
     eyes_pub = rospy.Publisher(EYELIDS_TOPIC, JointTrajectory, queue_size=10)
     head_pub = rospy.Publisher(HEAD_TOPIC, JointTrajectory, queue_size=1)
-
-
+    
     rospy.sleep(0.5)
 
     publish_eye_pos(eyes_pub, OPEN_EYES)
@@ -54,6 +55,11 @@ def publish_head_pos(head_publisher, pan, tilt):
     traj.points = [p]
 
     head_publisher.publish(traj)
+
+
+def wait_for_time():
+    while rospy.Time().now().to_sec() == 0:
+        pass
 
 
 if __name__ == '__main__':

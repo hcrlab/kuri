@@ -1,5 +1,5 @@
 <launch>
-  <arg name="display" default="false" />
+  <rosparam command="load" file="$(find kuri_person_tracking)/config/ros.yaml"/>
 
   <!-- Launch the person detection node, publishes to '/upward_looking_camera/bounding_boxes' -->
   <include file="$(find kuri_person_tracking)/launch/person_detection.launch" pass_all_args="true"/>
