@@ -146,7 +146,6 @@ def bounding_boxes_callback(data):
     if len(centers_and_probabilities) > 0:
         center = tuple(pick_center(centers_and_probabilities))
         center_time_recv = time.time()
-        # print("bounding box callback set center", center)
 
     # If the person has left the camera frame,
     # stop tracking
@@ -189,25 +188,15 @@ def close_enough():
         return False
 
     scan_window_arr = np.array(scan_window)
-
-    scan_window_arr[scan_window_arr == float('inf')] = float('nan')
+    scan_window_arr[scan_window_arr == float('inf')] = float('nan') # filter infs
+    scan_window_arr = scan_window_arr[: , num_scan_points // 3 : num_scan_points // 3 * 2] # take front third of scan
 
     num_scan_points = scan_window_arr.shape[1]
 
-    # print("num_scan_points ", num_scan_points)
-
-    scan_window_arr = scan_window_arr[: , num_scan_points // 3 : num_scan_points // 3 * 2]
-
     scan_mean = np.nanmean(scan_window_arr, axis=0)     
-
-    scan_mean = scan_mean[~ np.isnan(scan_mean)]
-
-    # print("scan window")
-    # print(scan_mean.shape)
+    scan_mean = scan_mean[~ np.isnan(scan_mean)] # filter nans
     
     scan_mean_mean = np.mean(scan_mean)
-
-    # print('scan mean', scan_mean_mean)
 
     return scan_mean_mean < 1.0 # 1.0 # 2.0
 
@@ -262,7 +251,6 @@ def publish_base_cmd(base_publisher, lin_x, ang_z):
     twist.angular.x = 0
     twist.angular.y = 0
     twist.angular.z = ang_z
-    # print("Publish to base", lin_x, ang_z)
     base_publisher.publish(twist)
 
 
@@ -273,11 +261,13 @@ def pixels_to_rotation(px_x, px_y):
     """
     return (px_x - 0.5)
 
+
 def _wait_for_time():
     """ Wait for rospy to spool up
     """
     while rospy.Time().now().to_sec() == 0:
         pass
+
 
 if __name__ == '__main__':
     main()

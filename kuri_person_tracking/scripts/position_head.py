@@ -23,7 +23,7 @@ def position_head():
  
     eyes_pub = rospy.Publisher(EYELIDS_TOPIC, JointTrajectory, queue_size=10)
     head_pub = rospy.Publisher(HEAD_TOPIC, JointTrajectory, queue_size=1)
-    
+
     rospy.sleep(0.5)
 
     publish_eye_pos(eyes_pub, OPEN_EYES)
