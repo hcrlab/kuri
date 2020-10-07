@@ -3,5 +3,5 @@
 
   <rosparam file="$(find kuri_camera)/cfg/camera_calibration_parameters.yaml" command="load"/>
 
-  <node pkg="kuri_person_tracking" type="person_detection.py" name="bounding_box_publisher" output="screen" cwd="node"/>
+  <node pkg="kuri_person_tracking" type="person_detection.py" name="bounding_box_publisher" output="screen"/>
 </launch>

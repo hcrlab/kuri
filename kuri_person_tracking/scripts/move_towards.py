@@ -189,9 +189,10 @@ def close_enough():
 
     scan_window_arr = np.array(scan_window)
     scan_window_arr[scan_window_arr == float('inf')] = float('nan') # filter infs
-    scan_window_arr = scan_window_arr[: , num_scan_points // 3 : num_scan_points // 3 * 2] # take front third of scan
 
     num_scan_points = scan_window_arr.shape[1]
+    scan_window_arr = scan_window_arr[: , num_scan_points // 3 : num_scan_points // 3 * 2] # take front third of scan
+
 
     scan_mean = np.nanmean(scan_window_arr, axis=0)     
     scan_mean = scan_mean[~ np.isnan(scan_mean)] # filter nans
