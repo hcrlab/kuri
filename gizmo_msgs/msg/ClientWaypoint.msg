@@ -1,0 +1,2 @@
+string request_id
+string waypoint_uuid
