@@ -1,0 +1,32 @@
+robot:
+
+  rotational_speed: 0.8
+  forward_speed: 0.2
+
+subscribers:
+
+  compressed_image:
+    topic: '/upward_looking_camera/compressed'
+    queue_size: 1
+
+  scan:
+    topic: /scan
+    queue_size: 1
+
+publishers:
+
+  bounding_box:
+    topic: '/upward_looking_camera/bounding_boxes'
+    queue_size: 1
+
+  velocity:
+    topic: '/mobile_base/commands/velocity'
+    queue_size: 1
+
+person_detection:
+
+  image_display: false
+
+  confidence_threshold: 0.1
+  nms_threshold: 0.3
+  blob_size: 416

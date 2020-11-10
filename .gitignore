@@ -3,3 +3,4 @@
 cmake*/
 venv/
 CATKIN_IGNORE
+net_cfg
