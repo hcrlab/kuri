@@ -20,9 +20,9 @@ bridge = CvBridge()
 base_topic = "/upward_looking_camera/image_raw"
 
 if use_compression:
-    publisher = rospy.Publisher(base_topic + "/compressed", CompressedImage, queue_size=10)
+    publisher = rospy.Publisher(base_topic + "/compressed", CompressedImage, queue_size=1)
 else:
-    publisher = rospy.Publisher(base_topic, Image, queue_size=10)
+    publisher = rospy.Publisher(base_topic, Image, queue_size=1)
 
 image = None
 def stream_cb(data):
