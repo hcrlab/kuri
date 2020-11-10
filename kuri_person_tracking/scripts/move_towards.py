@@ -77,7 +77,7 @@ def main():
 
     idle_animation_velocities = [-0.4, 0.4]
     num_cycles_remaining_for_idle_animation = 0
-    
+
     following_start = None
     sig_following_duration = 3.0 # secs
 
@@ -86,7 +86,7 @@ def main():
 
 
     while not rospy.is_shutdown():
-        print(state)
+        # print(state)
         if state == "idle":
             # idle animation
             if num_cycles_remaining_for_idle_animation == 0:
@@ -99,7 +99,7 @@ def main():
             if center:
                 state = "following"
                 following_start = time.time()
-            
+
         elif state == "following":
             # Immediately transition if no center
             if (close_enough() or not center) \
@@ -119,7 +119,7 @@ def main():
             publish_base_cmd(base_publisher, FORWARD_SPEED, ang_z)
 
             num_cycles_remaining_for_idle_animation = 0
-        
+
         elif state == "waiting":
             # pass
 
@@ -194,9 +194,9 @@ def close_enough():
     scan_window_arr = scan_window_arr[: , num_scan_points // 3 : num_scan_points // 3 * 2] # take front third of scan
 
 
-    scan_mean = np.nanmean(scan_window_arr, axis=0)     
+    scan_mean = np.nanmean(scan_window_arr, axis=0)
     scan_mean = scan_mean[~ np.isnan(scan_mean)] # filter nans
-    
+
     scan_mean_mean = np.mean(scan_mean)
 
     return scan_mean_mean < 1.0 # 1.0 # 2.0

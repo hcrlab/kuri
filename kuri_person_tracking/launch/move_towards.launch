@@ -1,5 +1,6 @@
 <launch>
   <rosparam command="load" file="$(find kuri_person_tracking)/config/ros.yaml"/>
+  <param name="person_detection/net_cfg_dir" type="string" value="$(find kuri_person_tracking)/net_cfg"/>
 
   <!-- Launch the person detection node, publishes to '/upward_looking_camera/bounding_boxes' -->
   <include file="$(find kuri_person_tracking)/launch/person_detection.launch" pass_all_args="true"/>

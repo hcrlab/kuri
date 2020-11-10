@@ -18,17 +18,15 @@ publishers:
   bounding_box:
     topic: '/upward_looking_camera/bounding_boxes'
     queue_size: 1
-  
+
   velocity:
     topic: '/mobile_base/commands/velocity'
     queue_size: 1
 
 person_detection:
 
-  net_cfg_dir: '/home/nikitaf/workspaces/main_workspace/src/kuri/kuri_person_tracking/net_cfg'
   image_display: false
 
   confidence_threshold: 0.1
   nms_threshold: 0.3
   blob_size: 416
-
