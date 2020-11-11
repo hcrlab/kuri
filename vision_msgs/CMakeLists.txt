@@ -11,6 +11,7 @@ find_package(catkin REQUIRED
         mayfield_msgs
         message_generation
         sensor_msgs
+        std_msgs
         )
 
 add_message_files(
@@ -45,6 +46,8 @@ generate_messages(
 catkin_package(
         CATKIN_DEPENDS
         geometry_msgs
+        mayfield_msgs
+        message_runtime
         sensor_msgs
         std_msgs
         mayfield_msgs

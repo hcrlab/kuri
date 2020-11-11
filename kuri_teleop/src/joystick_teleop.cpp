@@ -1,4 +1,4 @@
-#include "joystick_teleop.h"
+#include <kuri_teleop/joystick_teleop.h>
 
 JoystickTeleop::JoystickTeleop() :
 head_action_srv("head_controller/follow_joint_trajectory"),

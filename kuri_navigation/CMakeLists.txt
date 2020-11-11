@@ -16,4 +16,5 @@ catkin_package(
 
 )
 
-include_directories(${catkin_INCLUDE_DIRS})
+catkin_install_python(PROGRAMS scripts/mapping_controller scripts/may_nav_controller scripts/safety_controller
+        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

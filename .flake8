@@ -2,7 +2,7 @@
 max-line-length = 160
 exclude =
   **/pulse_utils/pulse_lib.py
-  **/kuri_slack_bot/app.py
+  kuri_slack_bot/app.py
 max-complexity = 20
 # We import modules here to make the API cleaner
 per-file-ignores =

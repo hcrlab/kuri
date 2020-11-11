@@ -31,7 +31,7 @@ generate_messages(
 
 catkin_package(
         CATKIN_DEPENDS
+        message_runtime
         std_msgs
 )
 
-include_directories(${catkin_INCLUDE_DIRS})
