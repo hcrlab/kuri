@@ -1,11 +1,12 @@
 from .head import HeadMotions
-from .wheels import WheelMotions
 from .light import Light
-from .sound import Sound
 from .movies import Movies
+from .sound import Sound
+from .wheels import WheelMotions
+
 __all__ = [
- 'HeadMotions',
- 'WheelMotions',
- 'Light',
- 'Sound',
- 'Movies']
+    'HeadMotions',
+    'WheelMotions',
+    'Light',
+    'Sound',
+    'Movies']

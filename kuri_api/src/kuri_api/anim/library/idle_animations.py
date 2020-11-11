@@ -1,15 +1,18 @@
+import logging
 import random
+
+from kuri_api import Head
 from kuri_api.anim import AnimationGroup
 from kuri_api.anim import Track
-from kuri_api import Head
 from kuri_api.utils.social import random_adult_tilt, random_child_tilt
-import logging
+
 logger = logging.getLogger(__name__)
+
 
 class IdleAnimations(AnimationGroup):
     """
     Animations for Kuri's idle behaviors.
-    
+
     Currently holds scripted idle animation.
     """
 
@@ -33,25 +36,37 @@ class IdleAnimations(AnimationGroup):
         for _ in range(0, 5):
             for _ in range(0, random_range):
                 tk.add(0.7 + add, self.head_mot.openeyes(time=0.14, amplitude=-0.35 * speed))
-                tk.add(0.8 + add, self.head_mot.pantilt(pan=0.2 * random_side * speed_amount, tilt=0, duration=0.7 * speed))
+                tk.add(0.8 + add,
+                       self.head_mot.pantilt(pan=0.2 * random_side * speed_amount, tilt=0, duration=0.7 * speed))
                 tk.add(0.9 + add, self.head_mot.openeyes(time=0.25, amplitude=1.1))
-                tk.add(2.8 + add, self.head_mot.pantilt(pan=0.3 * random_side * speed_amount, tilt=0.15 * speed_amount, duration=0.15 * speed))
-                tk.add(4.1 + add, self.head_mot.pantilt(pan=0.2 * random_side * speed_amount, tilt=0.15 * speed_amount, duration=0.15 * speed))
+                tk.add(2.8 + add, self.head_mot.pantilt(pan=0.3 * random_side * speed_amount, tilt=0.15 * speed_amount,
+                                                        duration=0.15 * speed))
+                tk.add(4.1 + add, self.head_mot.pantilt(pan=0.2 * random_side * speed_amount, tilt=0.15 * speed_amount,
+                                                        duration=0.15 * speed))
                 tk.add(4.7 + add + spacing, self.head_mot.openeyes(time=0.15, amplitude=-0.5))
-                tk.add(4.8 + add + spacing, self.head_mot.pantilt(pan=0.3 * random_side * speed_amount, tilt=-0.2 * random_side2 * multiplier * speed_amount, duration=0.53 * speed))
+                tk.add(4.8 + add + spacing, self.head_mot.pantilt(pan=0.3 * random_side * speed_amount,
+                                                                  tilt=-0.2 * random_side2 * multiplier * speed_amount,
+                                                                  duration=0.53 * speed))
                 tk.add(4.9 + add + spacing, self.head_mot.openeyes(time=0.25, amplitude=1.1))
-                tk.add(5.8 + add + spacing, self.head_mot.pantilt(pan=0.1 * random_side * speed_amount, tilt=-0.2 * random_side2 * multiplier * speed_amount, duration=0.15 * speed))
+                tk.add(5.8 + add + spacing, self.head_mot.pantilt(pan=0.1 * random_side * speed_amount,
+                                                                  tilt=-0.2 * random_side2 * multiplier * speed_amount,
+                                                                  duration=0.15 * speed))
                 tk.add(7.3 + add + spacing * 2, self.head_mot.openeyes(time=0.15, amplitude=-0.5))
-                tk.add(7.38 + add + spacing * 2, self.head_mot.pantilt(pan=-0.8 * random_side * speed_amount, tilt=0, duration=0.6 * speed))
+                tk.add(7.38 + add + spacing * 2,
+                       self.head_mot.pantilt(pan=-0.8 * random_side * speed_amount, tilt=0, duration=0.6 * speed))
                 tk.add(7.48 + add + spacing * 2, self.head_mot.openeyes(time=0.25, amplitude=1.1))
                 if move_base:
                     tk.add(7.7 + add + spacing * 2, self.wheels_mot.rotate(-0.8 * random_side, 1 * speed))
-                tk.add(9.0 + add + spacing * 2, self.head_mot.pantilt(pan=-0.6 * random_side * speed_amount, tilt=0, duration=0.15 * speed))
+                tk.add(9.0 + add + spacing * 2,
+                       self.head_mot.pantilt(pan=-0.6 * random_side * speed_amount, tilt=0, duration=0.15 * speed))
                 tk.add(10.5 + add + spacing * 3, self.head_mot.openeyes(time=0.15, amplitude=-0.5))
                 tk.add(10.68 + add + spacing * 3, self.head_mot.openeyes(time=0.25, amplitude=1.1))
-                tk.add(11.3 + add + spacing * 3, self.head_mot.pantilt(pan=-0.7 * random_side * speed_amount, tilt=0, duration=0.15 * speed))
+                tk.add(11.3 + add + spacing * 3,
+                       self.head_mot.pantilt(pan=-0.7 * random_side * speed_amount, tilt=0, duration=0.15 * speed))
                 tk.add(12.9 + add + spacing * 4, self.head_mot.openeyes(time=0.15, amplitude=-1.5 * on_off + 1))
-                tk.add(13.0 + add + spacing * 4, self.head_mot.pantilt(pan=0.2 * random_side * speed_amount, tilt=-0.2 * random_side2 * multiplier * speed_amount, duration=0.5 * speed))
+                tk.add(13.0 + add + spacing * 4, self.head_mot.pantilt(pan=0.2 * random_side * speed_amount,
+                                                                       tilt=-0.2 * random_side2 * multiplier * speed_amount,
+                                                                       duration=0.5 * speed))
                 tk.add(13.08 + add + spacing * 4, self.head_mot.openeyes(time=0.25, amplitude=1.1))
                 if move_base:
                     tk.add(13.15 + add + spacing * 4, self.wheels_mot.rotate(0.8 * random_side, 1 * speed))
@@ -68,20 +83,27 @@ class IdleAnimations(AnimationGroup):
             tk.add(0.3 + add, self.head_mot.pantilt(pan=0.2 * random_side, tilt=0.1 * random_side, duration=0.3))
             tk.add(0.4 + add, self.head_mot.openeyes(time=0.25, amplitude=1.1))
             tk.add(2 + add, self.head_mot.pantilt(pan=-0.1 * random_side, tilt=0.4 * random_side, duration=0.3 * speed))
-            tk.add(4.1 + add, self.head_mot.pantilt(pan=0.5 * random_side, tilt=0.4 * random_side, duration=0.4 * speed))
-            tk.add(5.4 + add, self.head_mot.pantilt(pan=0.3 * random_side, tilt=0.4 * random_side, duration=0.2 * speed))
+            tk.add(4.1 + add,
+                   self.head_mot.pantilt(pan=0.5 * random_side, tilt=0.4 * random_side, duration=0.4 * speed))
+            tk.add(5.4 + add,
+                   self.head_mot.pantilt(pan=0.3 * random_side, tilt=0.4 * random_side, duration=0.2 * speed))
             tk.add(7.6 + add, self.head_mot.openeyes(time=0.15, amplitude=-0.5))
-            tk.add(7.7 + add, self.head_mot.pantilt(pan=0.9 * random_side, tilt=0.4 * random_side, duration=0.8 * speed))
+            tk.add(7.7 + add,
+                   self.head_mot.pantilt(pan=0.9 * random_side, tilt=0.4 * random_side, duration=0.8 * speed))
             tk.add(7.78 + add, self.head_mot.openeyes(time=0.25, amplitude=1.1))
             if move_base:
                 tk.add(8.0 + add, self.wheels_mot.rotate(random_body * random_side, 1.5 * speed))
-            tk.add(10.7 + add + spacing, self.head_mot.pantilt(pan=0.7 * random_side, tilt=0.4 * random_side, duration=0.3 * speed))
-            tk.add(11.8 + add + spacing, self.head_mot.pantilt(pan=0.8 * random_side, tilt=0.4 * random_side, duration=0.2 * speed))
+            tk.add(10.7 + add + spacing,
+                   self.head_mot.pantilt(pan=0.7 * random_side, tilt=0.4 * random_side, duration=0.3 * speed))
+            tk.add(11.8 + add + spacing,
+                   self.head_mot.pantilt(pan=0.8 * random_side, tilt=0.4 * random_side, duration=0.2 * speed))
             tk.add(12.9 + add + spacing * 2, self.head_mot.openeyes(time=0.15, amplitude=-0.5))
-            tk.add(13.0 + add + spacing * 2, self.head_mot.pantilt(pan=-0.55 * random_side, tilt=0.2 * random_side, duration=0.6 * speed))
+            tk.add(13.0 + add + spacing * 2,
+                   self.head_mot.pantilt(pan=-0.55 * random_side, tilt=0.2 * random_side, duration=0.6 * speed))
             if move_base:
                 tk.add(13.2 + add + spacing * 2, self.wheels_mot.rotate(-1 * random_body * random_side, 1.5 * speed))
-            tk.add(13.7 + add + spacing * 2, self.head_mot.pantilt(pan=-0.2 * random_side, tilt=0.1 * random_side, duration=0.4 * speed))
+            tk.add(13.7 + add + spacing * 2,
+                   self.head_mot.pantilt(pan=-0.2 * random_side, tilt=0.1 * random_side, duration=0.4 * speed))
             tk.add(13.3 + add + spacing * 2, self.head_mot.openeyes(time=0.15, amplitude=1.1))
             tk.add(15.9 + add + spacing * 3, self.head_mot.openeyes(time=0.15, amplitude=-0.5))
             tk.add(18.42 + add + spacing * 3, self.head_mot.pantilt(pan=-0.4, tilt=0, duration=0.4 * speed))
@@ -97,7 +119,7 @@ class IdleAnimations(AnimationGroup):
 
         return tk
 
-    def look_around_common(self, tilt_func=lambda : 0):
+    def look_around_common(self, tilt_func=lambda: 0):
         start_pan = random.uniform(Head.PAN_RIGHT, Head.PAN_LEFT)
         start_tilt = tilt_func()
         CENTER_THRESHOLD = 0.25

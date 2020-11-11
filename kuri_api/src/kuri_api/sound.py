@@ -1,4 +1,11 @@
-import abc, collections, logging, math, sys, threading, wave, alsaaudio
+import abc
+import alsaaudio
+import collections
+import logging
+import math
+import sys
+import threading
+import wave
 
 logger = logging.getLogger(__name__)
 

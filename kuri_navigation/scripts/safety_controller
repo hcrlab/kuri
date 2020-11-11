@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
-import rospy
-
 import kuri_navigation
+import rospy
 
 if __name__ == '__main__':
 

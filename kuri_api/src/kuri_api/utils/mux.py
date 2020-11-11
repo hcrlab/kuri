@@ -1,4 +1,7 @@
-import bisect, collections, inspect, threading
+import bisect
+import collections
+import inspect
+import threading
 
 
 class Mux(collections.Sequence):

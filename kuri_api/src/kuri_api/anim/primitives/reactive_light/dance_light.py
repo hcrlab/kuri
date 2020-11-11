@@ -1,15 +1,19 @@
-import random, threading, rospy
-from numpy import interp
-from kuri_api.lights import Lights
+import random
+import rospy
+import threading
+
 from assets import mov_to_pixels
+from kuri_api.lights import Lights
 from kuri_api.utils.dance import get_bpm_range
 from kuri_api.utils.rate import Rate
+from numpy import interp
+
 
 class MusicLedPlayer(threading.Thread):
     """
     Specialized thread (mocks track player's interface) for realtime LED
     control during music playback.
-    
+
     This pattern picks from 6 random snake animations and picks a random
     color for the snake. The snake runs around the chest LED over a blue
     background.
@@ -143,9 +147,9 @@ class MusicLedPlayer(threading.Thread):
         Scales a snake color to an intensity.
         """
         return (
-         int(pixel[0] / 255.0 * self._current_snake_color[0]),
-         int(pixel[1] / 255.0 * self._current_snake_color[1]),
-         int(pixel[2] / 255.0 * self._current_snake_color[2]))
+            int(pixel[0] / 255.0 * self._current_snake_color[0]),
+            int(pixel[1] / 255.0 * self._current_snake_color[1]),
+            int(pixel[2] / 255.0 * self._current_snake_color[2]))
 
     def _framerate_for_bpm(self, bpm):
         """

@@ -1,7 +1,9 @@
 from random import choice
+
+from kuri_api import Head
 from kuri_api.anim import AnimationGroup
 from kuri_api.anim import Track
-from kuri_api import Head
+
 
 class SleepAndWakeAnimations(AnimationGroup):
 

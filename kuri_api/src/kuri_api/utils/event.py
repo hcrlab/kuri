@@ -1,4 +1,6 @@
-import collections, inspect, weakref
+import collections
+import inspect
+import weakref
 
 
 class EventField(object):

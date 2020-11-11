@@ -1,5 +1,6 @@
 import os
 
+
 def get_data_path():
     """
     Return the data path for either the GBZ or a development workspace.

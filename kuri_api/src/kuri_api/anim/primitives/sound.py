@@ -1,18 +1,22 @@
-import os, threading
+import os
+import threading
+
+from assets import config
 from kuri_api.anim import track
 from kuri_api.sound import WaveFile
-from assets import config
+
 sounds_path = config.get_sounds_path()
+
 
 class Sound(object):
     """
     Top-level container for sound primitives
-    
+
     Parameters
     ----------
-    
+
     sounds_svc:   sound service
-    
+
     Example
     -------
         t = Track()
@@ -52,10 +56,10 @@ class SoundPlayer(track.Player):
 class SoundFile(track.Content):
     """
         Class which loads a sound from a filename and plays it.
-    
+
         Parameters
         ----------
-    
+
         sounds_svc:   sound service
         filename: str, name of file to play
     """

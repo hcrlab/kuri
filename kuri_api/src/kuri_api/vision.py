@@ -1,21 +1,23 @@
-import rospy
-from copy import deepcopy
-from collections import Counter
+import Queue
 import threading
+from collections import Counter
+from collections import deque
+from copy import deepcopy
+from threading import Thread
+
+import logging
+import numpy as np
+import rospy
+from mayfield_msgs.msg import KeyValue
+from robot_api.utils import ros
+from robot_api.utils.event import Event
+from std_msgs.msg import Header
+from vision_msgs.msg import VisionCmdMsg, FrameResults, ImageClustering
 from vision_msgs.srv import VisionActiveModules, VisionActiveModulesRequest, VisionCmds, VisionCmdsRequest, VisionQuery, \
     VisionQueryRequest
-from vision_msgs.msg import VisionCmdMsg, FrameResults, ImageClustering
-from std_msgs.msg import Header
-from mayfield_msgs.msg import KeyValue
-from robot_api.utils.event import Event
-from robot_api.utils import ros
-from threading import Thread
-import threading
-import Queue
-from collections import deque
-from .vision_utils.visual_features import VisualFeatures
+
 from .vision_utils.utils import cast_nan
-import numpy as np, logging
+from .vision_utils.visual_features import VisualFeatures
 
 logger = logging.getLogger(__name__)
 
@@ -426,7 +428,7 @@ class Vision(object):
         check['max_similar_ok'] = cluster_size <= thresholds['max_similar']
         check['success'] = check['score_ok'] and check['brightness_ok'] and check['sharpness_ok'] and check[
             'bad_cluster_ok'] and check['max_similar_ok'] and not similar_subject and (
-                                       check['excitement_ok'] or good_subject)
+                                   check['excitement_ok'] or good_subject)
         check['log_str'] = ('success,{}|').format(check['success']) + ('score,{},{}|').format(score,
                                                                                               check['score_ok']) + (
                                'brightness,{},{}|').format(brightness, check['brightness_ok']) + (

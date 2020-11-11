@@ -1,9 +1,10 @@
 import time
 
+
 class Rate(object):
     """
     Convenience class for sleeping in a loop at a specified rate.
-    
+
     Copied over from rospy, modified to not use rostime as that requires master
     to be running, and init_node to have been called. -Hai Nguyen
     """
@@ -47,7 +48,7 @@ class Rate(object):
         Attempt sleep at the specified rate. sleep() takes into
         account the time elapsed since the last successful
         sleep().
-        
+
         @param f: float -> val, function that does the actual
             sleeping. If None, use time.sleep.
         """

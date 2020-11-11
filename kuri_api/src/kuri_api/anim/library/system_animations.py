@@ -1,6 +1,7 @@
 from kuri_api.anim import AnimationGroup
 from kuri_api.anim import Track
 
+
 class SystemAnimations(AnimationGroup):
     """
     System-level animations.

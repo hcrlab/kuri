@@ -1,5 +1,7 @@
-import logging, threading, json, rospy
-from std_msgs.msg import Empty, String
+import logging
+import rospy
+import threading
+
 from audio_msgs.msg import Awake, Exchange
 from audio_msgs.srv import Stat, WakeUp, Snooze
 from kuri_api.utils import Events
@@ -24,7 +26,6 @@ class VoiceCommand(object):
 class Listener(Events):
     """
     Used to listen for:
-
     - a wake word (e.g. the name of the robot) while asleep
     - commands to execute while awake
 
@@ -42,7 +43,6 @@ class Listener(Events):
         listener = Listener()
         listener.wake_event.connect(on_voice_command)
         listener.voice_command_event.connect(on_voice_command)
-
     """
     NAMESPACE = 'audio'
     PROCESS_DELAY = 4
@@ -69,8 +69,9 @@ class Listener(Events):
 
     def wait_until_ready(self, timeout=0):
         return wait_for_servers([
-            self._stat, self._wake_up, self._snooze], timeout=timeout) and wait_for_topics([
-            self._awake_sub, self._exchange_sub], timeout=timeout, poll=0.1)
+            self._stat, self._wake_up, self._snooze], timeout=timeout) and wait_for_topics(
+            [self._awake_sub, self._exchange_sub],
+            timeout=timeout, poll=0.1)
 
     @property
     def awake_timeout(self):
@@ -110,13 +111,14 @@ class Listener(Events):
         if len(exchange.commands) > 0 and len(exchange.commands[0].params) == 0 and exchange.transcription != "":
             name = 'custom'
             params = {"transcript": exchange.transcription}
-        elif len(exchange.commands) > 0 and len(exchange.commands[0].params) > 0 and len(exchange.commands[0].params[0].k) > 0 and len(exchange.commands[0].params[0].v) > 0:
+        elif len(exchange.commands) > 0 and len(exchange.commands[0].params) > 0 and len(
+                exchange.commands[0].params[0].k) > 0 and len(exchange.commands[0].params[0].v) > 0:
             command = exchange.commands[0]
             name = command.name.replace('Command', '').replace('Kuri', '').lower()
             params = {param.k: param.v for param in command.params}
             params["transcript"] = exchange.transcription
         else:
-            #print("empty exchange")
+            # print("empty exchange")
             return
         command = VoiceCommand(name=name, params=params)
         self.voice_command_event(command)

@@ -1,11 +1,13 @@
 import random
 from math import radians
+
 MIN_ADULT_TILT = radians(40) * -1
 MAX_ADULT_TILT = radians(25) * -1
 MIN_CHILD_TILT = radians(27) * -1
 MAX_CHILD_TILT = 0
 MIN_NAV_TILT = radians(40) * -1
 MAX_NAV_TILT = radians(5) * -1
+
 
 def random_photo_tilt():
     """

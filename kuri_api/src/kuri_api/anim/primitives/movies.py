@@ -1,9 +1,9 @@
 from PIL import Image
 
+from assets import config
 from assets import memoize
 from assets import mov_to_pixels, mov_to_wav
-from assets import config
-import os
+
 
 class Movies(object):
 
@@ -19,7 +19,7 @@ class Movies(object):
     def to_sound(self, mov_name):
         return self.sound.open(mov_to_wav(mov_name))
 
-    @memoize(lambda : config.get_assets_path())
+    @memoize(lambda: config.get_assets_path())
     def get_pixels(self, filename):
         r"""
         \param filename: the animated gif file to extract the pixels from
@@ -31,18 +31,18 @@ class Movies(object):
         """
         gif = Image.open(filename)
         pixels = [
-         (256, 256),
-         (386, 255),
-         (320, 144),
-         (192, 144),
-         (128, 258),
-         (192, 366),
-         (320, 366)]
+            (256, 256),
+            (386, 255),
+            (320, 144),
+            (192, 144),
+            (128, 258),
+            (192, 366),
+            (320, 366)]
         led_frames = []
         fps = None
         for f in frames(gif):
             pal = palette(gif.getpalette())
-            led_frames.append(([ pal[gif.getpixel(p)] for p in pixels ], True))
+            led_frames.append(([pal[gif.getpixel(p)] for p in pixels], True))
             fps = 1000.0 / f.info['duration']
 
         return self.lights.Animated(led_frames, fps, len(led_frames) / fps)

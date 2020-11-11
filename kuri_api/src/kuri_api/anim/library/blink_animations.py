@@ -1,6 +1,8 @@
 from random import normalvariate
+
 from kuri_api.anim import AnimationGroup
 from kuri_api.anim import Track
+
 
 class BlinkAnimations(AnimationGroup):
     """

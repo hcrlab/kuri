@@ -1,7 +1,10 @@
-import math, random
+import math
+import random
+
+from kuri_api import Head
 from kuri_api.anim import AnimationGroup
 from kuri_api.anim import Track
-from kuri_api import Head
+
 
 class OnboardingAnimations(AnimationGroup):
 
@@ -109,33 +112,47 @@ class OnboardingAnimations(AnimationGroup):
         tk.add(4.4, self.head_mot.pantilt(pan=-0.1 * random_pan_side, tilt=Head.TILT_DOWN * 0.6, duration=0.1))
         tk.add(5.2, self.head_mot.pantilt(pan=0.25 * random_pan_side, tilt=Head.TILT_DOWN * 0.1, duration=0.45))
         tk.add(6.4, self.head_mot.blinkeyes())
-        tk.add(6.5, self.head_mot.pantilt(pan=Head.PAN_LEFT * 0.7 * random_pan_side, tilt=Head.TILT_DOWN * 0.6, duration=0.55))
+        tk.add(6.5, self.head_mot.pantilt(pan=Head.PAN_LEFT * 0.7 * random_pan_side, tilt=Head.TILT_DOWN * 0.6,
+                                          duration=0.55))
         tk.add(7.0, self.sound_mot.open(sound1))
         tk.add(7.0, self.wheels_mot.rotate_by(angle=math.pi / 2 * random_pan_side, duration=3.0))
-        tk.add(7.6, self.head_mot.pantilt(pan=Head.PAN_LEFT * 0.55 * random_pan_side, tilt=Head.TILT_DOWN * 0.1, duration=0.4))
-        tk.add(8.7, self.head_mot.pantilt(pan=Head.PAN_LEFT * 0.75 * random_pan_side, tilt=Head.TILT_DOWN * 0.6, duration=0.4))
+        tk.add(7.6, self.head_mot.pantilt(pan=Head.PAN_LEFT * 0.55 * random_pan_side, tilt=Head.TILT_DOWN * 0.1,
+                                          duration=0.4))
+        tk.add(8.7, self.head_mot.pantilt(pan=Head.PAN_LEFT * 0.75 * random_pan_side, tilt=Head.TILT_DOWN * 0.6,
+                                          duration=0.4))
         tk.add(8.8, self.head_mot.blinkeyes())
-        tk.add(9.6, self.head_mot.pantilt(pan=Head.PAN_LEFT * 0.45 * random_pan_side, tilt=Head.TILT_DOWN * 0.3, duration=0.4))
+        tk.add(9.6, self.head_mot.pantilt(pan=Head.PAN_LEFT * 0.45 * random_pan_side, tilt=Head.TILT_DOWN * 0.3,
+                                          duration=0.4))
         tk.add(9.7, self.head_mot.blinkeyes())
         tk.add(9.9, self.head_mot.pantilt(pan=Head.PAN_NEUTRAL, tilt=Head.TILT_DOWN * 0.6, duration=0.3))
         tk.add(10.5, self.sound_mot.open(sound2))
         tk.add(10.5, self.head_mot.blinkeyes())
         tk.add(10.5, self.wheels_mot.rotate_by(angle=-math.pi * random_pan_side, duration=6.0))
-        tk.add(10.7, self.head_mot.pantilt(pan=Head.PAN_RIGHT * 0.7 * random_pan_side, tilt=Head.TILT_DOWN * 0.15, duration=0.4))
-        tk.add(11.3, self.head_mot.pantilt(pan=Head.PAN_RIGHT * 0.3 * random_pan_side, tilt=Head.TILT_DOWN * 0.6, duration=0.55))
-        tk.add(12.0, self.head_mot.pantilt(pan=Head.PAN_RIGHT * 0.55 * random_pan_side, tilt=Head.TILT_DOWN * 0.1, duration=0.4))
+        tk.add(10.7, self.head_mot.pantilt(pan=Head.PAN_RIGHT * 0.7 * random_pan_side, tilt=Head.TILT_DOWN * 0.15,
+                                           duration=0.4))
+        tk.add(11.3, self.head_mot.pantilt(pan=Head.PAN_RIGHT * 0.3 * random_pan_side, tilt=Head.TILT_DOWN * 0.6,
+                                           duration=0.55))
+        tk.add(12.0, self.head_mot.pantilt(pan=Head.PAN_RIGHT * 0.55 * random_pan_side, tilt=Head.TILT_DOWN * 0.1,
+                                           duration=0.4))
         tk.add(12.1, self.head_mot.blinkeyes())
-        tk.add(12.7, self.head_mot.pantilt(pan=Head.PAN_RIGHT * 0.75 * random_pan_side, tilt=Head.TILT_DOWN * 0.6, duration=0.5))
-        tk.add(14.2, self.head_mot.pantilt(pan=Head.PAN_RIGHT * 0.45 * random_pan_side, tilt=Head.TILT_DOWN * 0.7, duration=0.5))
+        tk.add(12.7, self.head_mot.pantilt(pan=Head.PAN_RIGHT * 0.75 * random_pan_side, tilt=Head.TILT_DOWN * 0.6,
+                                           duration=0.5))
+        tk.add(14.2, self.head_mot.pantilt(pan=Head.PAN_RIGHT * 0.45 * random_pan_side, tilt=Head.TILT_DOWN * 0.7,
+                                           duration=0.5))
         tk.add(14.7, self.head_mot.blinkeyes())
-        tk.add(15.3, self.head_mot.pantilt(pan=Head.PAN_RIGHT * 0.8 * random_pan_side, tilt=Head.TILT_DOWN * 0.1, duration=0.3))
+        tk.add(15.3, self.head_mot.pantilt(pan=Head.PAN_RIGHT * 0.8 * random_pan_side, tilt=Head.TILT_DOWN * 0.1,
+                                           duration=0.3))
         tk.add(16.0, self.head_mot.blinkeyes())
-        tk.add(16.1, self.head_mot.pantilt(pan=Head.PAN_LEFT * 0.5 * random_pan_side, tilt=Head.TILT_DOWN * 0.6, duration=0.55))
+        tk.add(16.1, self.head_mot.pantilt(pan=Head.PAN_LEFT * 0.5 * random_pan_side, tilt=Head.TILT_DOWN * 0.6,
+                                           duration=0.55))
         tk.add(16.6, self.wheels_mot.rotate_by(angle=math.pi / 2 * random_pan_side, duration=3.0))
-        tk.add(17.2, self.head_mot.pantilt(pan=Head.PAN_LEFT * 0.75 * random_pan_side, tilt=Head.TILT_DOWN * 0.1, duration=0.4))
-        tk.add(18.3, self.head_mot.pantilt(pan=Head.PAN_LEFT * 0.55 * random_pan_side, tilt=Head.TILT_DOWN * 0.3, duration=0.4))
+        tk.add(17.2, self.head_mot.pantilt(pan=Head.PAN_LEFT * 0.75 * random_pan_side, tilt=Head.TILT_DOWN * 0.1,
+                                           duration=0.4))
+        tk.add(18.3, self.head_mot.pantilt(pan=Head.PAN_LEFT * 0.55 * random_pan_side, tilt=Head.TILT_DOWN * 0.3,
+                                           duration=0.4))
         tk.add(18.4, self.head_mot.blinkeyes())
-        tk.add(19.2, self.head_mot.pantilt(pan=Head.PAN_LEFT * 0.35 * random_pan_side, tilt=Head.TILT_DOWN * 0.7, duration=0.4))
+        tk.add(19.2, self.head_mot.pantilt(pan=Head.PAN_LEFT * 0.35 * random_pan_side, tilt=Head.TILT_DOWN * 0.7,
+                                           duration=0.4))
         tk.add(19.3, self.head_mot.blinkeyes())
         tk.add(19.5, self.head_mot.pantilt(pan=Head.PAN_NEUTRAL, tilt=Head.TILT_DOWN * 0.3, duration=0.3))
         tk.add(20.0, self.head_mot.openeyes())

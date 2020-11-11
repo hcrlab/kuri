@@ -1,39 +1,41 @@
-import rospy
-from numpy import clip
+import logging
 from random import choice, random, randint, uniform
 
+import rospy
 from kuri_api.head import Head
+from numpy import clip
+
 from .dance_routines import choreographed_performances, dance_routine_pools, dance_routines, dance_routine_names
-import logging
 
 params = {}
 
 logger = logging.getLogger(__name__)
 BPM_DANCE_RANGE = (
- params.get('dance_bpm_min', 40),
- params.get('dance_bpm_max', 180))
+    params.get('dance_bpm_min', 40),
+    params.get('dance_bpm_max', 180))
 SLOW_DANCE_THRESHOLD = params.get('dance_slow_threshold', 64)
 FAST_DANCE_THRESHOLD = params.get('dance_fast_threshold', 138)
 SLOW_ROUTINE_RANGE = (
- BPM_DANCE_RANGE[0], SLOW_DANCE_THRESHOLD)
+    BPM_DANCE_RANGE[0], SLOW_DANCE_THRESHOLD)
 FAST_ROUTINE_RANGE = (FAST_DANCE_THRESHOLD, BPM_DANCE_RANGE[1])
 MAX_DANCE_ROT_VEL = params.get('dance_max_rot_vel', 3.0)
 MAX_DANCE_TRANS_VEL = params.get('dance_max_trans_vel', 0.5)
 DANCE_SPEEDS = [
- 'slow', 'regular', 'fast']
+    'slow', 'regular', 'fast']
 DANCE_SPEED_SLOW = 0
 DANCE_SPEED_REG = 1
 DANCE_SPEED_FAST = 2
 DANCE_PROFILES = [
- 'natural', 'robot']
+    'natural', 'robot']
 DANCE_PROFILE_NATURAL = 0
 DANCE_PROFILE_ROBOT = 1
 PERFORMANCE_STAGES = [
- 'intro', 'warm_up', 'apex', 'cool_down']
+    'intro', 'warm_up', 'apex', 'cool_down']
 PERFORMANCE_STAGE_INTRO = 0
 PERFORMANCE_STAGE_WARM_UP = 1
 PERFORMANCE_STAGE_APEX = 2
 PERFORMANCE_STAGE_COOL_DOWN = 3
+
 
 def get_bpm_range():
     """
@@ -63,7 +65,8 @@ class DancePerformance(object):
 
     def __init__(self, bpm=None, song=None):
         self._routine_map, self.profile, self._seed = _gen_performance(bpm, song)
-        logger.info(('\n\x1b[1;35mGenerated Dance Performance!\n\tSeed: {}\n\tProfile: {}\x1b[1;0m').format(self._seed, self.profile))
+        logger.info(('\n\x1b[1;35mGenerated Dance Performance!\n\tSeed: {}\n\tProfile: {}\x1b[1;0m').format(self._seed,
+                                                                                                            self.profile))
         self.last_pose = None
         self._time_start = rospy.get_time()
         self._performance_stage = PERFORMANCE_STAGES[PERFORMANCE_STAGE_INTRO]
@@ -315,7 +318,7 @@ def _clamp_wheels(pose):
     Ensures we don't send the robot a head position outside of its valid range.
     """
     ROTATE_VELOCITY_RANGE = (
-     -MAX_DANCE_ROT_VEL, MAX_DANCE_ROT_VEL)
+        -MAX_DANCE_ROT_VEL, MAX_DANCE_ROT_VEL)
     TRANSLATE_VELOCITY_RANGE = (-MAX_DANCE_TRANS_VEL, MAX_DANCE_TRANS_VEL)
     if pose.wheel_rotate:
         pose.wheel_rotate = clip(pose.wheel_rotate, ROTATE_VELOCITY_RANGE[0], ROTATE_VELOCITY_RANGE[1])
@@ -361,13 +364,13 @@ def _performance_for_song(song):
         logger.warn(('Song not in list of choreographed performances: {}').format(song))
         song = 'pancake_robot'
     stages = [
-     _names_to_routines(choreo[song][PERFORMANCE_STAGES[PERFORMANCE_STAGE_INTRO]]),
-     _names_to_routines(choreo[song][PERFORMANCE_STAGES[PERFORMANCE_STAGE_WARM_UP]]),
-     _names_to_routines(choreo[song][PERFORMANCE_STAGES[PERFORMANCE_STAGE_APEX]]),
-     _names_to_routines(choreo[song][PERFORMANCE_STAGES[PERFORMANCE_STAGE_COOL_DOWN]])]
+        _names_to_routines(choreo[song][PERFORMANCE_STAGES[PERFORMANCE_STAGE_INTRO]]),
+        _names_to_routines(choreo[song][PERFORMANCE_STAGES[PERFORMANCE_STAGE_WARM_UP]]),
+        _names_to_routines(choreo[song][PERFORMANCE_STAGES[PERFORMANCE_STAGE_APEX]]),
+        _names_to_routines(choreo[song][PERFORMANCE_STAGES[PERFORMANCE_STAGE_COOL_DOWN]])]
     perf = _build_performance_with_stages(stages)
     return (
-     perf, 'natural', song)
+        perf, 'natural', song)
 
 
 def _build_performance_with_stages(stages):
@@ -403,9 +406,9 @@ def _performance_for_bpm(bpm):
             motion_profile = DANCE_PROFILES[DANCE_PROFILE_ROBOT]
         pool = pools[DANCE_SPEEDS[DANCE_SPEED_SLOW]][motion_profile]
         num_routines_per_segment = (randint(1, 2),
-         randint(3, 5),
-         randint(1, 2),
-         randint(3, 5))
+                                    randint(3, 5),
+                                    randint(1, 2),
+                                    randint(3, 5))
     else:
         if _is_fast_bpm(bpm):
             seed = 'fast'
@@ -414,22 +417,22 @@ def _performance_for_bpm(bpm):
                 motion_profile = DANCE_PROFILES[DANCE_PROFILE_ROBOT]
             pool = pools[DANCE_SPEEDS[DANCE_SPEED_FAST]][motion_profile]
             num_routines_per_segment = (1,
-             randint(3, 5),
-             randint(3, 5),
-             randint(4, 5))
+                                        randint(3, 5),
+                                        randint(3, 5),
+                                        randint(4, 5))
         else:
             ROBOT_PROBABILITY = 0.35
             if random() < ROBOT_PROBABILITY:
                 motion_profile = DANCE_PROFILES[DANCE_PROFILE_ROBOT]
             pool = pools[DANCE_SPEEDS[DANCE_SPEED_REG]][motion_profile]
             num_routines_per_segment = (1,
-             randint(3, 5),
-             randint(2, 3),
-             randint(3, 6))
+                                        randint(3, 5),
+                                        randint(2, 3),
+                                        randint(3, 6))
     routines = _performance_from_pool(pool, *num_routines_per_segment)
     assert routines is not None
     return (
-     routines, motion_profile, seed)
+        routines, motion_profile, seed)
 
 
 def _is_slow_bpm(bpm):
@@ -442,10 +445,14 @@ def _is_fast_bpm(bpm):
 
 def _performance_from_pool(routine_pools, num_intros, num_warm_up, num_apex, num_cool_down):
     perf = {}
-    perf[PERFORMANCE_STAGES[PERFORMANCE_STAGE_INTRO]] = _gen_unique_pool(routine_pools[PERFORMANCE_STAGES[PERFORMANCE_STAGE_INTRO]], num_intros)
-    perf[PERFORMANCE_STAGES[PERFORMANCE_STAGE_WARM_UP]] = _gen_unique_pool(routine_pools[PERFORMANCE_STAGES[PERFORMANCE_STAGE_WARM_UP]], num_warm_up)
-    perf[PERFORMANCE_STAGES[PERFORMANCE_STAGE_APEX]] = _gen_unique_pool(routine_pools[PERFORMANCE_STAGES[PERFORMANCE_STAGE_APEX]], num_apex)
-    perf[PERFORMANCE_STAGES[PERFORMANCE_STAGE_COOL_DOWN]] = _gen_unique_pool(routine_pools[PERFORMANCE_STAGES[PERFORMANCE_STAGE_COOL_DOWN]], num_cool_down)
+    perf[PERFORMANCE_STAGES[PERFORMANCE_STAGE_INTRO]] = _gen_unique_pool(
+        routine_pools[PERFORMANCE_STAGES[PERFORMANCE_STAGE_INTRO]], num_intros)
+    perf[PERFORMANCE_STAGES[PERFORMANCE_STAGE_WARM_UP]] = _gen_unique_pool(
+        routine_pools[PERFORMANCE_STAGES[PERFORMANCE_STAGE_WARM_UP]], num_warm_up)
+    perf[PERFORMANCE_STAGES[PERFORMANCE_STAGE_APEX]] = _gen_unique_pool(
+        routine_pools[PERFORMANCE_STAGES[PERFORMANCE_STAGE_APEX]], num_apex)
+    perf[PERFORMANCE_STAGES[PERFORMANCE_STAGE_COOL_DOWN]] = _gen_unique_pool(
+        routine_pools[PERFORMANCE_STAGES[PERFORMANCE_STAGE_COOL_DOWN]], num_cool_down)
     return perf
 
 

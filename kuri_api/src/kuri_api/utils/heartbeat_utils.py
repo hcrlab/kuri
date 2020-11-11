@@ -1,18 +1,19 @@
 import numpy as np
 
+
 def happiness_to_fade(happiness):
     """
     Currently just rounds to the nearest bin.
     """
     HAPPINESS_RANGE = 6.0
     HAPPINESS_COLORS = [
-     (94, 31, 0),
-     (101, 57, 26),
-     (81, 71, 65),
-     (63, 61, 61),
-     (73, 73, 73),
-     (91, 91, 91),
-     (166, 166, 166)]
+        (94, 31, 0),
+        (101, 57, 26),
+        (81, 71, 65),
+        (63, 61, 61),
+        (73, 73, 73),
+        (91, 91, 91),
+        (166, 166, 166)]
     num_colors = len(HAPPINESS_COLORS) - 1
     nearest_index = np.clip(int(round(happiness + HAPPINESS_RANGE / 2.0)), 0, num_colors)
     return HAPPINESS_COLORS[nearest_index]
@@ -24,13 +25,13 @@ def happiness_to_color(happiness):
     """
     HAPPINESS_RANGE = 6.0
     HAPPINESS_COLORS = [
-     (255, 91, 0),
-     (255, 158, 92),
-     (244, 218, 201),
-     (244, 234, 232),
-     (178, 178, 178),
-     (219, 219, 219),
-     (255, 255, 255)]
+        (255, 91, 0),
+        (255, 158, 92),
+        (244, 218, 201),
+        (244, 234, 232),
+        (178, 178, 178),
+        (219, 219, 219),
+        (255, 255, 255)]
     num_colors = len(HAPPINESS_COLORS) - 1
     nearest_index = np.clip(int(round(happiness + HAPPINESS_RANGE / 2.0)), 0, num_colors)
     return HAPPINESS_COLORS[nearest_index]

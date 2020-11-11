@@ -1,5 +1,6 @@
 import os
 
+
 class SlackBot:
     """Constructs help-request message"""
 
@@ -18,7 +19,8 @@ class SlackBot:
         "text": {
             "type": "mrkdwn",
             "text": (
-                "Kuri needs your help! Click <http://" + os.environ['TELEOP_URL'] + "|here> to view a teleop interface..."
+                    "Kuri needs your help! Click <http://" + os.environ[
+                        'TELEOP_URL'] + "|here> to view a teleop interface..."
             ),
         },
     }
@@ -31,7 +33,7 @@ class SlackBot:
         self.username = "kuribot"
         self.icon_emoji = ":robot_face:"
         self.timestamp = ""
-    
+
     def get_welcome_payload(self):
         return {
             "ts": self.timestamp,

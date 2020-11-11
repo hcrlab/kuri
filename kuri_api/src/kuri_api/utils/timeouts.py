@@ -1,5 +1,9 @@
-import logging, threading, rospy
+import logging
+import rospy
+import threading
+
 logger = logging.getLogger(__name__)
+
 
 class Timeout(threading.Thread):
     """
@@ -63,16 +67,16 @@ class TaskTimeout(object):
         """
         self._timeout = EventTimeout(duration=duration, timeout_cb=callback)
         self._events = [
-         interface.sensors.kidnapped_event,
-         interface.sensors.pickup_event,
-         interface.sensors.putdown_event,
-         interface.touch.touch_event,
-         interface.power.docked_event,
-         interface.nav_client.nav_event,
-         interface.wheels_mux.teleop.move_event,
-         interface.head_ctl.move_event,
-         interface.comm_interface.command_event,
-         interface.voice.wake_event]
+            interface.sensors.kidnapped_event,
+            interface.sensors.pickup_event,
+            interface.sensors.putdown_event,
+            interface.touch.touch_event,
+            interface.power.docked_event,
+            interface.nav_client.nav_event,
+            interface.wheels_mux.teleop.move_event,
+            interface.head_ctl.move_event,
+            interface.comm_interface.command_event,
+            interface.voice.wake_event]
         for event in self._events:
             event.connect(self._reset_timeout)
 

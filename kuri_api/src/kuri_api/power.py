@@ -1,11 +1,9 @@
+import logging
 import rospy
 
+import mobile_base_driver.msg
 from kuri_api.utils import Events
-import mobile_base_driver.msg
-
-import logging, rospy
 from numpy import clip
-import mobile_base_driver.msg
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +69,7 @@ class PowerMonitor(Events):
         self._check_for_low_power(msg.battery)
         self._check_for_critical_power(msg.battery)
         if dock_changed or last_power_level != self._power_level:
-            #self._status_srv.log_power(self.power_status(), self._power_level)
+            # self._status_srv.log_power(self.power_status(), self._power_level)
             pass
 
     def _check_docking_events(self, msg):
@@ -87,13 +85,13 @@ class PowerMonitor(Events):
             self._last_docked_time = rospy.get_time()
             self.docked_event('docked')
             logger.info('docked')
-            #self._anim.cancel()
+            # self._anim.cancel()
             return True
         if self._is_docked and not msg.dock_present:
             self._is_docked = False
             self.undocked_event('undocked')
             if self._is_critical and not self._anim.is_playing:
-                pass#self._anim.critical_battery()
+                pass  # self._anim.critical_battery()
             return True
         return False
 
@@ -112,11 +110,11 @@ class PowerMonitor(Events):
         if not self._is_critical and battery_msg.rounded_pct < self.critical_power:
             self._is_critical = True
             if not self._is_docked:
-                #self._anim.critical_battery()
+                # self._anim.critical_battery()
                 self.critical_power_event('battery_critical')
         if self._is_critical and battery_msg.rounded_pct > self.critical_power:
             self._is_critical = False
-            pass#self._anim.cancel()
+            pass  # self._anim.cancel()
         return self._is_critical
 
     def _check_for_low_power(self, battery_msg):

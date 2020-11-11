@@ -1,12 +1,15 @@
-import itertools as it, threading
+import itertools as it
+import threading
+
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import Vector3
 from kuri_api.anim import track
 
+
 class WheelMotions:
     """
     Top-level container for wheel motion primitives
-    
+
     Parameters
     ----------
     wheels:     wheel service
@@ -44,12 +47,12 @@ def trig_profile(length):
     r"""
         A triangular velocity profile going from 0.0 to 1.0
         and then back to 0.0
-    
+
         \params length: number of points in the profile
     """
     points = []
-    points += [ 2.0 * x / (length - 1) for x in range(length / 2) ]
-    points += [ 2.0 - 2.0 * x / (length - 1) for x in range(length / 2, length) ]
+    points += [2.0 * x / (length - 1) for x in range(length / 2)]
+    points += [2.0 - 2.0 * x / (length - 1) for x in range(length / 2, length)]
     return points
 
 
@@ -90,7 +93,7 @@ class WheelMotionPlayer(track.Player):
         if self._wheel_svc is None:
             return
         with self._wheel_svc as (wheels):
-            traj = [ (i * self._content._interval, t.linear.x, t.angular.z) for i, t in enumerate(self._content._twists) ]
+            traj = [(i * self._content._interval, t.linear.x, t.angular.z) for i, t in enumerate(self._content._twists)]
             wheels.send_trajectory(traj)
             self._signal_cancel.wait(self._content.length())
             if self._done_cb and not self._signal_cancel.is_set():
@@ -161,7 +164,8 @@ class ArcMotionPlayer(track.Player):
                     duration -= self.FIXED_ACCEL_TIME
             linear_velocity = arc_len / duration
             linear_velocity += linear_velocity * self.VEL_COMP
-            wheels.arc_move(angle=angle, angular_velocity=angular_velocity, arc_len=arc_len, linear_velocity=linear_velocity, duration=duration)
+            wheels.arc_move(angle=angle, angular_velocity=angular_velocity, arc_len=arc_len,
+                            linear_velocity=linear_velocity, duration=duration)
         return
 
     def _done(self, msg):
@@ -177,7 +181,7 @@ class ArcMotionPlayer(track.Player):
 
 class RotateMotion(track.Content):
     """
-        A basic rotation motion object.
+    A basic rotation motion object.
     """
 
     def __init__(self):
@@ -245,8 +249,8 @@ class RotateMotionPlayer(track.Player):
 
 class Inch(WheelMotion):
     """
-        Using a triangular velocity profile, go straight
-        with the given speed for the given time
+    Using a triangular velocity profile, go straight
+    with the given speed for the given time
     """
 
     def __init__(self, speed, length):
@@ -260,8 +264,8 @@ class Inch(WheelMotion):
 
 class Rotate(WheelMotion):
     """
-        Using a triangular velocity profile, turn in place
-        with the given speed for the given time
+    Using a triangular velocity profile, turn in place
+    with the given speed for the given time
     """
 
     def __init__(self, speed, length):
@@ -306,7 +310,7 @@ class BodyWiggle(WheelMotion):
         self._direction = direction
         self._interval = 0.05
         dilate = 1.0
-        self._times = [ t * dilate for t in [0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4] ]
+        self._times = [t * dilate for t in [0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4]]
         self._speeds = [2.5, -5.0, 5.0, -4.0, 4.0, -2.0, 2.0, -1.0]
         self._twists = self._wiggle_twists()
 
@@ -314,8 +318,8 @@ class BodyWiggle(WheelMotion):
         gain = self._direction
         trajs = []
         for t, s in zip(self._times, self._speeds):
-            trajs.append([ Twist(angular=Vector3(0, 0, gain * p * s)) for p in trig_profile(int(t / self._interval))
-                         ])
+            trajs.append([Twist(angular=Vector3(0, 0, gain * p * s)) for p in trig_profile(int(t / self._interval))
+                          ])
 
         return it.chain(*trajs)
 

@@ -1,8 +1,10 @@
+import random
+from math import radians
+
 from kuri_api.anim import AnimationGroup
 from kuri_api.anim import Track
 from kuri_api.utils.social import random_photo_tilt
-import random
-from math import radians
+
 
 class SocialAnimations(AnimationGroup):
     """

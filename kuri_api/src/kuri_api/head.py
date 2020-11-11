@@ -1,11 +1,15 @@
-import actionlib
-from actionlib_msgs.msg import GoalStatus
-from std_msgs.msg import Header
-from actionlib.action_client import CommState
-import control_msgs.msg, rospy, trajectory_msgs.msg
-from kuri_api.utils import Mux, MuxChannel, Events
-import math
 import logging
+import math
+
+import actionlib
+import control_msgs.msg
+import rospy
+import trajectory_msgs.msg
+from actionlib.action_client import CommState
+from actionlib_msgs.msg import GoalStatus
+from kuri_api.utils import Mux, MuxChannel
+from std_msgs.msg import Header
+
 
 def _fill_traj_blanks(pts, values):
     """ filter a trajectory by forward propagating missing values
@@ -21,8 +25,8 @@ def _fill_traj_blanks(pts, values):
     pt = pts[0]
     vals = tuple((x if 1 else y for x, y in zip(pt[1:], values) if x is not None))
     return [
-     (
-      pt[0],) + vals] + _fill_traj_blanks(pts[1:], vals)
+               (
+                   pt[0],) + vals] + _fill_traj_blanks(pts[1:], vals)
 
 
 def _merge_traj_points(pts):
@@ -35,13 +39,14 @@ def _merge_traj_points(pts):
         if lst[0][0] == lst[1][0]:
             return filt([mrg(lst[0], lst[1])] + lst[2:])
         return [
-         lst[0]] + filt(lst[1:])
+                   lst[0]] + filt(lst[1:])
 
     def mrg(fst, sec):
         vals = tuple((x if x is not None else y for x, y in zip(sec[1:], fst[1:])))
         return (fst[0],) + vals
 
     return filt(pts)
+
 
 class Head(object):
     JOINT_PAN = 'head_1_joint'
@@ -103,21 +108,17 @@ class Head(object):
         """
         Moves the robot's eye lids to the specified location in the duration
         specified
-        
         :param radians: The eye position.  Expected to be between
         HeadClient.EYES_HAPPY and HeadClient.EYES_CLOSED
-        
         :param duration: The amount of time to take to get the eyes to
         the specified location.
-        
         :param feedback_cb: Same as send_trajectory's feedback_cb
-        
         :param done_cb: Same as send_trajectory's done_cb
         """
         point = trajectory_msgs.msg.JointTrajectoryPoint([
-         radians], [], [], [], duration)
+            radians], [], [], [], duration)
         trajectory = trajectory_msgs.msg.JointTrajectory(joint_names=[
-         self.JOINT_EYES], points=[point])
+            self.JOINT_EYES], points=[point])
         return self.send_trajectory(trajectory, feedback_cb=feedback_cb, done_cb=done_cb)
 
     def eyes_sequence(self, seq, **kwargs):
@@ -129,14 +130,15 @@ class Head(object):
         pts.sort(key=lambda pt: pt[0])
         pts = _merge_traj_points(pts)
         traj = trajectory_msgs.msg.JointTrajectory(joint_names=[
-         self.JOINT_EYES], points=[ trajectory_msgs.msg.JointTrajectoryPoint([pos], [], [], [], time) for time, pos in pts
-                                  ])
+            self.JOINT_EYES],
+            points=[trajectory_msgs.msg.JointTrajectoryPoint([pos], [], [], [], time) for time, pos in pts
+                    ])
         return self.send_trajectory(traj, **kwargs)
 
     def is_done(self):
         active = {
-         GoalStatus.PENDING, GoalStatus.RECALLING,
-         GoalStatus.ACTIVE, GoalStatus.PREEMPTING}
+            GoalStatus.PENDING, GoalStatus.RECALLING,
+            GoalStatus.ACTIVE, GoalStatus.PREEMPTING}
         if self._head_gh:
             if self._head_gh.get_goal_status() in active:
                 return False
@@ -149,25 +151,20 @@ class Head(object):
         """
         Moves the robot's head to the point specified in the duration
         specified
-        
         :param pan: The pan - expected to be between HeadClient.PAN_LEFT
         and HeadClient.PAN_RIGHT
-        
         :param tilt: The tilt - expected to be between HeadClient.TILT_UP
         and HeadClient.TILT_DOWN
-        
         :param duration: The amount of time to take to get the head to
         the specified location.
-        
         :param feedback_cb: Same as send_trajectory's feedback_cb
-        
         :param done_cb: Same as send_trajectory's done_cb
         """
         point = trajectory_msgs.msg.JointTrajectoryPoint([
-         pan, tilt], [], [], [], duration)
+            pan, tilt], [], [], [], duration)
         trajectory = trajectory_msgs.msg.JointTrajectory(joint_names=[
-         self.JOINT_PAN, self.JOINT_TILT], points=[
-         point])
+            self.JOINT_PAN, self.JOINT_TILT], points=[
+            point])
         return self.send_trajectory(traj=trajectory, feedback_cb=feedback_cb, done_cb=done_cb)
 
     def pan_and_tilt_sequence(self, pans, tilts, **kwargs):
@@ -182,19 +179,18 @@ class Head(object):
         pts = _merge_traj_points(pts)
         pts = _fill_traj_blanks(pts, [self.cur_pan, self.cur_tilt])
         traj = trajectory_msgs.msg.JointTrajectory(joint_names=[
-         self.JOINT_PAN, self.JOINT_TILT], points=[ trajectory_msgs.msg.JointTrajectoryPoint([pan_pt, tilt_pt], [], [], [], time) for time, pan_pt, tilt_pt in pts
-                                                  ])
+            self.JOINT_PAN, self.JOINT_TILT],
+            points=[trajectory_msgs.msg.JointTrajectoryPoint([pan_pt, tilt_pt], [], [], [], time) for
+                    time, pan_pt, tilt_pt in pts
+                    ])
         return self.send_trajectory(traj, **kwargs)
 
     def send_trajectory(self, traj, feedback_cb=None, done_cb=None):
         """
         Sends the specified trajectories to the head and eye controllers
-        
         :param traj: A trajectory_msgs.msg.JointTrajectory.  joint_names
         are expected to match HeadClient.JOINT_PAN, JOINT_TILT and JOINT_EYES
-        
         :param feedback_cb: A callable that takes one parameter - the feedback
-        
         :param done_cb: A callable that takes two parameters - the goal status
         the goal handle result
         """
@@ -309,7 +305,6 @@ class Head(object):
 
 
 class HeadMux(Mux):
-
     class Channel(Head, MuxChannel):
 
         def __init__(self, mux, name, priority, js, tf, namespace=None):
@@ -319,10 +314,10 @@ class HeadMux(Mux):
         send_trajectory = Mux.protect(fail=False)
 
     priority = [
-     'behavior',
-     'teleop',
-     'animations',
-     'safety']
+        'behavior',
+        'teleop',
+        'animations',
+        'safety']
 
     def __init__(self, js, tf, priority=None):
         super(HeadMux, self).__init__()

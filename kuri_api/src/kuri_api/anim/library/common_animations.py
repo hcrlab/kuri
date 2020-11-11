@@ -1,11 +1,14 @@
+import logging
 from math import radians, pi
 from random import choice, random
-from numpy import clip
+
 from kuri_api.anim import AnimationGroup
 from kuri_api.anim import Track
 from kuri_api.head import Head
-import logging
+from numpy import clip
+
 logger = logging.getLogger(__name__)
+
 
 class CommonAnimations(AnimationGroup):
 
@@ -29,11 +32,17 @@ class CommonAnimations(AnimationGroup):
             if init_pan < PAN_CUTOFF * -1:
                 init_direction = 1
                 do_extra_shake = True
-        tk.add(0.0, self.head_mot.pantilt(clip(init_pan + init_direction * 0.15, Head.PAN_RIGHT, Head.PAN_LEFT), init_tilt, 0.2))
-        tk.add(0.3, self.head_mot.pantilt(clip(init_pan + init_direction * -0.3, Head.PAN_RIGHT, Head.PAN_LEFT), init_tilt, 0.3))
+        tk.add(0.0,
+               self.head_mot.pantilt(clip(init_pan + init_direction * 0.15, Head.PAN_RIGHT, Head.PAN_LEFT), init_tilt,
+                                     0.2))
+        tk.add(0.3,
+               self.head_mot.pantilt(clip(init_pan + init_direction * -0.3, Head.PAN_RIGHT, Head.PAN_LEFT), init_tilt,
+                                     0.3))
         if do_extra_shake:
-            tk.add(0.6, self.head_mot.pantilt(clip(init_pan + init_direction * 0.3, Head.PAN_RIGHT, Head.PAN_LEFT), init_tilt, 0.3))
-            tk.add(0.9, self.head_mot.pantilt(clip(init_pan + init_direction * -0.3, Head.PAN_RIGHT, Head.PAN_LEFT), init_tilt, 0.3))
+            tk.add(0.6, self.head_mot.pantilt(clip(init_pan + init_direction * 0.3, Head.PAN_RIGHT, Head.PAN_LEFT),
+                                              init_tilt, 0.3))
+            tk.add(0.9, self.head_mot.pantilt(clip(init_pan + init_direction * -0.3, Head.PAN_RIGHT, Head.PAN_LEFT),
+                                              init_tilt, 0.3))
             tk.add(1.3, self.head_mot.pantilt(init_pan, init_tilt, 0.3))
         else:
             tk.add(0.7, self.head_mot.pantilt(init_pan, init_tilt, 0.3))
@@ -96,8 +105,8 @@ class CommonAnimations(AnimationGroup):
         return tk
 
     def search_user_capture(self, starting_pose=(
- Head.PAN_NEUTRAL,
- Head.TILT_UP * 0.8, 0)):
+            Head.PAN_NEUTRAL,
+            Head.TILT_UP * 0.8, 0)):
         """
         Search for a user by looking up and around.
         :param: starting pose in radians, (pan, tilt, heading)

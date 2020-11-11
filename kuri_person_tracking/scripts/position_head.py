@@ -20,7 +20,7 @@ def main():
 def position_head():
     """ Opens Kuri's eyes and raises head
     """
- 
+
     eyes_pub = rospy.Publisher(EYELIDS_TOPIC, JointTrajectory, queue_size=10)
     head_pub = rospy.Publisher(HEAD_TOPIC, JointTrajectory, queue_size=1)
 
@@ -41,10 +41,9 @@ def publish_eye_pos(eye_publisher, val):
     traj.points = [p]
 
     eye_publisher.publish(traj)
-    
+
 
 def publish_head_pos(head_publisher, pan, tilt):
-
     traj = JointTrajectory()
     traj.joint_names = ["head_1_joint", "head_2_joint"]
     p = JointTrajectoryPoint()

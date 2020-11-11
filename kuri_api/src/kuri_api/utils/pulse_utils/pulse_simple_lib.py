@@ -1,27 +1,31 @@
+import ctypes
+import logging
 from ctypes import byref, c_int, c_uint32, c_uint8, Structure
-import ctypes, logging
+
 logger = logging.getLogger(__name__)
 pa_simple = ctypes.cdll.LoadLibrary('libpulse-simple.so.0')
 
+
 class struct_pa_sample_spec(Structure):
     __slots__ = [
-     'format',
-     'rate',
-     'channels']
+        'format',
+        'rate',
+        'channels']
 
 
 struct_pa_sample_spec._fields_ = [
- (
-  'format', c_int),
- (
-  'rate', c_uint32),
- (
-  'channels', c_uint8)]
+    (
+        'format', c_int),
+    (
+        'rate', c_uint32),
+    (
+        'channels', c_uint8)]
 pa_sample_spec = struct_pa_sample_spec
 PA_SAMPLE_S16LE = 3
 DEFAULT_CHANNELS = 2
 DEFAULT_SAMPLE_RATE = 48000
 PA_STREAM_PLAYBACK = 1
+
 
 def get_sample_spec(rate=None, channels=None, sample_format=None):
     spec_format = struct_pa_sample_spec()
@@ -33,7 +37,8 @@ def get_sample_spec(rate=None, channels=None, sample_format=None):
 
 def make_playback_stream(name, stream_format):
     error = c_int(0)
-    stream = pa_simple.pa_simple_new(None, name, PA_STREAM_PLAYBACK, None, 'playback', byref(stream_format), None, None, byref(error))
+    stream = pa_simple.pa_simple_new(None, name, PA_STREAM_PLAYBACK, None, 'playback', byref(stream_format), None, None,
+                                     byref(error))
     if not stream:
         logger.error(('Could not create pulse audio stream: {0}!').format(pa_simple.strerror(byref(error))))
     return stream

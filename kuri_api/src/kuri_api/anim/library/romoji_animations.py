@@ -1,6 +1,8 @@
 from math import radians
+
 from kuri_api.anim import AnimationGroup
 from kuri_api.anim import Track
+
 
 class RomojiAnimations(AnimationGroup):
 
@@ -31,8 +33,10 @@ class RomojiAnimations(AnimationGroup):
         head_wiggle = self.head_mot.headwiggle(self.head.cur_pan, self.head.cur_tilt)
         tk.add(0.04, head_wiggle)
         tk.add(0.04, self.wheels_mot.bodywiggle(direction=-1))
-        tk.add(head_wiggle.length() + 0.12, self.head_mot.pantilt(self.head.cur_pan, self.head.cur_tilt - radians(5), 0.29))
-        tk.add(head_wiggle.length() + 1.04, self.head_mot.pantilt(self.head.cur_pan, self.head.cur_tilt + radians(5), 0.5))
+        tk.add(head_wiggle.length() + 0.12,
+               self.head_mot.pantilt(self.head.cur_pan, self.head.cur_tilt - radians(5), 0.29))
+        tk.add(head_wiggle.length() + 1.04,
+               self.head_mot.pantilt(self.head.cur_pan, self.head.cur_tilt + radians(5), 0.5))
         tk.add(head_wiggle.length() + 3.0, self.head_mot.reset())
         return tk
 

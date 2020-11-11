@@ -32,7 +32,7 @@ def _cov_list(x, y, t):
             0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, t*t]
+            0, 0, 0, 0, 0, t * t]
 
 
 def _pose_to_posecov(pose, cov_params):

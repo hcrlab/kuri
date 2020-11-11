@@ -1,15 +1,12 @@
 #!/usr/bin/env python
 
 import rospy
-import math
-from statistics import mean
 import random
 import time
 from collections import deque
 import numpy as np
 
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
-from sensor_msgs.msg import JointState, LaserScan
+from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 from kuri_person_tracking.msg import BoundingBoxes
 
@@ -25,9 +22,9 @@ BOUNDING_BOXES_QSIZE = rospy.get_param('subscribers/bounding/box/queue_size', 1)
 SCAN_TOPIC = rospy.get_param('subscribers/scan/topic', '/scan')
 SCAN_QSIZE = rospy.get_param('subscribers/scan/queue_size', 1)
 
-VELOCITY_TOPIC = rospy.get_param('publishers/velocity/topic', '/mobile_base/commands/velocity') # 'kuri_navigation_command_velocity'
+VELOCITY_TOPIC = rospy.get_param('publishers/velocity/topic',
+                                 '/mobile_base/commands/velocity')  # 'kuri_navigation_command_velocity'
 VELOCITY_QSIZE = rospy.get_param('publishers/velocity/queue_size', 1)
-
 
 CENTER_PICKING_STYLE = 2
 _center_picking_styles = [
@@ -36,7 +33,7 @@ _center_picking_styles = [
     'highest_probability',
 ]
 
-bounding_box_persistance = 1 # the number of secs to keep a bounding box center before re-scanning
+bounding_box_persistance = 1  # the number of secs to keep a bounding box center before re-scanning
 
 # set by pick_center()
 center = None
@@ -44,9 +41,12 @@ center_time_recv = None
 latest_positions = None
 scan_density = None
 
+pending_update = None
+
 scan_window = deque()
 scan_timestamps_window = deque()
-SCAN_LIFESPAN = 1 # in secs
+SCAN_LIFESPAN = 1  # in secs
+
 
 def main():
     """ Tracks a person if one is in view
@@ -65,32 +65,32 @@ def main():
     base_publisher = rospy.Publisher(VELOCITY_TOPIC, Twist, queue_size=VELOCITY_QSIZE)
 
     # Subscribe to the person bounding boxes
-    bb_sub = rospy.Subscriber(BOUNDING_BOXES_TOPIC, BoundingBoxes, bounding_boxes_callback, queue_size=BOUNDING_BOXES_QSIZE)
+    _ = rospy.Subscriber(BOUNDING_BOXES_TOPIC, BoundingBoxes, bounding_boxes_callback,
+                         queue_size=BOUNDING_BOXES_QSIZE)
     # Subscribe to the scans
-    scan_sub = rospy.Subscriber(SCAN_TOPIC, LaserScan, scan_callback, queue_size=SCAN_QSIZE)
+    _ = rospy.Subscriber(SCAN_TOPIC, LaserScan, scan_callback, queue_size=SCAN_QSIZE)
 
     # Rate in Hz
     rate = rospy.Rate(2)
 
     state = "idle"
-    available_states = ["idle", "following", "waiting"]
+    # available_states = ["idle", "following", "waiting"]
 
     idle_animation_velocities = [-0.4, 0.4]
     num_cycles_remaining_for_idle_animation = 0
 
     following_start = None
-    sig_following_duration = 3.0 # secs
+    sig_following_duration = 3.0  # secs
 
     waiting_start = None
-    waiting_duration = 5.0 # secs
-
+    waiting_duration = 5.0  # secs
 
     while not rospy.is_shutdown():
         # print(state)
         if state == "idle":
             # idle animation
             if num_cycles_remaining_for_idle_animation == 0:
-                num_cycles_remaining_for_idle_animation = random.randint(6, 16) # 3 - 8 secs at a rate of of 2Hz
+                num_cycles_remaining_for_idle_animation = random.randint(6, 16)  # 3 - 8 secs at a rate of of 2Hz
                 idle_ang_z = random.choice(idle_animation_velocities)
 
             publish_base_cmd(base_publisher, 0.0, idle_ang_z)
@@ -166,17 +166,17 @@ def joint_states_callback(data):
 def scan_callback(data):
     global scan_window, scan_timestamps_window
 
-    range_max = data.range_max
+    # range_max = data.range_max
 
     ranges = data.ranges
     scan_window.append(ranges)
-    original_len = len(ranges)
+    # original_len = len(ranges)
 
     timestamp = rospy.Time(secs=data.header.stamp.secs, nsecs=data.header.stamp.nsecs)
     scan_timestamps_window.append(timestamp)
 
     # check if oldest scan is expired
-    if (timestamp.to_sec() - scan_timestamps_window[0].to_sec() > SCAN_LIFESPAN):
+    if timestamp.to_sec() - scan_timestamps_window[0].to_sec() > SCAN_LIFESPAN:
         scan_window.popleft()
         scan_timestamps_window.popleft()
 
@@ -188,18 +188,17 @@ def close_enough():
         return False
 
     scan_window_arr = np.array(scan_window)
-    scan_window_arr[scan_window_arr == float('inf')] = float('nan') # filter infs
+    scan_window_arr[scan_window_arr == float('inf')] = float('nan')  # filter infs
 
     num_scan_points = scan_window_arr.shape[1]
-    scan_window_arr = scan_window_arr[: , num_scan_points // 3 : num_scan_points // 3 * 2] # take front third of scan
-
+    scan_window_arr = scan_window_arr[:, num_scan_points // 3: num_scan_points // 3 * 2]  # take front third of scan
 
     scan_mean = np.nanmean(scan_window_arr, axis=0)
-    scan_mean = scan_mean[~ np.isnan(scan_mean)] # filter nans
+    scan_mean = scan_mean[~ np.isnan(scan_mean)]  # filter nans
 
     scan_mean_mean = np.mean(scan_mean)
 
-    return scan_mean_mean < 1.0 # 1.0 # 2.0
+    return scan_mean_mean < 1.0  # 1.0 # 2.0
 
 
 def get_center(bounding_box):
@@ -260,7 +259,7 @@ def pixels_to_rotation(px_x, px_y):
         coordinates are from the bottom left corner of the image, with x along
         the horizontal axis and y the vertical.
     """
-    return (px_x - 0.5)
+    return px_x - 0.5
 
 
 def _wait_for_time():

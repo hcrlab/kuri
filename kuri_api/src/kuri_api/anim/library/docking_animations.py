@@ -1,13 +1,16 @@
-import math, random
+import math
+import random
+
+from kuri_api import Head
 from kuri_api.anim import AnimationGroup
 from kuri_api.anim import Track
-from kuri_api import Head
+
 
 class DockingAnimations(AnimationGroup):
     """
     Animation class for having Kuri perform docking animations while wheels
     are being controlled by the docking service.
-    
+
     Any animation called in this class will cancel any active docking head
     animation.
     """
@@ -79,7 +82,8 @@ class DockingAnimations(AnimationGroup):
         tk.add(2.3 * speed, self.head_mot.moveeyes(Head.EYES_CLOSED, 0.15))
         tk.add(2.4 * speed, self.head_mot.pantilt(pan=-0.3 * random_side, tilt=0.45, duration=0.22 * speed))
         tk.add(2.5 * speed, self.head_mot.moveeyes(Head.EYES_OPEN, 0.3))
-        tk.add(3.3 * speed, self.head_mot.pantilt(pan=Head.PAN_NEUTRAL * random_side, tilt=Head.TILT_NEUTRAL, duration=0.3 * speed))
+        tk.add(3.3 * speed,
+               self.head_mot.pantilt(pan=Head.PAN_NEUTRAL * random_side, tilt=Head.TILT_NEUTRAL, duration=0.3 * speed))
         tk.add(5.1 * speed, self.head_mot.pantilt(pan=0.1 * random_side, tilt=Head.TILT_NEUTRAL, duration=0.3 * speed))
         return tk
 
@@ -123,7 +127,8 @@ class DockingAnimations(AnimationGroup):
         random_tilt = random.uniform(0.25, 0.55)
         tk.add(0.0, self.head_mot.moveeyes(Head.EYES_OPEN))
         tk.add(0.0, self.head_mot.pantilt(pan=0.8 * random_side, tilt=random_tilt, duration=0.45 * speed))
-        tk.add(0.6 * speed + random_time_add, self.head_mot.pantilt(pan=0.8 * random_side, tilt=random_tilt, duration=0.1 * speed))
+        tk.add(0.6 * speed + random_time_add,
+               self.head_mot.pantilt(pan=0.8 * random_side, tilt=random_tilt, duration=0.1 * speed))
         return tk
 
     def docking_back_in(self, mood=0.0):
@@ -138,9 +143,11 @@ class DockingAnimations(AnimationGroup):
         tk.add(0.0, self.head_mot.moveeyes(Head.EYES_OPEN))
         tk.add(1.5 * speed, self.head_mot.pantilt(pan=random_pan, tilt=0.35, duration=0.4 * speed))
         tk.add(2.2 * speed + random_time_add, self.head_mot.moveeyes(Head.EYES_CLOSED, 0.15))
-        tk.add(2.3 * speed + random_time_add, self.head_mot.pantilt(pan=0.8 * random_side, tilt=0.25, duration=0.5 * speed))
+        tk.add(2.3 * speed + random_time_add,
+               self.head_mot.pantilt(pan=0.8 * random_side, tilt=0.25, duration=0.5 * speed))
         tk.add(2.5 * speed + random_time_add, self.head_mot.moveeyes(Head.EYES_OPEN, 0.3))
-        tk.add(3.8 * speed + random_time_add, self.head_mot.pantilt(pan=0.2 * random_side, tilt=0.25, duration=0.5 * speed))
+        tk.add(3.8 * speed + random_time_add,
+               self.head_mot.pantilt(pan=0.2 * random_side, tilt=0.25, duration=0.5 * speed))
         return tk
 
     def docking_reset(self):
@@ -156,7 +163,7 @@ class DockingLEDAnimations(AnimationGroup):
     """
     Animation class for having Kuri perform docking LED animations
     Does LED only so it can run independently of head and wheel movements
-    
+
     Any animation called in this class will cancel any active docking LED
     animation.
     """
@@ -260,15 +267,21 @@ class DockingSupportAnimations(AnimationGroup):
         tk.add(4.4, self.head_mot.pantilt(pan=-0.1 * random_pan_side, tilt=Head.TILT_DOWN * 0.6, duration=0.1))
         tk.add(5.2, self.head_mot.pantilt(pan=0.25 * random_pan_side, tilt=Head.TILT_DOWN * 0.1, duration=0.45))
         tk.add(8.0, self.head_mot.blinkeyes())
-        tk.add(8.1, self.head_mot.pantilt(pan=Head.PAN_RIGHT * 0.7 * random_pan_side, tilt=Head.TILT_DOWN * 0.15, duration=0.4))
+        tk.add(8.1, self.head_mot.pantilt(pan=Head.PAN_RIGHT * 0.7 * random_pan_side, tilt=Head.TILT_DOWN * 0.15,
+                                          duration=0.4))
         tk.add(8.5, self.wheels_mot.rotate_by(angle=-math.pi * random_pan_side, duration=4.0))
-        tk.add(6.8, self.head_mot.pantilt(pan=Head.PAN_RIGHT * 0.3 * random_pan_side, tilt=Head.TILT_DOWN * 0.6, duration=0.55))
-        tk.add(7.5, self.head_mot.pantilt(pan=Head.PAN_RIGHT * 0.55 * random_pan_side, tilt=Head.TILT_DOWN * 0.1, duration=0.4))
+        tk.add(6.8, self.head_mot.pantilt(pan=Head.PAN_RIGHT * 0.3 * random_pan_side, tilt=Head.TILT_DOWN * 0.6,
+                                          duration=0.55))
+        tk.add(7.5, self.head_mot.pantilt(pan=Head.PAN_RIGHT * 0.55 * random_pan_side, tilt=Head.TILT_DOWN * 0.1,
+                                          duration=0.4))
         tk.add(8.2, self.head_mot.blinkeyes())
-        tk.add(8.2, self.head_mot.pantilt(pan=Head.PAN_RIGHT * 0.75 * random_pan_side, tilt=Head.TILT_DOWN * 0.6, duration=0.5))
-        tk.add(9.3, self.head_mot.pantilt(pan=Head.PAN_RIGHT * 0.45 * random_pan_side, tilt=Head.TILT_DOWN * 0.7, duration=0.5))
+        tk.add(8.2, self.head_mot.pantilt(pan=Head.PAN_RIGHT * 0.75 * random_pan_side, tilt=Head.TILT_DOWN * 0.6,
+                                          duration=0.5))
+        tk.add(9.3, self.head_mot.pantilt(pan=Head.PAN_RIGHT * 0.45 * random_pan_side, tilt=Head.TILT_DOWN * 0.7,
+                                          duration=0.5))
         tk.add(10.3, self.head_mot.blinkeyes())
-        tk.add(10.8, self.head_mot.pantilt(pan=Head.PAN_RIGHT * 0.8 * random_pan_side, tilt=Head.TILT_DOWN * 0.1, duration=0.3))
+        tk.add(10.8, self.head_mot.pantilt(pan=Head.PAN_RIGHT * 0.8 * random_pan_side, tilt=Head.TILT_DOWN * 0.1,
+                                           duration=0.3))
         tk.add(11.5, self.head_mot.openeyes())
         tk.add(11.5, self.head_mot.pantilt(pan=Head.PAN_NEUTRAL, tilt=Head.TILT_NEUTRAL, duration=0.8))
         tk.add(12.5, self.head_mot.blinkeyes())

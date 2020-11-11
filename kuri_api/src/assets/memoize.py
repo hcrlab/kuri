@@ -1,4 +1,8 @@
-import functools, hashlib, os, cPickle as pickle
+import cPickle as pickle
+import functools
+import hashlib
+import os
+
 
 def _sha1(s):
     return hashlib.sha1(s).hexdigest()
