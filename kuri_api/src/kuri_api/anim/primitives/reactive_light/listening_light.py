@@ -119,10 +119,10 @@ class ListeningLedPlayer(threading.Thread):
         that. Loud, direct voice usually gets over 0.1
         Spike instantly but decay over time
         """
-        DECAY_MAX = 0.035
+        decay_max = 0.035
         new_level = clip(level * 2.9, 0.0, 1.0)
-        if new_level < self._last_display_level - DECAY_MAX:
-            new_level = self._last_display_level - DECAY_MAX
+        if new_level < self._last_display_level - decay_max:
+            new_level = self._last_display_level - decay_max
         for led in self.REACTIVE_LEDS:
             pattern[led] = self._color_for_level(new_level)
 

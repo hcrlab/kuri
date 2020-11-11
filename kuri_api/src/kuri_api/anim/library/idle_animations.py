@@ -122,16 +122,16 @@ class IdleAnimations(AnimationGroup):
     def look_around_common(self, tilt_func=lambda: 0):
         start_pan = random.uniform(Head.PAN_RIGHT, Head.PAN_LEFT)
         start_tilt = tilt_func()
-        CENTER_THRESHOLD = 0.25
+        center_threshold = 0.25
         pan_2 = Head.PAN_RIGHT * random.uniform(0.5, 1.0)
         tilt_2 = tilt_func()
         pan_3 = Head.PAN_LEFT * random.uniform(0.5, 1.0)
         tilt_3 = tilt_func()
-        if start_pan > Head.PAN_LEFT * CENTER_THRESHOLD:
+        if start_pan > Head.PAN_LEFT * center_threshold:
             pan_2 = Head.PAN_NEUTRAL
             pan_3 = Head.PAN_RIGHT * random.uniform(0.5, 1.0)
         else:
-            if start_pan < Head.PAN_RIGHT * CENTER_THRESHOLD:
+            if start_pan < Head.PAN_RIGHT * center_threshold:
                 pan_2 = Head.PAN_NEUTRAL
                 pan_3 = Head.PAN_LEFT * random.uniform(0.5, 1.0)
         tk = Track()

@@ -371,10 +371,10 @@ class ReactionAnimations(AnimationGroup):
         return tk
 
     def listening_pose(self):
-        TILT_LOOK_USER_RADIANS = -0.8
+        tilt_look_user_radians = -0.8
         tk = Track()
         tk.add(0.04, self.head_mot.happyeyes(0.17))
-        tk.add(0.0, self.head_mot.pantilt(Head.PAN_NEUTRAL, TILT_LOOK_USER_RADIANS, 0.25))
+        tk.add(0.0, self.head_mot.pantilt(Head.PAN_NEUTRAL, tilt_look_user_radians, 0.25))
         return tk
 
     def lost(self):

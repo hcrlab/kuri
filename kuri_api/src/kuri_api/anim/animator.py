@@ -41,8 +41,8 @@ class Animator(object):
         return
 
     def play_live_animation(self, command):
-        animationCommand = command
-        animation = AnimationParser.parse_animation(animationCommand.json)
+        animation_command = command
+        animation = AnimationParser.parse_animation(animation_command.json)
         if animation is not None and not animation.hasParseErrors:
             track = Track()
             self.animation_assembler.add_animation_to_track(animation, track)

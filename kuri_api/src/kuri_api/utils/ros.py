@@ -115,12 +115,12 @@ class SafeServiceProxy(object):
             for i in range(self.RETRIES):
                 try:
                     return self._service_proxy(*args, **kwargs)
-                except rospy.service.ServiceException as rospy.ServiceException:
+                except rospy.service.ServiceException as _:
                     name = ''
                     if hasattr(self._service_proxy, 'resolved_name'):
                         name = self._service_proxy.resolved_name
                     if not self._mute_failures:
-                        logger.warn(('Failed to call {}').format(name))
+                        logger.warn('Failed to call {}'.format(name))
                     return
                 except Exception:
                     logger.error(traceback.format_exc())

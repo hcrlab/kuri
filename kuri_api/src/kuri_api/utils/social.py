@@ -38,17 +38,17 @@ def random_turn():
     :return: angle in radians to turn
     """
     seed = random.random()
-    TURN_90_THRESH = 0.45
-    TURN_45_THRESH = 0.25
-    TURN_135_THRESH = 0.18
+    turn_90_thresh = 0.45
+    turn_45_thresh = 0.25
+    turn_135_thresh = 0.18
     turn_direction = random.choice([-1, 1])
-    if seed < TURN_90_THRESH:
+    if seed < turn_90_thresh:
         turn_angle = 90
     else:
-        if seed < TURN_90_THRESH + TURN_45_THRESH:
+        if seed < turn_90_thresh + turn_45_thresh:
             turn_angle = 45
         else:
-            if seed < TURN_90_THRESH + TURN_45_THRESH + TURN_135_THRESH:
+            if seed < turn_90_thresh + turn_45_thresh + turn_135_thresh:
                 turn_angle = 135
             else:
                 turn_angle = 180

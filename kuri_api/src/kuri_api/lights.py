@@ -99,8 +99,8 @@ class LightsMux(Mux):
         def on_release(self):
             self.off()
 
-        put_pixels = Mux.protect(fail=False)
-        off = Mux.protect(fail=False)
+        put_pixels = Mux.Protect(fail=False)
+        off = Mux.Protect(fail=False)
 
     priority = [
         'emotion',

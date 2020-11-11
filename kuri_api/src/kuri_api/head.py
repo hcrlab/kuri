@@ -236,7 +236,7 @@ class Head(object):
         """
         pose_in_base_frame = self._tf.transform_pose_stamped(pose_stamped, 'base_footprint')
         if pose_in_base_frame is None:
-            logging.error(("Couldn't transform from frame {} to base_footprint!").format(pose_stamped.header.frame_id))
+            logging.error("Couldn't transform from frame {} to base_footprint!".format(pose_stamped.header.frame_id))
             return False
         return self.position_to_pan_and_tilt(self.JOINT_HEIGHT, pose_in_base_frame.pose.position)
 
@@ -311,7 +311,7 @@ class HeadMux(Mux):
             Head.__init__(self, js, tf)
             MuxChannel.__init__(self, mux, name, priority)
 
-        send_trajectory = Mux.protect(fail=False)
+        send_trajectory = Mux.Protect(fail=False)
 
     priority = [
         'behavior',

@@ -59,7 +59,7 @@ class HeadPlayer(track.Player):
         with self._cv:
             self._cv.notify_all()
         self.join(timeout)
-        assert self._thread_is_dead(), ('Could not cancel: {}.  HeadPlayer thread ID was `{}`').format(
+        assert self._thread_is_dead(), 'Could not cancel: {}.  HeadPlayer thread ID was `{}`'.format(
             self._content_head, self.ident)
 
     def _thread_is_dead(self):
@@ -78,11 +78,11 @@ class HeadPlayer(track.Player):
         alive = self.is_alive()
         if alive:
             with self._printlock:
-                print ('Content length was {}').format(self._content_head.length())
+                print 'Content length was {}'.format(self._content_head.length())
                 print '\n*** STACKTRACE - START ***\n'
                 code = []
-                for threadId, stack in sys._current_frames().items():
-                    code.append('\n# ThreadID: %s' % threadId)
+                for thread_id, stack in sys._current_frames().items():
+                    code.append('\n# ThreadID: %s' % thread_id)
                     for fname, lineno, name, ln in tb.extract_stack(stack):
                         code.append('File: "%s", line %d, in %s' % (fname,
                                                                     lineno,
@@ -124,9 +124,9 @@ class HeadMotion(track.Content):
         return max(zip(*(self.pan_traj + self.tilt_traj + self.eyes_traj))[0])
 
     def __str__(self):
-        return ('HeadMotion ({},{},{}) len={}s').format('pan' if self.pan_traj else '   ',
-                                                        'tlt' if self.tilt_traj else '   ',
-                                                        'eye' if self.eyes_traj else '   ', round(self.length(), 3))
+        return 'HeadMotion ({},{},{}) len={}s'.format('pan' if self.pan_traj else '   ',
+                                                      'tlt' if self.tilt_traj else '   ',
+                                                      'eye' if self.eyes_traj else '   ', round(self.length(), 3))
 
 
 class HeadMotions(object):

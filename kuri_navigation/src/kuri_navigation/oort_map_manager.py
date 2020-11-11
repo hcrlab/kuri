@@ -16,7 +16,7 @@ from kuri_navigation.pose_utils import _pose_to_posecov, se2_to_pose, pose_to_se
 
 
 class OortMapManager:
-    onMapGrew = mayfield_utils.Event()
+    on_map_grew = mayfield_utils.Event()
 
     def __init__(self):
 
@@ -221,4 +221,4 @@ class OortMapManager:
 
         if map_size - self._map_size > 1:
             self._map_size = map_size
-            self.onMapGrew(map_size)
+            self.on_map_grew(map_size)

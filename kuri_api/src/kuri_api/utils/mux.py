@@ -10,7 +10,7 @@ class Mux(collections.Sequence):
         self._lock = threading.RLock()
         self._channels = []
 
-    class protect(object):
+    class Protect(object):
         """
         Descriptor used to protect methods from being accessed from
         inactive channels.
@@ -98,7 +98,7 @@ class MuxChannelMeta(type):
 
     def __new__(cls, name, bases, dct):
         type_ = type.__new__(cls, name, bases, dct)
-        protects = inspect.getmembers(type_, lambda t: isinstance(t, Mux.protect))
+        protects = inspect.getmembers(type_, lambda t: isinstance(t, Mux.Protect))
         for n, protect in protects:
             protect.name = n
             for base in bases:
@@ -106,7 +106,7 @@ class MuxChannelMeta(type):
                     protect.func = getattr(base, n)
                     break
             else:
-                raise TypeError(('{}.{} protects nothing').format(name, n))
+                raise TypeError('{}.{} protects nothing'.format(name, n))
 
         return type_
 
@@ -167,6 +167,6 @@ class MuxChannel(object):
         return cmp(self.priority, other.priority)
 
     def __str__(self):
-        return ('{}(name="{}", priority={}, is_acquired={}, is_active={})').format(type(self).__name__, self.name,
-                                                                                   self.priority, self.is_acquired,
-                                                                                   self.is_active)
+        return '{}(name="{}", priority={}, is_acquired={}, is_active={})'.format(type(self).__name__, self.name,
+                                                                                 self.priority, self.is_acquired,
+                                                                                 self.is_active)
