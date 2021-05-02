@@ -30,7 +30,7 @@
   <!--<node name="base_cmd_mux" pkg="cmd_vel_mux" type="cmd_vel_mux" />-->
 
   <!-- Robot model -->
-  <param name="robot_description" command="$(find xacro)/xacro.py '$(find gizmo_description)/urdf/robots/gizmo/robot.urdf.xacro'" />
+  <param name="robot_description" command="xacro '$(find gizmo_description)/urdf/robots/gizmo/robot.urdf.xacro'" />
 
   <!-- Spawn robot in Gazebo -->
   <node pkg="gazebo_ros" type="spawn_model" name="spawn_model"

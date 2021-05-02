@@ -56,7 +56,7 @@ namespace gazebo
             {
                 if(0 == unscoped_name.compare(0, 5, "wheel"))
                 {
-                    boost::shared_ptr<const urdf::Joint> joint(urdf_model->getJoint(unscoped_name));
+                    auto joint(urdf_model->getJoint(unscoped_name));
                     if(!joint)
                     {
                         ROS_ERROR_STREAM(unscoped_name
@@ -64,7 +64,7 @@ namespace gazebo
                         return false;
                     }
 
-                    sim_joints_tmp[i]->SetMaxForce(0u, joint->limits->effort);
+                    sim_joints_tmp[i]->SetParam("max_force", 0u, joint->limits->effort);
                     vel_sim_joints_.push_back(sim_joints_tmp[i]);
                     vel_jnt_names.push_back(unscoped_name);
                 }
@@ -126,7 +126,7 @@ namespace gazebo
             const string name = cmd_handle.getName();
 
             using namespace joint_limits_interface;
-            boost::shared_ptr<const urdf::Joint> urdf_joint = urdf_model->getJoint(name);
+            auto urdf_joint = urdf_model->getJoint(name);
             JointLimits limits;
             SoftJointLimits soft_limits;
             if (!getJointLimits(urdf_joint, limits) || !getSoftJointLimits(urdf_joint, soft_limits))
@@ -156,7 +156,7 @@ namespace gazebo
             const string name = cmd_handle.getName();
 
             using namespace joint_limits_interface;
-            boost::shared_ptr<const urdf::Joint> urdf_joint = urdf_model->getJoint(name);
+            auto urdf_joint = urdf_model->getJoint(name);
             JointLimits limits;
             if (!getJointLimits(urdf_joint, limits) || !getJointLimits(name, nh, limits))
             {
@@ -179,7 +179,7 @@ namespace gazebo
 
         // Hardware interfaces: Base IMU sensors
         const string imu_name = "imu";
-        imu_sensor_ =  boost::dynamic_pointer_cast<gazebo::sensors::ImuSensor>
+        imu_sensor_ =  std::dynamic_pointer_cast<gazebo::sensors::ImuSensor>
                 (gazebo::sensors::SensorManager::Instance()->GetSensor(imu_name)); // TODO: Fetch from URDF?
         if (!this->imu_sensor_)
         {
@@ -212,7 +212,7 @@ namespace gazebo
         {
             // Gazebo has an interesting API...
             jnt_pos_[j] += angles::shortest_angular_distance
-                    (jnt_pos_[j], sim_joints_[j]->GetAngle(0u).Radian());
+                    (jnt_pos_[j], sim_joints_[j]->Position(0u));
             jnt_vel_[j] = sim_joints_[j]->GetVelocity(0u);
             jnt_eff_[j] = sim_joints_[j]->GetForce(0u);
         }
@@ -221,25 +221,25 @@ namespace gazebo
         for(unsigned int j = 0; j < pos_n_dof_; ++j)
         {
             jnt_pos_cmd_curr_[j] += angles::shortest_angular_distance
-                    (jnt_pos_cmd_curr_[j], pos_sim_joints_[j]->GetAngle(0u).Radian());
+                    (jnt_pos_cmd_curr_[j], pos_sim_joints_[j]->Position(0u));
         }
 
         // Read IMU sensor
-        gazebo::math::Quaternion imu_quat = imu_sensor_->GetOrientation();
-        base_orientation_[0] = imu_quat.x;
-        base_orientation_[1] = imu_quat.y;
-        base_orientation_[2] = imu_quat.z;
-        base_orientation_[3] = imu_quat.w;
+        ignition::math::Quaterniond imu_quat = imu_sensor_->Orientation();
+        base_orientation_[0] = imu_quat.X();
+        base_orientation_[1] = imu_quat.Y();
+        base_orientation_[2] = imu_quat.Z();
+        base_orientation_[3] = imu_quat.W();
 
-        gazebo::math::Vector3 imu_ang_vel = imu_sensor_->GetAngularVelocity();
-        base_ang_vel_[0] = imu_ang_vel.x;
-        base_ang_vel_[1] = imu_ang_vel.y;
-        base_ang_vel_[2] = imu_ang_vel.z;
+        ignition::math::Vector3d imu_ang_vel = imu_sensor_->AngularVelocity();
+        base_ang_vel_[0] = imu_ang_vel.X();
+        base_ang_vel_[1] = imu_ang_vel.Y();
+        base_ang_vel_[2] = imu_ang_vel.Z();
 
-        gazebo::math::Vector3 imu_lin_acc = imu_sensor_->GetLinearAcceleration();
-        base_lin_acc_[0] =  imu_lin_acc.x;
-        base_lin_acc_[1] =  imu_lin_acc.y;
-        base_lin_acc_[2] =  imu_lin_acc.z;
+        ignition::math::Vector3d imu_lin_acc = imu_sensor_->LinearAcceleration();
+        base_lin_acc_[0] =  imu_lin_acc.X();
+        base_lin_acc_[1] =  imu_lin_acc.Y();
+        base_lin_acc_[2] =  imu_lin_acc.Z();
     }
 
     void KuriHardwareGazebo::writeSim(ros::Time time, ros::Duration period)
