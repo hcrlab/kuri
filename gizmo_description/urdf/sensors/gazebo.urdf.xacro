@@ -2,7 +2,7 @@
 <robot name="turtlebot_gazebo" xmlns:xacro="http://ros.org/wiki/xacro">
   <!-- Microsoft Kinect / ASUS Xtion PRO Live for simulation -->
   <xacro:macro name="turtlebot_sim_3dsensor">
-    <gazebo reference="asus_link">  
+    <gazebo reference="asus_link">
       <sensor type="depth" name="camera">
         <always_on>true</always_on>
         <update_rate>20.0</update_rate>
@@ -15,7 +15,12 @@
           </image>
           <clip>
             <near>0.05</near>
-            <far>8.0</far>
+            <xacro:if value="$(arg accurate)">
+                <far>2.43</far>
+            </xacro:if>
+            <xacro:if value="${not $(arg accurate)}">
+                <far>8.0</far>
+            </xacro:if>
           </clip>
         </camera>
         <plugin name="kinect_camera_controller" filename="libgazebo_ros_openni_kinect.so">
@@ -57,7 +62,12 @@
 	  </scan>
 	  <range>
 	    <min>0.1</min>
-	    <max>15.0</max>
+        <xacro:if value="$(arg accurate)">
+            <max>2.43</max>
+        </xacro:if>
+        <xacro:if value="${not $(arg accurate)}">
+            <max>8.0</max>
+        </xacro:if>
 	    <resolution>0.01</resolution>
 	  </range>
 	  <noise>

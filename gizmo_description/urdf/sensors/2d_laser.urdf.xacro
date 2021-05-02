@@ -2,9 +2,9 @@
 <robot name="2D_laser" xmlns:xacro="http://ros.org/wiki/xacro">
   <xacro:include filename="$(find gizmo_description)/urdf/sensors/gazebo.urdf.xacro"/>
 
-  <xacro:macro name="laser_2D" params="parent suffix px py pz or op oy">
+  <xacro:macro name="laser_2D" params="parent suffix px py pz oroll op oy">
     <joint name="laser_joint${suffix}" type="fixed">
-      <origin xyz="${px} ${py} ${pz}" rpy="${or} ${op} ${oy}" />
+      <origin xyz="${px} ${py} ${pz}" rpy="${oroll} ${op} ${oy}" />
       <parent link="${parent}" />
       <child link="hokuyo_laser_link${suffix}" />
     </joint>
@@ -31,12 +31,12 @@
   </xacro:macro>
 
   <xacro:macro name="single_2D_laser" params="parent">
-    <laser_2D parent="${parent}" suffix="" px="${laser_px}" py="${laser_py}" pz="${laser_pz}" or="${laser_or}" op="${laser_op}" oy="${laser_oy}"/>
+    <laser_2D parent="${parent}" suffix="" px="${laser_px}" py="${laser_py}" pz="${laser_pz}" oroll="${laser_or}" op="${laser_op}" oy="${laser_oy}"/>
   </xacro:macro>
 
   <xacro:macro name="dual_2D_lasers" params="parent">
-    <laser_2D parent="${parent}" suffix="" px="${laser_px}" py="${laser_py}" pz="${laser_pz}" or="${laser_or}" op="${laser_op}" oy="${laser_oy}"/>
-    <laser_2D parent="${parent}" suffix="2" px="${laser2_px}" py="${laser2_py}" pz="${laser2_pz}" or="${laser2_or}" op="${laser2_op}" oy="${laser2_oy}"/>
+    <laser_2D parent="${parent}" suffix="" px="${laser_px}" py="${laser_py}" pz="${laser_pz}" oroll="${laser_or}" op="${laser_op}" oy="${laser_oy}"/>
+    <laser_2D parent="${parent}" suffix="2" px="${laser2_px}" py="${laser2_py}" pz="${laser2_pz}" oroll="${laser2_or}" op="${laser2_op}" oy="${laser2_oy}"/>
   </xacro:macro>
 
 </robot>
