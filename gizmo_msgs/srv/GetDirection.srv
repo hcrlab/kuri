@@ -1,0 +1,6 @@
+uint8 threshold
+uint16 ms_duration
+uint16 ms_delay
+---
+geometry_msgs/Vector3 direction
+uint16 relative_angle

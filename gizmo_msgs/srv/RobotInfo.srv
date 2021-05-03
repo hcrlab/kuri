@@ -1,0 +1,4 @@
+---
+uint16 client_interface_ver
+string robot_base_ver
+string gizmo_ver

@@ -1,0 +1,2 @@
+bool up_button_pressed
+bool down_button_pressed

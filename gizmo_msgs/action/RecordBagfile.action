@@ -1,0 +1,5 @@
+# mode is 'mapping' or 'localization' or 'stopped'
+string mode
+---
+bool success
+---
