@@ -364,6 +364,7 @@ class VolumePoller(GpioPoller):
                 self._vol_down()
         return
 
+
 if __name__ == '__main__':
     rospy.init_node('volume_interface')
     vol = VolumeInterface()

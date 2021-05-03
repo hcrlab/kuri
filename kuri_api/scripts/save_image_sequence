@@ -1,0 +1,55 @@
+#!/usr/bin/env python
+from __future__ import print_function
+import datetime
+import sys
+import threading
+
+import madmux
+import rospy
+from nav_msgs.msg import Odometry
+
+i = 0
+is_moving = True
+done = threading.Event()
+
+
+def odom_cb(msg):
+    global i
+    global is_moving
+    twist = msg.twist.twist
+    is_moving = abs(twist.linear.x) > 0.01 or abs(twist.angular.z) > 0.01
+    if is_moving:
+        return
+        i = 5
+
+
+def cb(data):
+    global i
+    i += 1
+    # No photos while moving
+    if is_moving:
+        return
+    # Take every 15th frame. The feed is usually 15fps
+    if i % 15 != 0:
+        return
+    timestamp = datetime.datetime.now().isoformat()
+    with open('{}.jpg'.format(timestamp), 'w') as f:
+        f.write(data)
+
+
+if __name__ == '__main__':
+    rospy.init_node("image_sequence_saver")
+    odom_sub = rospy.Subscriber("/odom", Odometry, odom_cb, queue_size=1)
+
+    s = madmux.Stream("/var/run/madmux/ch3.sock")
+    s.register_cb(cb)
+    try:
+        while not rospy.is_shutdown():
+            rospy.sleep(2)
+            # Show how many images we've captured
+            print(i)
+
+    except KeyboardInterrupt:
+        print("Heard interrupt")
+        s.close()
+        sys.exit()
