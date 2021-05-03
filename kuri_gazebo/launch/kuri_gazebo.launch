@@ -9,7 +9,7 @@
   <arg name="gui" default="true"/>
   <arg name="debug" default="false"/>
   <arg name="navigation" default="true" />
-  <arg name="map_file" default="$(find kuri_navigation)/maps/empty.yaml" />
+  <arg name="map_file" default="$(find kuri_navigation)/maps/empty_map.yaml" />
 
   <env name="GAZEBO_MODEL_PATH" value="$(find kuri_gazebo)/models:$(optenv GAZEBO_MODEL_PATH)" />
 
