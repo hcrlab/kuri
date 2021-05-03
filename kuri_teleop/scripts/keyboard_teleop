@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+
+import sys
+import termios
+import tty
+
 import rospy
-
 from geometry_msgs.msg import Twist
-import controller_manager_msgs.srv
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from sensor_msgs.msg import JointState
-
-import sys, select, termios, tty
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
 instructions = """
 Reading from the keyboard and publishing to Twist!
@@ -47,7 +48,6 @@ move_bindings = {
     ',': (-1, 0),
 }
 
-
 head_bindings = {
     'r': (0, 1),
     'v': (0, -1),
@@ -55,12 +55,12 @@ head_bindings = {
     'g': (-1, 0)
 }
 
-SMILE_EYES=-1.0
-CLOSED_EYES=1.0
+SMILE_EYES = -1.0
+CLOSED_EYES = 1.0
 OPEN_EYES = 0.04
 eyes_bindings = {
-    '[': 1.1,
-    ']': -1.1
+    '[': OPEN_EYES,
+    ']': CLOSED_EYES
 }
 
 speed_bindings = {
@@ -110,12 +110,14 @@ dvorakTranslator = {'a': 'a',
                     }
 
 pose_bindings = {"1": ("go_pose", {"head": [0, 0], "eyes": OPEN_EYES}),
-"2": ("smile", {"head": [0, 0], "eyes": SMILE_EYES}),
-"3": ("sleep", {"head": [0, .4], "eyes": CLOSED_EYES})
-}
+                 "2": ("smile", {"head": [0, 0], "eyes": SMILE_EYES}),
+                 "3": ("sleep", {"head": [0, .4], "eyes": CLOSED_EYES}),
+                 "4": ("left_look", {"head": [1.0, -.4], "eyes": OPEN_EYES}),
+                 "5": ("right_look", {"head": [-1.0, -.4], "eyes": OPEN_EYES})
+                 }
 
 
-def getKey(translator=None):
+def get_key(translator=None):
     fd = sys.stdin.fileno()
     tty.setraw(fd)
     key = sys.stdin.read(1)
@@ -173,6 +175,7 @@ def stop_all():
     publish_head(latest_positions["head_1_joint"], latest_positions["head_2_joint"])
     publish_eyes(latest_positions["eyelids_joint"])
 
+
 latest_positions = None
 
 
@@ -204,16 +207,14 @@ if __name__ == "__main__":
     eyesPub = rospy.Publisher('/eyelids_controller/command', JointTrajectory, queue_size=1)
     headPub = rospy.Publisher('/head_controller/command', JointTrajectory, queue_size=1)
 
-
     x = 0
     th = 0
     y = 0
 
-
     print(instructions)
     print(vels(linear, angular), end="\r")
     while not rospy.is_shutdown():
-        key = getKey(keyTranslator)
+        key = get_key(keyTranslator)
         if key in move_bindings.keys():
             x = linear * move_bindings[key][0]
             y = 0
