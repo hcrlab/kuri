@@ -65,9 +65,9 @@
         <xacro:if value="$(arg accurate)">
             <max>2.43</max>
         </xacro:if>
-        <xacro:if value="${not $(arg accurate)}">
+        <xacro:unless value="$(arg accurate)">
             <max>8.0</max>
-        </xacro:if>
+        </xacro:unless>
 	    <resolution>0.01</resolution>
 	  </range>
 	  <noise>
