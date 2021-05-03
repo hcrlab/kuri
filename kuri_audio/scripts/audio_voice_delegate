@@ -1,23 +1,15 @@
 #!/usr/bin/env python
 
 import rospy
-
-import kuri_api.sound
-import tf
-from kuri_api.anim import AnimationPlayer
-from kuri_api.anim.helpers import generate_all_animations
-
-from kuri_api import HeadMux, BaseMux, LightsMux, JointStates, Voice, Head
-from std_msgs.msg import Empty
-
 from audio_msgs.msg import Awake, Exchange
 from audio_msgs.srv import Stat, WakeUp, Snooze
 from audio_msgs.srv import StatResponse, WakeUpResponse, SnoozeResponse
+from std_msgs.msg import Empty
 
 
 class VoiceDelegate(object):
     def __init__(self):
-        self.awake = rospy.Publisher('~awake',Awake, queue_size=1, latch=True)
+        self.awake = rospy.Publisher('~awake', Awake, queue_size=1, latch=True)
         self.exchange = rospy.Publisher('~exchange', Exchange, queue_size=1)
         self.stat = rospy.Service('~stat', Stat, self._on_stat)
         self.wake_up = rospy.Service('~wake_up', WakeUp, self._on_wake_up)
