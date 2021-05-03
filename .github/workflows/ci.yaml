@@ -5,13 +5,13 @@ on: [push, pull_request]
 jobs:
   industrial_ci:
     env:
-      AFTER_INSTALL_TARGET_DEPENDENCIES: 'pip2 install --upgrade pip && pip2 install --upgrade "setuptools<0.45"'
       CATKIN_LINT: true
       ROS_REPO: main
     strategy:
       matrix:
         env:
-          - {ROS_DISTRO: indigo}
+          - {ROS_DISTRO: indigo, AFTER_INSTALL_TARGET_DEPENDENCIES: 'apt install -yqq build-essential checkinstall libreadline-gplv2-dev \
+    libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev zlib1g-dev wget && pip2 install --upgrade pip && pip2 install --upgrade "setuptools<0.45"'}
           - {ROS_DISTRO: noetic}
     runs-on: ubuntu-latest
     steps:
