@@ -1,0 +1,29 @@
+#!/usr/bin/env python
+from __future__ import print_function
+
+import rospy
+from kuri_api import Listener, Voice
+
+voice = None
+
+
+def heard_command(commmand):
+    print(commmand)
+    voice.say(commmand.params["transcript"])
+
+
+def main():
+    global voice
+    rospy.init_node('animations_demo')
+    listener = Listener()
+    print("Listening for the next 10 seconds. Whatever you say, I'll say back")
+    listener.wait_until_ready(timeout=10)
+    listener.voice_command_event.connect(heard_command)
+    listener.wake_up()
+    voice = Voice()
+    rospy.sleep(10)
+    exit(0)
+
+
+if __name__ == '__main__':
+    main()

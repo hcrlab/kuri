@@ -4,9 +4,8 @@ Helpers for dealing with ROS.
 import genpy
 import logging
 import rospy
-import timer
 import traceback
-from threading import Lock
+from threading import Lock, Thread, Event
 
 logger = logging.getLogger(__name__)
 DEFAULT_SERVICE_WAIT_RATE = 0.1
@@ -21,14 +20,20 @@ def async_wait_for_servers(svrs, done_cb=None):
     :return: A timer object that allows you to
     """
 
-    def _runner():
-        if wait_for_servers(svrs=svrs, timeout=DEFAULT_SERVICE_WAIT_RATE):
-            done_cb()
-            return True
-        return False
+    class SimpleTimer(Thread):
+        def __init__(self, done_cb=None):
+            Thread.__init__(self)
+            self.stopped = Event()
+            self.done_cb = done_cb
 
-    t = timer.Timer(rate=DEFAULT_SERVICE_WAIT_RATE, end_condition_callback=_runner)
-    return t
+        def run(self):
+            while not self.stopped.wait(DEFAULT_SERVICE_WAIT_RATE):
+                if wait_for_servers(svrs=svrs, timeout=DEFAULT_SERVICE_WAIT_RATE):
+                    self.done_cb()
+                    return True
+    timer_thread = SimpleTimer(done_cb)
+    timer_thread.start()
+    return timer_thread
 
 
 def wait_for_servers(svrs, timeout=None):

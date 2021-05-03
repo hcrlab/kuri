@@ -1,0 +1,46 @@
+#!/usr/bin/env python
+import kuri_api
+import kuri_api.sound
+import rospy
+import tf
+from kuri_api.anim import AnimationPlayer
+from kuri_api.anim.helpers import generate_all_animations
+from kuri_api.anim.player import get_animations_in_class
+
+
+def print_usage(options):
+    print """ Pass the name of an animation to play. Options are:
+    """
+    for class_name, anims in options.items():
+        print class_name
+        for anim in anims:
+            print "\t" + anim
+
+
+def main():
+    rospy.init_node('animations_demo')
+    joint_state = kuri_api.JointStates()
+    base_mux = kuri_api.BaseMux()
+    lights_mux = kuri_api.LightsMux()
+    head_mux = kuri_api.HeadMux(joint_state, tf.TransformListener())
+    sound_source = kuri_api.sound.SoundSource("animations_demo")
+    built_in_animations = generate_all_animations(head_mux.animations, base_mux.animations, lights_mux.animations,
+                                                  sound_source)
+    options = {type(a_cls).__name__: get_animations_in_class(a_cls) for a_cls in built_in_animations}
+
+    argv = rospy.myargv()
+    if len(argv) < 2:
+        print_usage(options)
+        return
+    command = argv[1]
+
+    anim_player = AnimationPlayer(built_in_animations)
+    animation = anim_player._animation_map.get(command)
+    if animation is None:
+        print_usage(options)
+
+    anim_player.__getattr__(command)(done_cb=lambda: exit(0))
+
+
+if __name__ == '__main__':
+    main()

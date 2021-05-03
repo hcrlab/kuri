@@ -1,8 +1,7 @@
-import pyttsx
-
-
 class Voice(object):
+
     def __init__(self):
+        import pyttsx
         self.engine = pyttsx.init()
         # To see what other voices are available
         """
