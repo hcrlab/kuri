@@ -24,3 +24,7 @@ A helper node that starts localization, loads the OORT serialized map off disk i
 an initial localization guess.
 
 With some changes, it should be possible to use a regular .pgm map.
+
+## `bumper_to_pointcloud` 
+
+Used to integrate the bumper and cliff sensors with a standard Costmap2D obstacle layer.
