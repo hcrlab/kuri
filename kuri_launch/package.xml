@@ -2,7 +2,7 @@
 <package format="2">
   <name>kuri_launch</name>
   <version>0.0.0</version>
-  <description>The hcrl_kuri package</description>
+  <description>The kuri_launch package</description>
 
   <maintainer email="nswalker@cs.uw.edu">nswalker</maintainer>
 

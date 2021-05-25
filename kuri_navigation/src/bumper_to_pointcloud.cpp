@@ -1,6 +1,6 @@
 #include <mobile_base_driver/Sensors.h>
 #include <ros/ros.h>
-#include <mobile_base_utils/mobile_base_utils.h>
+#include <kuri_navigation/mobile_base_utils.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl_ros/publisher.h>
@@ -8,7 +8,7 @@ pcl_ros::Publisher<pcl::PointXYZ> pub;
 
 void callback(mobile_base_driver::Sensors msg) {
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud{new pcl::PointCloud<pcl::PointXYZ>};
-  int num_bumps = mobile_base_utils::bumperToPointCloud(msg, cloud);
+  int num_bumps = kuri_navigation::bumperToPointCloud(msg, cloud);
   pub.publish(cloud);
 }
 
