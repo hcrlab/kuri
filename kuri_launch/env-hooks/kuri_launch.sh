@@ -10,11 +10,4 @@ viz_mapping() {
     rosrun rviz rviz -d $rviz_config
 }
 
-teleop() {
-    rqt_config=$(rospack find kuri_launch)/config/teleop.perspective
-    rqt --perspective-file $rqt_config
-}
 
-key_teleop() {
-    rosrun kuri_teleop keyboard_teleop
-}

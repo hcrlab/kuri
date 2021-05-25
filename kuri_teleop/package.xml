@@ -19,5 +19,6 @@
   <depend>control_msgs</depend>
   <depend>joy</depend>
   <depend>tf</depend>
+  <exec_depend>rqt_joint_trajectory_controller</exec_depend>
 
 </package>

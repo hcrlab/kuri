@@ -1,5 +1,10 @@
 #!/usr/bin/env sh
 
-kuri_key_teleop() {
-    rosrun kuri_teleop keyboard_teleop $@
+keyteleop() {
+    rosrun kuri_teleop keyboard_teleop "$@"
+}
+
+teleop() {
+    rqt_config=$(rospack find kuri_teleop)/config/teleop.perspective
+    rqt --perspective-file $rqt_config
 }

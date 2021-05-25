@@ -73,7 +73,7 @@ speed_bindings = {
 }
 
 # A keypress in Dvorak indicates what key in Qwerty?
-dvorakTranslator = {'a': 'a',
+qwerty_to_dvorak = {'a': 'a',
                     'b': 'n',
                     'c': 'i',
                     'd': 'h',
@@ -200,7 +200,7 @@ if __name__ == "__main__":
     keyTranslator = None
     if len(sys.argv) == 2:
         if sys.argv[1] == "-d":
-            keyTranslator = dvorakTranslator
+            keyTranslator = qwerty_to_dvorak
 
     statesSub = rospy.Subscriber('/joint_states', JointState, states_cb)
     velPub = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size=1)
