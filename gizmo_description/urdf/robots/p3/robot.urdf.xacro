@@ -15,7 +15,9 @@
     <xacro:arg name="accurate" value="$(arg accurate)"/>
   </xacro:include>
 
-  <xacro:include filename="$(find gizmo_description)/urdf/robots/p3/base.urdf.xacro" />
+  <!-- NOTE(nickswalker5-9-21): Something about this base makes it immobile in Gazebo -->
+  <!--xacro:include filename="$(find gizmo_description)/urdf/robots/p3/base.urdf.xacro" /-->
+  <xacro:include filename="$(find gizmo_description)/urdf/robots/gizmo/base.urdf.xacro" />
   <xacro:include filename="$(find gizmo_description)/urdf/robots/gizmo/body.urdf.xacro"/>
   <xacro:include filename="$(find gizmo_description)/urdf/robots/gizmo/head.urdf.xacro"/>
 
