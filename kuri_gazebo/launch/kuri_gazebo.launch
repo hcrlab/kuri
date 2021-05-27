@@ -38,4 +38,7 @@
   
   <!-- mocked voice services -->
   <include file="$(find kuri_audio)/launch/audio_voice_delegate.launch" ns="audio"/>
+
+  <!-- Noop bumper topic -->
+  <node pkg="kuri_gazebo" type="fake_bump" name="fake_bump" />
 </launch>
