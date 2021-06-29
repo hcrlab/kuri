@@ -126,7 +126,7 @@ struct KuriCameraPublisher {
       ros::spinOnce();
       fps.sleep();
       if (publisher.getNumSubscribers() == 0) {
-        ROS_INFO("Waiting for subscribers");
+        ROS_DEBUG_THROTTLE(60, "Waiting for subscribers");
         sub_poll.sleep();
         continue;
       }

@@ -2,13 +2,15 @@
 <launch>
     <arg name="map_file" default="$(find kuri_navigation)/maps/empty_map.yaml"/>
     <arg name="use_navigation" default="true"/>
-    <arg name="use_transcription" default="true"/>
-    <arg name="use_vision" default="true"/>
+    <arg name="use_transcription" default="false"/>
+    <arg name="use_vision" default="false"/>
+    <arg name="use_camera" default="true" />
     <arg name="use_web_teleop" default="false" />
     <!-- Kuri motor control, depthsensor, chest LED, and other sensors-->
     <include file="$(find mobile_base_driver)/launch/kuri_drive.launch"/>
 
-    <include file="$(find madmux)/launch/madmux_daemon.launch"/>
+     <!--  madmux and ROS interface for the eye camera -->
+    <include if="$(arg use_camera)" file="$(find kuri_camera)/launch/kuri_camera_publisher.launch"/>
 
     <!-- Kuri's face recognition -->
     <include if="$(arg use_vision)" file="$(find vision_bridge)/launch/vision_bridge.launch"/>
