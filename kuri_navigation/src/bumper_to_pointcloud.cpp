@@ -16,7 +16,7 @@ int main(int argc, char** argv){
   ros::init(argc, argv, "bumper_to_pointcloud");
   auto nh = ros::NodeHandle();
   auto sub = nh.subscribe("mobile_base/sensors", 1, callback);
-  pub = pcl_ros::Publisher<pcl::PointXYZ>(nh, "mobile_base/sensor/bumper_cloud", 1);
+  pub = pcl_ros::Publisher<pcl::PointXYZ>(nh, "mobile_base/sensors/bumper_cloud", 1);
 
   ros::spin();
 
