@@ -14,7 +14,9 @@ You may find [our docs](https://github.com/hcrlab/wiki/wiki/Robots:-Kuri:-Usage)
 
 Check out each individual package for tips. Start with `kuri_launch`.
 
-Note that many of these packages are stubs just to provide message types for communicating with the robot. You'll need to remove or ignore these packages when building on the robot to ensure that the full versions of these packages (which include important nodes) can be found while launching. On our Kuri's, we added empty `CATKIN_IGNORE` files to the following directories: `mayfield_msgs`, `mobile_base_driver`, `madmux`, `kuri_gazebo`, `vision_msgs`, `may_nav_msgs`, `audio_msgs`.
+Note that many of these packages are stubs just to provide message types for communicating with the robot. You'll need to remove or ignore these packages when building on the robot to ensure that the full versions of these packages (which include important nodes) can be found while launching. You can put `CATKIN_IGNORE` in these, or ignore them with
+
+    catkin config --blacklist audio_msgs kuri_gazebo madmux may_nav_msgs mayfield_msgs mobile_base_driver vision_msgs
 
 #### Kuri Camera
 
