@@ -2,7 +2,8 @@
 
   <!-- The jpeg quality itself is dynamically reconfigurable through
        compressed_image_transport. This merely sets the initial value -->
-  <param name="initial_jpeg_quality" type="int" value="20"/>
+  <arg name="initial_jpeg_quality" default="20"/>
+  <param name="initial_jpeg_quality" type="int" value="$(arg initial_jpeg_quality)"/>
 
   <rosparam file="$(find kuri_camera)/cfg/camera_calibration_parameters.yaml" command="load"/>
 
