@@ -1,39 +1,41 @@
-import rospy
-from numpy import clip
+import logging
 from random import choice, random, randint, uniform
 
+import rospy
 from kuri_api.head import Head
+from numpy import clip
+
 from .dance_routines import choreographed_performances, dance_routine_pools, dance_routines, dance_routine_names
-import logging
 
 params = {}
 
 logger = logging.getLogger(__name__)
 BPM_DANCE_RANGE = (
- params.get('dance_bpm_min', 40),
- params.get('dance_bpm_max', 180))
+    params.get('dance_bpm_min', 40),
+    params.get('dance_bpm_max', 180))
 SLOW_DANCE_THRESHOLD = params.get('dance_slow_threshold', 64)
 FAST_DANCE_THRESHOLD = params.get('dance_fast_threshold', 138)
 SLOW_ROUTINE_RANGE = (
- BPM_DANCE_RANGE[0], SLOW_DANCE_THRESHOLD)
+    BPM_DANCE_RANGE[0], SLOW_DANCE_THRESHOLD)
 FAST_ROUTINE_RANGE = (FAST_DANCE_THRESHOLD, BPM_DANCE_RANGE[1])
 MAX_DANCE_ROT_VEL = params.get('dance_max_rot_vel', 3.0)
 MAX_DANCE_TRANS_VEL = params.get('dance_max_trans_vel', 0.5)
 DANCE_SPEEDS = [
- 'slow', 'regular', 'fast']
+    'slow', 'regular', 'fast']
 DANCE_SPEED_SLOW = 0
 DANCE_SPEED_REG = 1
 DANCE_SPEED_FAST = 2
 DANCE_PROFILES = [
- 'natural', 'robot']
+    'natural', 'robot']
 DANCE_PROFILE_NATURAL = 0
 DANCE_PROFILE_ROBOT = 1
 PERFORMANCE_STAGES = [
- 'intro', 'warm_up', 'apex', 'cool_down']
+    'intro', 'warm_up', 'apex', 'cool_down']
 PERFORMANCE_STAGE_INTRO = 0
 PERFORMANCE_STAGE_WARM_UP = 1
 PERFORMANCE_STAGE_APEX = 2
 PERFORMANCE_STAGE_COOL_DOWN = 3
+
 
 def get_bpm_range():
     """
@@ -63,7 +65,8 @@ class DancePerformance(object):
 
     def __init__(self, bpm=None, song=None):
         self._routine_map, self.profile, self._seed = _gen_performance(bpm, song)
-        logger.info(('\n\x1b[1;35mGenerated Dance Performance!\n\tSeed: {}\n\tProfile: {}\x1b[1;0m').format(self._seed, self.profile))
+        logger.info(('\n\x1b[1;35mGenerated Dance Performance!\n\tSeed: {}\n\tProfile: {}\x1b[1;0m').format(self._seed,
+                                                                                                            self.profile))
         self.last_pose = None
         self._time_start = rospy.get_time()
         self._performance_stage = PERFORMANCE_STAGES[PERFORMANCE_STAGE_INTRO]
@@ -108,7 +111,7 @@ class DancePerformance(object):
         routines_in_stage = len(self._routine_map[self._performance_stage])
         if self._routine_index == routines_in_stage:
             self._performance_stage = self._next_performance_stage()
-            logger.info(('\n\x1b[1;35mNext dance stage: {} \x1b[1;0m').format(self._performance_stage))
+            logger.info('\n\x1b[1;35mNext dance stage: {} \x1b[1;0m'.format(self._performance_stage))
             self._routine_index = 0
         self._current_routine = self._routine_map[self._performance_stage][self._routine_index]
 
@@ -127,8 +130,8 @@ class DancePerformance(object):
 
     def __str__(self):
         perf_str = 'Dance Performance:'
-        perf_str += ('\n\tStage: {}').format(self._performance_stage)
-        perf_str += ('\n\t{}').format(self._current_routine)
+        perf_str += '\n\tStage: {}'.format(self._performance_stage)
+        perf_str += '\n\t{}'.format(self._current_routine)
         return perf_str
 
 
@@ -229,17 +232,17 @@ class DanceRoutine(object):
 
     def __str__(self):
         routine_str = 'DanceRoutine:'
-        routine_str += ('\n\t\tName: {}').format(self.name)
+        routine_str += '\n\t\tName: {}'.format(self.name)
         if self.relative:
             routine_str += ' (relative),'
         if self.randomness[0]:
             routine_str += ' (random Head),'
         if self.randomness[1]:
             routine_str += ' (random Wheels),'
-        routine_str += ('\n\t\tIndex: {} / {}').format(self._index, self.length - 1)
-        routine_str += ('\n\t\tRepeat: {} / {}').format(self._times_performed_routine + 1, self.num_repeats)
+        routine_str += '\n\t\tIndex: {} / {}'.format(self._index, self.length - 1)
+        routine_str += '\n\t\tRepeat: {} / {}'.format(self._times_performed_routine + 1, self.num_repeats)
         if self._cur_pose:
-            routine_str += ('\n\t\t{}').format(self._cur_pose)
+            routine_str += '\n\t\t{}'.format(self._cur_pose)
         return routine_str
 
 
@@ -259,17 +262,17 @@ class DancePose(object):
     def __str__(self):
         pose_str = 'DancePose:'
         if self.pan:
-            pose_str += ('\n\t\t\tPan: {}').format(self.pan)
+            pose_str += '\n\t\t\tPan: {}'.format(self.pan)
         if self.tilt:
-            pose_str += ('\n\t\t\tTilt: {}').format(self.tilt)
+            pose_str += '\n\t\t\tTilt: {}'.format(self.tilt)
         if self.eyes:
-            pose_str += ('\n\t\t\tEyes: {}').format(self.eyes)
+            pose_str += '\n\t\t\tEyes: {}'.format(self.eyes)
         if self.wheel_rotate:
-            pose_str += ('\n\t\t\tWheel Rotate: {}').format(self.wheel_rotate)
+            pose_str += '\n\t\t\tWheel Rotate: {}'.format(self.wheel_rotate)
         if self.wheel_translate:
-            pose_str += ('\n\t\t\tWheel Translate: {}').format(self.wheel_translate)
+            pose_str += '\n\t\t\tWheel Translate: {}'.format(self.wheel_translate)
         if self.wheel_arc:
-            pose_str += ('\n\t\t\tWheel Arc: {}').format(self.wheel_arc)
+            pose_str += '\n\t\t\tWheel Arc: {}'.format(self.wheel_arc)
         return pose_str
 
 
@@ -277,18 +280,18 @@ def build_dance_pose(pose_array):
     """
     Builds a DancePose object from the shorthand performance notation
     """
-    NUM_POSE_ELEMENTS = 6
-    WHEEL_ROTATE_INDEX = 2
-    WHEEL_TRANSLATE_INDEX = 3
-    WHEEL_ARC_INDEX = 4
-    pose = DancePose(*pose_array[0:NUM_POSE_ELEMENTS])
+    num_pose_elements = 6
+    wheel_rotate_index = 2
+    wheel_translate_index = 3
+    wheel_arc_index = 4
+    pose = DancePose(*pose_array[0:num_pose_elements])
     pose = _clamp_head(pose)
-    if len(pose_array) > WHEEL_ROTATE_INDEX and pose_array[WHEEL_ROTATE_INDEX] == 0:
+    if len(pose_array) > wheel_rotate_index and pose_array[wheel_rotate_index] == 0:
         pose.wheel_rotate = None
-    if len(pose_array) > WHEEL_TRANSLATE_INDEX and pose_array[WHEEL_TRANSLATE_INDEX] == 0:
+    if len(pose_array) > wheel_translate_index and pose_array[wheel_translate_index] == 0:
         pose.wheel_translate = None
-    if len(pose_array) > WHEEL_ARC_INDEX:
-        arc = pose_array[WHEEL_ARC_INDEX]
+    if len(pose_array) > wheel_arc_index:
+        arc = pose_array[wheel_arc_index]
         arc_is_ok = isinstance(arc, tuple) or isinstance(arc, list)
         if not arc_is_ok or len(arc) != 2 or arc == (0, 0):
             pose.wheel_arc = None
@@ -314,13 +317,13 @@ def _clamp_wheels(pose):
     """
     Ensures we don't send the robot a head position outside of its valid range.
     """
-    ROTATE_VELOCITY_RANGE = (
-     -MAX_DANCE_ROT_VEL, MAX_DANCE_ROT_VEL)
-    TRANSLATE_VELOCITY_RANGE = (-MAX_DANCE_TRANS_VEL, MAX_DANCE_TRANS_VEL)
+    rotate_velocity_range = (
+        -MAX_DANCE_ROT_VEL, MAX_DANCE_ROT_VEL)
+    translate_velocity_range = (-MAX_DANCE_TRANS_VEL, MAX_DANCE_TRANS_VEL)
     if pose.wheel_rotate:
-        pose.wheel_rotate = clip(pose.wheel_rotate, ROTATE_VELOCITY_RANGE[0], ROTATE_VELOCITY_RANGE[1])
+        pose.wheel_rotate = clip(pose.wheel_rotate, rotate_velocity_range[0], rotate_velocity_range[1])
     if pose.wheel_translate:
-        pose.wheel_translate = clip(pose.wheel_translate, TRANSLATE_VELOCITY_RANGE[0], TRANSLATE_VELOCITY_RANGE[1])
+        pose.wheel_translate = clip(pose.wheel_translate, translate_velocity_range[0], translate_velocity_range[1])
     return pose
 
 
@@ -358,16 +361,16 @@ def _performance_for_song(song):
     """
     choreo = choreographed_performances()
     if song not in choreo.keys():
-        logger.warn(('Song not in list of choreographed performances: {}').format(song))
+        logger.warn('Song not in list of choreographed performances: {}'.format(song))
         song = 'pancake_robot'
     stages = [
-     _names_to_routines(choreo[song][PERFORMANCE_STAGES[PERFORMANCE_STAGE_INTRO]]),
-     _names_to_routines(choreo[song][PERFORMANCE_STAGES[PERFORMANCE_STAGE_WARM_UP]]),
-     _names_to_routines(choreo[song][PERFORMANCE_STAGES[PERFORMANCE_STAGE_APEX]]),
-     _names_to_routines(choreo[song][PERFORMANCE_STAGES[PERFORMANCE_STAGE_COOL_DOWN]])]
+        _names_to_routines(choreo[song][PERFORMANCE_STAGES[PERFORMANCE_STAGE_INTRO]]),
+        _names_to_routines(choreo[song][PERFORMANCE_STAGES[PERFORMANCE_STAGE_WARM_UP]]),
+        _names_to_routines(choreo[song][PERFORMANCE_STAGES[PERFORMANCE_STAGE_APEX]]),
+        _names_to_routines(choreo[song][PERFORMANCE_STAGES[PERFORMANCE_STAGE_COOL_DOWN]])]
     perf = _build_performance_with_stages(stages)
     return (
-     perf, 'natural', song)
+        perf, 'natural', song)
 
 
 def _build_performance_with_stages(stages):
@@ -389,8 +392,8 @@ def _performance_for_bpm(bpm):
     :param: bpm The beats-per-minute of the song
     :return: (performance map with routines, motion profile)
     """
-    assert bpm >= BPM_DANCE_RANGE[0] and bpm <= BPM_DANCE_RANGE[1]
-    logger.info(('\n\x1b[1;35mBPM Seed: {}\x1b[1;0m').format(bpm))
+    assert BPM_DANCE_RANGE[0] <= bpm <= BPM_DANCE_RANGE[1]
+    logger.info('\n\x1b[1;35mBPM Seed: {}\x1b[1;0m'.format(bpm))
     pools = dance_routine_pools()
     motion_profile = DANCE_PROFILES[DANCE_PROFILE_NATURAL]
     routines = None
@@ -398,54 +401,57 @@ def _performance_for_bpm(bpm):
     seed = 'regular'
     if _is_slow_bpm(bpm):
         seed = 'slow'
-        ROBOT_PROBABILITY = 0.15
-        if random() < ROBOT_PROBABILITY:
+        robot_probability = 0.15
+        if random() < robot_probability:
             motion_profile = DANCE_PROFILES[DANCE_PROFILE_ROBOT]
         pool = pools[DANCE_SPEEDS[DANCE_SPEED_SLOW]][motion_profile]
         num_routines_per_segment = (randint(1, 2),
-         randint(3, 5),
-         randint(1, 2),
-         randint(3, 5))
+                                    randint(3, 5),
+                                    randint(1, 2),
+                                    randint(3, 5))
     else:
         if _is_fast_bpm(bpm):
             seed = 'fast'
-            ROBOT_PROBABILITY = 0.625
-            if random() < ROBOT_PROBABILITY:
+            robot_probability = 0.625
+            if random() < robot_probability:
                 motion_profile = DANCE_PROFILES[DANCE_PROFILE_ROBOT]
             pool = pools[DANCE_SPEEDS[DANCE_SPEED_FAST]][motion_profile]
             num_routines_per_segment = (1,
-             randint(3, 5),
-             randint(3, 5),
-             randint(4, 5))
+                                        randint(3, 5),
+                                        randint(3, 5),
+                                        randint(4, 5))
         else:
-            ROBOT_PROBABILITY = 0.35
-            if random() < ROBOT_PROBABILITY:
+            robot_probability = 0.35
+            if random() < robot_probability:
                 motion_profile = DANCE_PROFILES[DANCE_PROFILE_ROBOT]
             pool = pools[DANCE_SPEEDS[DANCE_SPEED_REG]][motion_profile]
             num_routines_per_segment = (1,
-             randint(3, 5),
-             randint(2, 3),
-             randint(3, 6))
+                                        randint(3, 5),
+                                        randint(2, 3),
+                                        randint(3, 6))
     routines = _performance_from_pool(pool, *num_routines_per_segment)
     assert routines is not None
     return (
-     routines, motion_profile, seed)
+        routines, motion_profile, seed)
 
 
 def _is_slow_bpm(bpm):
-    return bpm > SLOW_ROUTINE_RANGE[0] and bpm <= SLOW_ROUTINE_RANGE[1]
+    return SLOW_ROUTINE_RANGE[0] < bpm <= SLOW_ROUTINE_RANGE[1]
 
 
 def _is_fast_bpm(bpm):
-    return bpm > FAST_ROUTINE_RANGE[0] and bpm <= FAST_ROUTINE_RANGE[1]
+    return FAST_ROUTINE_RANGE[0] < bpm <= FAST_ROUTINE_RANGE[1]
 
 
 def _performance_from_pool(routine_pools, num_intros, num_warm_up, num_apex, num_cool_down):
-    perf = {}
-    perf[PERFORMANCE_STAGES[PERFORMANCE_STAGE_INTRO]] = _gen_unique_pool(routine_pools[PERFORMANCE_STAGES[PERFORMANCE_STAGE_INTRO]], num_intros)
-    perf[PERFORMANCE_STAGES[PERFORMANCE_STAGE_WARM_UP]] = _gen_unique_pool(routine_pools[PERFORMANCE_STAGES[PERFORMANCE_STAGE_WARM_UP]], num_warm_up)
-    perf[PERFORMANCE_STAGES[PERFORMANCE_STAGE_APEX]] = _gen_unique_pool(routine_pools[PERFORMANCE_STAGES[PERFORMANCE_STAGE_APEX]], num_apex)
-    perf[PERFORMANCE_STAGES[PERFORMANCE_STAGE_COOL_DOWN]] = _gen_unique_pool(routine_pools[PERFORMANCE_STAGES[PERFORMANCE_STAGE_COOL_DOWN]], num_cool_down)
+    perf = {PERFORMANCE_STAGES[PERFORMANCE_STAGE_INTRO]: _gen_unique_pool(
+        routine_pools[PERFORMANCE_STAGES[PERFORMANCE_STAGE_INTRO]], num_intros),
+        PERFORMANCE_STAGES[PERFORMANCE_STAGE_WARM_UP]: _gen_unique_pool(
+            routine_pools[PERFORMANCE_STAGES[PERFORMANCE_STAGE_WARM_UP]], num_warm_up),
+        PERFORMANCE_STAGES[PERFORMANCE_STAGE_APEX]: _gen_unique_pool(
+            routine_pools[PERFORMANCE_STAGES[PERFORMANCE_STAGE_APEX]], num_apex),
+        PERFORMANCE_STAGES[PERFORMANCE_STAGE_COOL_DOWN]: _gen_unique_pool(
+            routine_pools[PERFORMANCE_STAGES[PERFORMANCE_STAGE_COOL_DOWN]], num_cool_down)}
     return perf
 
 
@@ -453,7 +459,7 @@ def _names_to_routines(routine_names):
     routines = []
     for routine_name in routine_names:
         if routine_name not in dance_routine_names():
-            logger.warn(('INVALID ROUTINE: {}').format(routine_name))
+            logger.warn('INVALID ROUTINE: {}'.format(routine_name))
         else:
             routines.append(DanceRoutine(routine_name))
 

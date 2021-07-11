@@ -1,8 +1,9 @@
 from kuri_api.anim.primitives.head import HeadMotions
-from kuri_api.anim.primitives.wheels import WheelMotions
 from kuri_api.anim.primitives.light import Light
-from kuri_api.anim.primitives.sound import Sound
 from kuri_api.anim.primitives.movies import Movies
+from kuri_api.anim.primitives.sound import Sound
+from kuri_api.anim.primitives.wheels import WheelMotions
+
 
 class AnimationGroup(object):
     """

@@ -1,8 +1,5 @@
-import os
 import logging
-LOGGER = logging.getLogger("default logger")
-LOGGER.setLevel(logging.DEBUG)
-LOGGER.addHandler(logging.StreamHandler())
+import os
 
 from flask import Flask
 from slack import WebClient
@@ -10,10 +7,13 @@ from slackeventsapi import SlackEventAdapter
 from slack.errors import SlackApiError
 from slack_bot import SlackBot
 
-import time
 import threading
 import rospy
 from std_msgs.msg import Float64
+
+LOGGER = logging.getLogger("default logger")
+LOGGER.setLevel(logging.DEBUG)
+LOGGER.addHandler(logging.StreamHandler())
 
 # Based in part on Slack's onboarding tutorial https://github.com/slackapi/python-slackclient/blob/master/tutorial/
 
@@ -25,7 +25,6 @@ slack_events_adapter = SlackEventAdapter(os.environ['SLACK_SIGNING_SECRET'], "/s
 
 # Initialize a Web API client
 slack_web_client = WebClient(token=os.environ['SLACK_BOT_TOKEN'])
-
 
 
 def welcome_message(channel: str, user_id: str = None):
@@ -44,9 +43,10 @@ def welcome_message(channel: str, user_id: str = None):
     # _____not used but left in for the time being_____
     # slack_bot.timestamp = response["ts"]
 
-def teleop_message(channel: str, user_id: str=None):
+
+def teleop_message(channel: str, user_id: str = None):
     slack_bot = SlackBot(channel)
-    
+
     # Get the onboarding message payload
     message = slack_bot.get_teleop_payload()
 
@@ -56,7 +56,7 @@ def teleop_message(channel: str, user_id: str=None):
 
 def dummy_cb(msg):
     print("got message")
-    if msg.data > 0.5: 
+    if msg.data > 0.5:
         response = slack_web_client.conversations_list(types="public_channel")
         for channel in response.get("channels"):
             try:
@@ -66,7 +66,7 @@ def dummy_cb(msg):
                 LOGGER.debug(e)
 
 
-#____________________________ EVENT CALLBACKS ____________________________
+# ____________________________ EVENT CALLBACKS ____________________________
 
 # ================ Team Join Event =============== #
 # When the user first joins a team, the type of the event will be 'team_join'.
@@ -103,7 +103,6 @@ def message(payload):
     user_id = event.get("user")
     text = event.get("text")
 
-
     if text:
         if text.lower() == "start":
             return welcome_message(user_id, channel_id)
@@ -111,17 +110,18 @@ def message(payload):
             return teleop_message(user_id, channel_id)
 
 
-
 if __name__ == "__main__":
     # Dummy subscriber
     print("Starting subscriber")
     rospy.init_node('flask_app_sub')
 
+
     def tmp():
         rospy.Subscriber('dummy_topic', Float64, dummy_cb)
+
+
     threading.Thread(target=tmp, daemon=True).start()
-    
+
     threading.Thread(target=app.run, kwargs={"port": 3000}, daemon=True).start()
-    
+
     rospy.spin()
-    

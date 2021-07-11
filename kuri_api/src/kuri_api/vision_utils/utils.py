@@ -1,5 +1,8 @@
-import numpy as np, operator
 from functools import reduce
+
+import numpy as np
+import operator
+
 
 def cast_nan(item, cast_to):
     try:

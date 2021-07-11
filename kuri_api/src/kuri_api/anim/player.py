@@ -1,7 +1,9 @@
+import logging
 import threading
 from collections import Counter
-import logging
+
 logger = logging.getLogger(__name__)
+
 
 def get_animations_in_class(anim):
     """
@@ -16,10 +18,10 @@ def anim_clash_detected(anims):
     """
     Check for clashes in naming of animation tracks.
     """
-    all_funcs = [ f for anim_class in anims for f in get_animations_in_class(anim_class) ]
+    all_funcs = [f for anim_class in anims for f in get_animations_in_class(anim_class)]
     clash = len(all_funcs) != len(set(all_funcs))
     if clash:
-        clash_anims = [ item for item, count in Counter(all_funcs).items() if count > 1 ]
+        clash_anims = [item for item, count in Counter(all_funcs).items() if count > 1]
         logger.error(('Animation clash: {}').format(clash_anims))
     return clash
 
@@ -28,7 +30,7 @@ def build_animation_map(anims):
     """
     Build a map of animation names to track objects.
     """
-    return {x:a_cls for a_cls in anims for x in get_animations_in_class(a_cls)}
+    return {x: a_cls for a_cls in anims for x in get_animations_in_class(a_cls)}
 
 
 def parse_animations(anims):
@@ -37,10 +39,11 @@ def parse_animations(anims):
     """
     if not isinstance(anims, list):
         anims = [
-         anims]
+            anims]
     if anim_clash_detected(anims):
         raise KeyError('Animations have clashing names')
     return build_animation_map(anims)
+
 
 class AnimationPlayer(object):
     """

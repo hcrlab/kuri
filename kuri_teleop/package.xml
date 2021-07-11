@@ -5,7 +5,7 @@
   <version>0.0.0</version>
   <description>A teleoperation package for Kuri</description>
   <maintainer email="amaln@cs.uw.edu">Amal Nanavati</maintainer>
-  <license>None</license>
+  <license>MIT</license>
 
   <buildtool_depend>catkin</buildtool_depend>
 

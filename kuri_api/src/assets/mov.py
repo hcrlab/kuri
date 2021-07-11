@@ -1,11 +1,17 @@
-import glob, os, subprocess
+import glob
+import os
+import subprocess
 from PIL import Image
+
 import numpy as np
+
 from . import config
 from . import memoize
+
 MOVIE_WIDTH_HEIGHT = 720
 
-@memoize(lambda : config.get_assets_path())
+
+@memoize(lambda: config.get_assets_path())
 def mov_to_pixels(mov_name):
     """
     These pixels are generated at build-time and cached through memoization.
@@ -14,7 +20,7 @@ def mov_to_pixels(mov_name):
     return _pixels_for_file(mov_path)
 
 
-@memoize(lambda : config.get_assets_path())
+@memoize(lambda: config.get_assets_path())
 def mov_to_wav(mov_name):
     """
     These wavs are generated at build-time and cached through memoization.
@@ -32,10 +38,10 @@ def _pixels_for_file(mov_path):
     _, fname = os.path.split(mov_path)
     mov_name = os.path.splitext(fname)[0]
     subprocess.call([
-     'avconv', '-y', '-i', mov_path, ('/tmp/{}%06d.png').format(mov_name)])
+        'avconv', '-y', '-i', mov_path, ('/tmp/{}%06d.png').format(mov_name)])
     imgs_list = glob.glob(('/tmp/{}*.png').format(mov_name))
     imgs_list.sort()
-    pixels = [ img_to_pix(img_name) for img_name in imgs_list ]
+    pixels = [img_to_pix(img_name) for img_name in imgs_list]
     for img_name in imgs_list:
         subprocess.call(['rm', img_name])
 
@@ -53,8 +59,8 @@ def _wav_for_file(mov_path):
     wav_name = os.path.splitext(mov_name)[0] + '.wav'
     wav_loc = os.path.join(config.get_sounds_path(), wav_name)
     ret = subprocess.call([
-     'avconv', '-y', '-i', mov_path, '-vn', '-ar', '48000', '-ac', '2',
-     '-ab', '192', '-f', 'wav', wav_loc])
+        'avconv', '-y', '-i', mov_path, '-vn', '-ar', '48000', '-ac', '2',
+        '-ab', '192', '-f', 'wav', wav_loc])
     if ret:
         raise RuntimeError(('Unable to convert {} to wav at {}.').format(mov_path, wav_loc))
     return wav_name
@@ -67,7 +73,7 @@ def _add_pixel_ring(width, height, count, radius, angle):
     for i in range(count):
         a = float(angle) + float(i) * 2 * np.pi / float(count)
         pixels.append((int(x - float(radius) * np.cos(a) + 0.5),
-         int(y - float(radius) * np.sin(a) + 0.5)))
+                       int(y - float(radius) * np.sin(a) + 0.5)))
 
     return pixels
 
@@ -84,4 +90,4 @@ def pixel_positions():
 def img_to_pix(fname):
     pixels = pixel_positions()
     img = Image.open(fname)
-    return [ img.getpixel(p) for p in pixels ]
+    return [img.getpixel(p) for p in pixels]

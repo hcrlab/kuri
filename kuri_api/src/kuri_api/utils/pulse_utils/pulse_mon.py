@@ -1,9 +1,14 @@
-import sys, time
-from threading import RLock
+import sys
+import time
 from ctypes import POINTER, c_void_p, c_ulong, cast, c_short
-import pulse_lib, logging
+from threading import RLock
+
+import logging
+import pulse_lib
+
 logger = logging.getLogger(__name__)
 DEFAULT_SOURCE = 'alsa_output.default.monitor'
+
 
 class PeakMonitor(object):
     DEFAULT_WINDOW_RATE = 40
@@ -130,10 +135,8 @@ def main(args):
 
 
 if __name__ == '__main__':
-
     def my_logger(x):
         print x
-
 
     logger.info = my_logger
     main(sys.argv)

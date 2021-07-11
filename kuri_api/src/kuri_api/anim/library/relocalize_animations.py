@@ -1,6 +1,7 @@
 from kuri_api.anim import AnimationGroup
 from kuri_api.anim import Track
 
+
 class RelocalizeAnimations(AnimationGroup):
     """
     Turn the robots through facing
@@ -41,7 +42,8 @@ class RelocalizeAnimations(AnimationGroup):
         keep_alive_speed = 0
         spacing = (keep_alive_speed * 0.6 + 10) * 0.1
         tk = Track()
-        tk.add(0.9 * spacing, self.head_mot.blinkeyes(open_amplitude=1.0, close_amplitude=1.0, open_time=0.27, close_time=0.15))
+        tk.add(0.9 * spacing,
+               self.head_mot.blinkeyes(open_amplitude=1.0, close_amplitude=1.0, open_time=0.27, close_time=0.15))
         tk.add(1.0 * spacing, self.wheels_mot.rotate(-10, 1.5))
         tk.add(1.0 * spacing, self.head_mot.pantilt(pan=0, tilt=0, duration=1.5))
         return tk
@@ -67,7 +69,8 @@ class RelocalizeAnimations(AnimationGroup):
         keep_alive_speed = 0
         spacing = (keep_alive_speed * 0.6 + 10) * 0.1
         tk = Track()
-        tk.add(0.6 * spacing, self.head_mot.blinkeyes(open_amplitude=1.0, close_amplitude=1.0, open_time=0.27, close_time=0.15))
+        tk.add(0.6 * spacing,
+               self.head_mot.blinkeyes(open_amplitude=1.0, close_amplitude=1.0, open_time=0.27, close_time=0.15))
         tk.add(0.7 * spacing, self.wheels_mot.rotate(-10, 1.5))
         tk.add(0.7 * spacing, self.head_mot.pantilt(pan=0, tilt=0, duration=1.5))
         return tk
@@ -86,10 +89,12 @@ class RelocalizeAnimations(AnimationGroup):
         speed = (keep_alive_speed + 10) * 0.1
         tk = Track()
         tk.add(0.7 * spacing, self.head_mot.pantilt(pan=-0.78, tilt=0.3, duration=0.32 * speed))
-        tk.add(1.25 * spacing, self.head_mot.blinkeyes(open_amplitude=1.0, close_amplitude=1.0, open_time=0.27, close_time=0.15))
+        tk.add(1.25 * spacing,
+               self.head_mot.blinkeyes(open_amplitude=1.0, close_amplitude=1.0, open_time=0.27, close_time=0.15))
         tk.add(1.3 * spacing, self.head_mot.pantilt(pan=-0.78, tilt=0, duration=0.2 * speed))
         tk.add(1.5 * spacing, self.wheels_mot.rotate(-9, 1))
-        tk.add(1.4 * spacing, self.head_mot.blinkeyes(open_amplitude=1.0, close_amplitude=1.0, open_time=0.27, close_time=0.15))
+        tk.add(1.4 * spacing,
+               self.head_mot.blinkeyes(open_amplitude=1.0, close_amplitude=1.0, open_time=0.27, close_time=0.15))
         tk.add(1.4 * spacing, self.head_mot.pantilt(pan=0, tilt=0, duration=1))
         tk.add(2.5 * spacing, self.head_mot.pantilt(pan=-0.4, tilt=-0.5, duration=0.4 * speed))
         tk.add(3.7 * spacing, self.head_mot.pantilt(pan=0, tilt=0, duration=0.4 * speed))

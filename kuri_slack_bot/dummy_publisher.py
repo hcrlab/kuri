@@ -1,12 +1,15 @@
 #! /usr/bin/python
 
+import random as rand
+
 import rospy
 from std_msgs.msg import Float64
-import random as rand
+
 
 def wait_for_time():
     while rospy.Time().now().to_sec() == 0:
         pass
+
 
 def main():
     """ Publishes a random float every few seconds. Purely for testing the slack bot's ability

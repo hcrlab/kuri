@@ -1,8 +1,11 @@
-import math, random
-from kuri_api.utils import interp
+import math
+import random
+
+from kuri_api import Head, Lights
 from kuri_api.anim import AnimationGroup
 from kuri_api.anim import Track
-from kuri_api import Head, Lights
+from kuri_api.utils import interp
+
 
 class ReactionAnimations(AnimationGroup):
 
@@ -255,16 +258,16 @@ class ReactionAnimations(AnimationGroup):
         """
           - Modified by Patrick & Paul on 2016-04-20, out of sync with
             Doug's scriptk.
-        
+
           From Doug Dooley's Notes:
-        
+
           #HUH? -1st time it happens
           #Robot stops if it hasn't already
           #Robot may or may not be facial tracking
           00:00 Chest Light OFF .08 Sec # This chest light blink has pause
           00:00 Head Rotates UP 12 degrees from current position .41sec # add on
               top of facial tracking number if need be
-        
+
           00:00 EyeLid drops to neutral if it isn't already in neutral.
         * 00:10 Light turns from blue to orange
           00:25 Chest Light ON .17sec
@@ -279,7 +282,7 @@ class ReactionAnimations(AnimationGroup):
                 tracking number if need be
         * 03:09 Start Thinking animation #Put thinking animation on top of
                 facial tracking, if robot currently tracking face
-        
+
           * => Unimplemented
           """
         tk = Track()
@@ -304,7 +307,7 @@ class ReactionAnimations(AnimationGroup):
         """
          - Modified by Patrick & Paul on 2016-04-20, out of sync with
            Doug's scriptk.
-        
+
          00:00 Chest Light OFF .08 Sec # This chest light blink has pause
          00:00 Head Rotates UP 12 degrees from current position .41sec # add on
                top of facial tracking number if need be
@@ -331,7 +334,7 @@ class ReactionAnimations(AnimationGroup):
          03:62 EyeLid Opens to Fully open eye .21sec
         *04:32 Start "Thinking animation" #Put thinking animation on top of
                facial tracking, if robot currently tracking face
-        
+
          * => Unimplemented
          """
         tk = Track()
@@ -368,10 +371,10 @@ class ReactionAnimations(AnimationGroup):
         return tk
 
     def listening_pose(self):
-        TILT_LOOK_USER_RADIANS = -0.8
+        tilt_look_user_radians = -0.8
         tk = Track()
         tk.add(0.04, self.head_mot.happyeyes(0.17))
-        tk.add(0.0, self.head_mot.pantilt(Head.PAN_NEUTRAL, TILT_LOOK_USER_RADIANS, 0.25))
+        tk.add(0.0, self.head_mot.pantilt(Head.PAN_NEUTRAL, tilt_look_user_radians, 0.25))
         return tk
 
     def lost(self):

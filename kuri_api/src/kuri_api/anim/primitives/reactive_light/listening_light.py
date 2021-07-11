@@ -1,11 +1,15 @@
-import threading, rospy
-from numpy import clip
-from kuri_api.lights import Lights
+import logging
+import rospy
+import threading
+
 from assets import mov_to_pixels
+from kuri_api.lights import Lights
 from kuri_api.utils.pulse_utils import PeakMonitor
 from kuri_api.utils.rate import Rate
-import logging
+from numpy import clip
+
 logger = logging.getLogger(__name__)
+
 
 class ListeningLedPlayer(threading.Thread):
     """
@@ -22,11 +26,11 @@ class ListeningLedPlayer(threading.Thread):
     STAGE_INTRO = 0
     STAGE_REACT = 1
     REACTIVE_LEDS = [
-     Lights.IDX_CENTER,
-     Lights.IDX_INNER_BOTTOM_LEFT,
-     Lights.IDX_INNER_BOTTOM_RIGHT,
-     Lights.IDX_INNER_UPPER_RIGHT,
-     Lights.IDX_INNER_UPPER_LEFT]
+        Lights.IDX_CENTER,
+        Lights.IDX_INNER_BOTTOM_LEFT,
+        Lights.IDX_INNER_BOTTOM_RIGHT,
+        Lights.IDX_INNER_UPPER_RIGHT,
+        Lights.IDX_INNER_UPPER_LEFT]
 
     def __init__(self, content, chestlight):
         super(ListeningLedPlayer, self).__init__()
@@ -41,7 +45,8 @@ class ListeningLedPlayer(threading.Thread):
         self._num_frames_intro = len(self._intro_pixels)
         self._level = 0
         self._last_display_level = 0
-        self._peak_monitor = PeakMonitor(source_name=self.MIC_SOURCE, source_chans=self.MIC_CHANNELS, window_hz=self.WINDOW_SIZE)
+        self._peak_monitor = PeakMonitor(source_name=self.MIC_SOURCE, source_chans=self.MIC_CHANNELS,
+                                         window_hz=self.WINDOW_SIZE)
 
     def cancel(self):
         self._peak_monitor.shutdown()
@@ -114,10 +119,10 @@ class ListeningLedPlayer(threading.Thread):
         that. Loud, direct voice usually gets over 0.1
         Spike instantly but decay over time
         """
-        DECAY_MAX = 0.035
+        decay_max = 0.035
         new_level = clip(level * 2.9, 0.0, 1.0)
-        if new_level < self._last_display_level - DECAY_MAX:
-            new_level = self._last_display_level - DECAY_MAX
+        if new_level < self._last_display_level - decay_max:
+            new_level = self._last_display_level - decay_max
         for led in self.REACTIVE_LEDS:
             pattern[led] = self._color_for_level(new_level)
 
@@ -129,6 +134,6 @@ class ListeningLedPlayer(threading.Thread):
         Scales the reactive listening color by the current sound level.
         """
         return (
-         int(self.HI_COLOR[0] * level),
-         int(self.HI_COLOR[1] * level),
-         int(self.HI_COLOR[2] * level))
+            int(self.HI_COLOR[0] * level),
+            int(self.HI_COLOR[1] * level),
+            int(self.HI_COLOR[2] * level))

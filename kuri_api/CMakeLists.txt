@@ -22,14 +22,9 @@ generate_messages(
   )
 
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES robot_api
-  CATKIN_DEPENDS roscpp rospy
+  CATKIN_DEPENDS message_runtime roscpp rospy std_msgs
 )
 
+catkin_install_python(PROGRAMS scripts/base_demo scripts/volume_interface
+        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
-
-include_directories(
-  include
-  ${catkin_INCLUDE_DIRS}
-)

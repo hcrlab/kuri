@@ -9,7 +9,14 @@
 
   <license>None</license>
 
+  <exec_depend>amcl</exec_depend>
+  <exec_depend>dynamic_reconfigure</exec_depend>
+  <exec_depend>gmapping</exec_depend>
+  <exec_depend>map_server</exec_depend>
+  <exec_depend>move_base</exec_depend>
+
   <buildtool_depend>catkin</buildtool_depend>
+
 
 
 </package>

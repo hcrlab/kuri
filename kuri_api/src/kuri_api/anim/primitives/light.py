@@ -1,18 +1,26 @@
-import math, time, random, rospy, threading as tr
-from kuri_api.utils import interp as lo
+import logging
+import math
+import random
+import rospy
+import threading as tr
+import time
+
 from kuri_api.anim import track
 from kuri_api.lights import Lights
+from kuri_api.utils import interp as lo
 from kuri_api.utils.rate import Rate
-from .reactive_light.listening_light import ListeningLedPlayer
+
 from .reactive_light.dance_light import MusicLedPlayer
-import logging
+from .reactive_light.listening_light import ListeningLedPlayer
+
 logger = logging.getLogger(__name__)
 ANIM_FREQUENCY = 60
+
 
 class Light(object):
     """
     Top-level container for chest LED primitives
-    
+
     Parameters
     ----------
     lights_svc:     light service
@@ -26,7 +34,7 @@ class Light(object):
         pts = []
         for i in range(Lights.NUM_LEDS - 1):
             p = [
-             (0, 0, 0)] * Lights.NUM_LEDS
+                    (0, 0, 0)] * Lights.NUM_LEDS
             p[i + 1] = (255, 255, 255)
             pts.append(p)
 
@@ -37,7 +45,7 @@ class Light(object):
 
     def flash(self, color, frequency):
         return Flash(self._lights_svc, [
-         color] * Lights.NUM_LEDS, frequency)
+            color] * Lights.NUM_LEDS, frequency)
 
     def glow_pattern(self, pattern, fade_length, hold_length):
         fade_up = self.animate(self._lights_svc.get_pixels(), pattern, lo.quad_in, fade_length)
@@ -46,8 +54,8 @@ class Light(object):
 
     def glow(self, r, g, b, fade_length, hold_length):
         final_pat = [
-         (
-          r, g, b)] * Lights.NUM_LEDS
+                        (
+                            r, g, b)] * Lights.NUM_LEDS
         fade_up = self.animate(self._lights_svc.get_pixels(), final_pat, lo.quad_in, fade_length)
         hold_on = LedPattern(self._lights_svc, [final_pat], hold_length, hold=True)
         return fade_up + hold_on
@@ -57,7 +65,7 @@ class Light(object):
 
     def white_pulse(self, length, frequency=0.5):
         return Pulse(self._lights_svc, [
-         (255, 255, 255)] * Lights.NUM_LEDS, frequency, length)
+            (255, 255, 255)] * Lights.NUM_LEDS, frequency, length)
 
     def pulse(self, color, pulse_up_time=0.3, pulse_down_time=0.3, indeces=None, loop=False):
         if not indeces:
@@ -80,7 +88,7 @@ class Light(object):
         """
         Given a start pattern, end pattern and a linear interpolation function
         return a series of patterns that interpolates between the two.
-        
+
         Parameters
         ----------
         start_pat (list of n 3 tuples): pattern to start with
@@ -110,19 +118,19 @@ class Light(object):
         low_glow_frame = int(math.ceil(0.4 * period * ANIM_FREQUENCY))
         low_deglow_frame = bottom_frames
         low_pat = lo.interp_keyframes([
-         lo.KeyFrame(0, [fade_off_color], lo.quad_in),
-         lo.KeyFrame(low_glow_frame, [color], lo.quad_in),
-         lo.KeyFrame(low_deglow_frame, [fade_off_color], lo.quad_out)])
+            lo.KeyFrame(0, [fade_off_color], lo.quad_in),
+            lo.KeyFrame(low_glow_frame, [color], lo.quad_in),
+            lo.KeyFrame(low_deglow_frame, [fade_off_color], lo.quad_out)])
         mid_lowglow_frame = int(math.ceil(0.267 * period * ANIM_FREQUENCY))
         mid_glow_frame = int(math.ceil(0.534 * period * ANIM_FREQUENCY))
         mid_deglow_frame = int(math.ceil(0.869 * period * ANIM_FREQUENCY))
         mid_end_frame = bottom_frames
         middle_pat = lo.interp_keyframes([
-         lo.KeyFrame(0, [off], lo.quad_in),
-         lo.KeyFrame(mid_lowglow_frame, [fade_off_color], lo.quad_in),
-         lo.KeyFrame(mid_glow_frame, [color], lo.quad_in),
-         lo.KeyFrame(mid_deglow_frame, [fade_off_color], lo.quad_out),
-         lo.KeyFrame(mid_end_frame, [off], lo.quad_out)])
+            lo.KeyFrame(0, [off], lo.quad_in),
+            lo.KeyFrame(mid_lowglow_frame, [fade_off_color], lo.quad_in),
+            lo.KeyFrame(mid_glow_frame, [color], lo.quad_in),
+            lo.KeyFrame(mid_deglow_frame, [fade_off_color], lo.quad_out),
+            lo.KeyFrame(mid_end_frame, [off], lo.quad_out)])
         top_off_color = off
         top_period = period
         top_frames = bottom_frames
@@ -136,18 +144,18 @@ class Light(object):
         top_deglow_frame = int(math.ceil(0.801 * top_period * ANIM_FREQUENCY))
         top_endoff_frame = int(math.ceil(0.86 * top_period * ANIM_FREQUENCY))
         top_pat = lo.interp_keyframes([
-         lo.KeyFrame(0, [top_off_color], lo.quad_in),
-         lo.KeyFrame(top_off_frame, [top_off_color], lo.quad_in),
-         lo.KeyFrame(top_lowglow_frame, [fade_off_color], lo.quad_in),
-         lo.KeyFrame(top_glow_frame, [color], lo.quad_in),
-         lo.KeyFrame(top_deglow_frame, [fade_off_color], lo.quad_out),
-         lo.KeyFrame(top_endoff_frame, [top_off_color], lo.quad_out),
-         lo.KeyFrame(top_frames, [top_off_color], lo.quad_out)])
+            lo.KeyFrame(0, [top_off_color], lo.quad_in),
+            lo.KeyFrame(top_off_frame, [top_off_color], lo.quad_in),
+            lo.KeyFrame(top_lowglow_frame, [fade_off_color], lo.quad_in),
+            lo.KeyFrame(top_glow_frame, [color], lo.quad_in),
+            lo.KeyFrame(top_deglow_frame, [fade_off_color], lo.quad_out),
+            lo.KeyFrame(top_endoff_frame, [top_off_color], lo.quad_out),
+            lo.KeyFrame(top_frames, [top_off_color], lo.quad_out)])
         top_index = random.choice([
-         led.IDX_OUTER_UPPER_MID_RIGHT,
-         led.IDX_OUTER_UPPER_TOP_RIGHT,
-         led.IDX_OUTER_UPPER_TOP_LEFT,
-         led.IDX_OUTER_UPPER_MID_LEFT])
+            led.IDX_OUTER_UPPER_MID_RIGHT,
+            led.IDX_OUTER_UPPER_TOP_RIGHT,
+            led.IDX_OUTER_UPPER_TOP_LEFT,
+            led.IDX_OUTER_UPPER_MID_LEFT])
         base_pattern = list(led.ALL_OFF)
         if period < 2.0:
             base_pattern[led.IDX_OUTER_UPPER_MID_RIGHT] = list(fade_off_color)
@@ -293,16 +301,16 @@ class LedPattern(track.Content):
     """
         Parameters
         ----------
-    
+
         patterns (list of list of 3-tuples and boolean): for each led the
             3-tuple specify the rgb value and the boolean specifies whether to
             interpolate
-    
+
         length (float): num secs to play this animation if inf
             then play forever.
-    
+
         frequency (int): frame rate
-    
+
         hold (bool): If true, hold the last frame rather than looping
     """
 
@@ -322,24 +330,25 @@ class LedPattern(track.Content):
         p.start()
         return p
 
-    def set_length(self, l):
-        self._length = l
+    def set_length(self, length):
+        self._length = length
 
     def length(self):
         return self._length
 
     def __add__(self, other):
         """
-            Adds two animated sequences.
-        
-            Frequencies have to match and if either has inf length then the
-            result will have inf length.
-        
-            Only the second pattern can have hold true
+         Adds two animated sequences.
+        Frequencies have to match and if either has inf length then the
+        result will have inf length.
+
+        Only the second pattern can have hold true
         """
         joined_pat = self._patterns + other._patterns
         if other._frequency != self._frequency:
-            raise TypeError(('Tried to add LedPattern object with different frequencies ({} and {})').format(self._frequency, other._frequency))
+            raise TypeError(
+                ('Tried to add LedPattern object with different frequencies ({} and {})').format(self._frequency,
+                                                                                                 other._frequency))
         if self._hold:
             raise TypeError('Tried to add to LedPattern which holds')
         if math.isinf(other._length) or math.isinf(self._length):
@@ -355,12 +364,13 @@ class Pulse(LedPattern):
 
     def __init__(self, lights_svc, pattern, pulse_frequency, length):
         super(Pulse, self).__init__(lights_svc, [pattern,
-         Lights.ALL_OFF], length=length, frequency=pulse_frequency * 2)
+                                                 Lights.ALL_OFF], length=length, frequency=pulse_frequency * 2)
         self._pulse_frequency = pulse_frequency
 
 
 class Flash(LedPattern):
 
     def __init__(self, lights_svc, pattern, pulse_frequency):
-        super(Flash, self).__init__(lights_svc, [pattern, Lights.ALL_OFF], length=1.0 / pulse_frequency, frequency=pulse_frequency * 2)
+        super(Flash, self).__init__(lights_svc, [pattern, Lights.ALL_OFF], length=1.0 / pulse_frequency,
+                                    frequency=pulse_frequency * 2)
         self._pulse_frequency = pulse_frequency

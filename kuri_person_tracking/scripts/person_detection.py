@@ -1,16 +1,14 @@
 #!/usr/bin/env python
 
-import numpy as np
-import imutils
-import cv2
+import os
 import threading
 import time
 
+import cv2
+import numpy as np
 import rospy
-from sensor_msgs.msg import CompressedImage
 from kuri_person_tracking.msg import BoundingBox, BoundingBoxes
-
-import os
+from sensor_msgs.msg import CompressedImage
 
 DISPLAY = rospy.get_param('person_detection/image_display', False)
 
@@ -43,6 +41,7 @@ bb_publisher = None
 image_data = None
 image_lock = threading.Lock()
 
+
 def main():
     init_yolo()
     init_ros()
@@ -50,7 +49,7 @@ def main():
 
 def init_yolo():
     global net, output_layers, classes, COLORS
-    net = cv2.dnn.readNet(os.path.join(NET_CFG_DIR, 'yolov3-tiny.weights'), \
+    net = cv2.dnn.readNet(os.path.join(NET_CFG_DIR, 'yolov3-tiny.weights'),
                           os.path.join(NET_CFG_DIR, 'yolov3-tiny.cfg'))
 
     layer_names = net.getLayerNames()
@@ -61,7 +60,7 @@ def init_yolo():
         classes = [line.strip() for line in f.readlines()]
 
     COLORS = np.random.randint(0, 255, size=(len(classes), 3),
-    	dtype="uint8")
+                               dtype="uint8")
 
 
 def init_ros():
@@ -101,7 +100,6 @@ def process_image_loop():
         image_lock.release()
 
         if data is not None:
-            start_time = time.time()
 
             # uncompress compressed image
             image = cv2.imdecode(np.fromstring(data.data, np.uint8), 1)
@@ -131,7 +129,7 @@ def process_image_loop():
                             cv2.rectangle(image, (x, y), (x + w, y + h), color, 2)
                             text = "{}: {:.4f}".format(classes[class_ids[i]], confidences[i])
                             cv2.putText(image, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX,
-                                0.5, color, 2)
+                                        0.5, color, 2)
 
             # show the output image
             if DISPLAY:
@@ -190,17 +188,16 @@ def publish_bounding_box(rects, width, height):
 
     for xmin, ymin, xmax, ymax, confidence in rects:
         bb = BoundingBox()
-        bb.xmin = xmin/width
-        bb.ymin = ymin/height
-        bb.xmax = xmax/width
-        bb.ymax = ymax/height
+        bb.xmin = xmin / width
+        bb.ymin = ymin / height
+        bb.xmax = xmax / width
+        bb.ymax = ymax / height
         bb.probability = confidence
         boxes.append(bb)
 
     bbs.bounding_boxes = boxes
     # print(bbs)
     bb_publisher.publish(bbs)
-
 
 
 def _wait_for_time():

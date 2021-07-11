@@ -1,5 +1,6 @@
 import pyttsx
 
+
 class Voice(object):
     def __init__(self):
         self.engine = pyttsx.init()

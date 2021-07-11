@@ -1,16 +1,16 @@
 #! /usr/bin/env python
-import actionlib
-import rospy
-import math
 import copy
-import rospy.rostime
-import tf.transformations as tft
-from geometry_msgs.msg import Twist
-import nav_msgs.msg._Odometry
-import mobile_base_driver.msg as mbdm
+import math
 import threading
-from kuri_api.utils import Mux, MuxChannel
+
+import actionlib
+import mobile_base_driver.msg as mbdm
+import nav_msgs.msg._Odometry
+import rospy
+import rospy.rostime
+from geometry_msgs.msg import Twist
 from kuri_api.utils import Events
+from kuri_api.utils import Mux, MuxChannel
 
 
 def normalize_angle_positive(angle):
@@ -24,7 +24,7 @@ def normalize_angle(angle):
     """
     pos = normalize_angle_positive(angle)
     if pos >= math.pi:
-      return pos - 2.0 * math.pi
+        return pos - 2.0 * math.pi
     return pos
 
 
@@ -33,9 +33,9 @@ def quat_heading(quat):
     return math.atan2(2.0 * (x * y + w * z), 1.0 - 2.0 * (y * y + z * z))
 
 
-trajectory_topic ='mobile_base/commands/wheel_traj'
-controller='mobile_base_controller'
-switch_service='controller_manager/switch_controller',
+trajectory_topic = 'mobile_base/commands/wheel_traj'
+controller = 'mobile_base_controller'
+switch_service = 'controller_manager/switch_controller',
 
 
 class Base(Events):
@@ -82,14 +82,16 @@ class Base(Events):
             traj -- list of tuples (time, linear, angular)
         """
         if not self._traj_pub:
-            rospy.logerr("Tried to send a trajectory in simulation, but this functionality is only present on the real robot.")
+            rospy.logerr(
+                "Tried to send a trajectory in simulation, but this functionality is only present on the real robot.")
             return
         t = mbdm.WheelTraj()
         for p in traj:
-            t.points.append(mbdm.WheelTrajPoint(time_from_start=rospy.Duration(p[0]), linear_vel=p[1], angular_vel=p[2]))
+            t.points.append(
+                mbdm.WheelTrajPoint(time_from_start=rospy.Duration(p[0]), linear_vel=p[1], angular_vel=p[2]))
 
         self._traj_pub.publish(t)
-    
+
     def go_forward(self, distance, speed):
         """Moves the robot a certain distance.
 
@@ -106,10 +108,9 @@ class Base(Events):
         if self.arc_move_client:
             # We don't want duration to be a limit, so set it to a high number
             self.arc_move_client.arc_move(angle=0.0, angular_velocity=0.0, arc_len=distance, linear_velocity=speed,
-                                    duration=1000.0, done_cb=lambda : self.arc_event('done'))
+                                          duration=1000.0, done_cb=lambda: self.arc_event('done'))
 
             return
-
 
         # rospy.sleep until the base has received at least one message on /odom
         while self.no_odom_received and not rospy.is_shutdown():
@@ -128,10 +129,11 @@ class Base(Events):
             p = min(speed, speed * distance_error + 0.1)
             self.move(direction * p, 0)
             # We're controlling the distance that the robot travels, trying to make it as close to abs(distance) as possible
-            distance_error =  abs(distance) - math.sqrt(((self.latest_pose.x - start_pose.x) ** 2)+((self.latest_pose.y - start_pose.y) ** 2))
+            distance_error = abs(distance) - math.sqrt(
+                ((self.latest_pose.x - start_pose.x) ** 2) + ((self.latest_pose.y - start_pose.y) ** 2))
             rate.sleep()
         self.stop()
-        
+
     def rotate_by(self, angular_distance, velocity, duration):
         """Rotates the robot a certain angle.
 
@@ -142,19 +144,19 @@ class Base(Events):
         """
 
         if self.arc_move_client:
-            self.arc_move_client.arc_move(angle=angular_distance, angular_velocity=velocity, arc_len=0.0, linear_velocity=0.0,
-                                    duration=duration, done_cb=lambda : self.arc_event('done'))
+            self.arc_move_client.arc_move(angle=angular_distance, angular_velocity=velocity, arc_len=0.0,
+                                          linear_velocity=0.0,
+                                          duration=duration, done_cb=lambda: self.arc_event('done'))
             return
-
 
         # rospy.sleep until the base has received at least one message on /odom
         while self.no_odom_received and not rospy.is_shutdown():
             rospy.loginfo_throttle(10, "Waiting for odom message before moving...")
             rospy.sleep(0.3)
 
-        start_yaw = normalize_angle_positive(quat_heading(self.latest_odom.pose.pose.orientation)) 
-        last_yaw = start_yaw       
-        target_yaw = normalize_angle_positive(start_yaw + angular_distance) 
+        start_yaw = normalize_angle_positive(quat_heading(self.latest_odom.pose.pose.orientation))
+        last_yaw = start_yaw
+        target_yaw = normalize_angle_positive(start_yaw + angular_distance)
 
         # How much we have left to go. When we haven't moved, we're either
         # already spot on, or the error is the angular distance provided in the command
@@ -162,9 +164,9 @@ class Base(Events):
 
         # We'll always turn in the direction of the command, even if it would be
         # shorter to go the other way.
-        # This will cause issues if we overshoot, because we'll just go back aroud 
+        # This will cause issues if we overshoot, because we'll just go back around
         # the long way.
-        direction = -1 if angular_distance < 0 else 1   
+        direction = -1 if angular_distance < 0 else 1
         rate = rospy.Rate(50)
         # We'll tolerate an error slightly smaller than a degree
         while yaw_error > 0.01 and not rospy.is_shutdown():
@@ -281,8 +283,8 @@ class ArcMove(object):
             self.ac = None
         return
 
-class BaseMux(Mux):
 
+class BaseMux(Mux):
     class Channel(Base, MuxChannel):
 
         class __metaclass__(Base.__metaclass__, MuxChannel.__metaclass__):
@@ -344,17 +346,17 @@ class BaseMux(Mux):
         pass
 
     priority = [
-     'nav',
-     'teleop',
-     'romoji',
-     'safety']
+        'nav',
+        'teleop',
+        'romoji',
+        'safety']
 
     def __init__(self, priority=None):
         Mux.__init__(self)
         priority = priority or self.priority
         self.safety = self.Channel(self, 'safety', self.priority.index('safety') or -1)
         self.teleop = self.Channel(self, 'teleop', self.priority.index('teleop') or -1)
-        self.nav = self.Channel(self, 'nav', self.priority.index('nav') or -1,)
+        self.nav = self.Channel(self, 'nav', self.priority.index('nav') or -1, )
         self.animations = self.Channel(self, 'animations', self.priority.index('romoji') or -1)
 
     def shutdown(self):

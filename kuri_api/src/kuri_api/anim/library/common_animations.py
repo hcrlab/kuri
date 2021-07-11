@@ -1,11 +1,14 @@
+import logging
 from math import radians, pi
 from random import choice, random
-from numpy import clip
+
 from kuri_api.anim import AnimationGroup
 from kuri_api.anim import Track
 from kuri_api.head import Head
-import logging
+from numpy import clip
+
 logger = logging.getLogger(__name__)
+
 
 class CommonAnimations(AnimationGroup):
 
@@ -21,19 +24,25 @@ class CommonAnimations(AnimationGroup):
         init_tilt = self.head.cur_tilt
         init_direction = choice([-1, 1])
         do_extra_shake = False
-        PAN_CUTOFF = 0.5
-        if init_pan > PAN_CUTOFF:
+        pan_cutoff = 0.5
+        if init_pan > pan_cutoff:
             init_direction = -1
             do_extra_shake = True
         else:
-            if init_pan < PAN_CUTOFF * -1:
+            if init_pan < pan_cutoff * -1:
                 init_direction = 1
                 do_extra_shake = True
-        tk.add(0.0, self.head_mot.pantilt(clip(init_pan + init_direction * 0.15, Head.PAN_RIGHT, Head.PAN_LEFT), init_tilt, 0.2))
-        tk.add(0.3, self.head_mot.pantilt(clip(init_pan + init_direction * -0.3, Head.PAN_RIGHT, Head.PAN_LEFT), init_tilt, 0.3))
+        tk.add(0.0,
+               self.head_mot.pantilt(clip(init_pan + init_direction * 0.15, Head.PAN_RIGHT, Head.PAN_LEFT), init_tilt,
+                                     0.2))
+        tk.add(0.3,
+               self.head_mot.pantilt(clip(init_pan + init_direction * -0.3, Head.PAN_RIGHT, Head.PAN_LEFT), init_tilt,
+                                     0.3))
         if do_extra_shake:
-            tk.add(0.6, self.head_mot.pantilt(clip(init_pan + init_direction * 0.3, Head.PAN_RIGHT, Head.PAN_LEFT), init_tilt, 0.3))
-            tk.add(0.9, self.head_mot.pantilt(clip(init_pan + init_direction * -0.3, Head.PAN_RIGHT, Head.PAN_LEFT), init_tilt, 0.3))
+            tk.add(0.6, self.head_mot.pantilt(clip(init_pan + init_direction * 0.3, Head.PAN_RIGHT, Head.PAN_LEFT),
+                                              init_tilt, 0.3))
+            tk.add(0.9, self.head_mot.pantilt(clip(init_pan + init_direction * -0.3, Head.PAN_RIGHT, Head.PAN_LEFT),
+                                              init_tilt, 0.3))
             tk.add(1.3, self.head_mot.pantilt(init_pan, init_tilt, 0.3))
         else:
             tk.add(0.7, self.head_mot.pantilt(init_pan, init_tilt, 0.3))
@@ -96,8 +105,8 @@ class CommonAnimations(AnimationGroup):
         return tk
 
     def search_user_capture(self, starting_pose=(
- Head.PAN_NEUTRAL,
- Head.TILT_UP * 0.8, 0)):
+            Head.PAN_NEUTRAL,
+            Head.TILT_UP * 0.8, 0)):
         """
         Search for a user by looking up and around.
         :param: starting pose in radians, (pan, tilt, heading)
@@ -105,18 +114,18 @@ class CommonAnimations(AnimationGroup):
         """
         start_pan = starting_pose[0]
         start_tilt = starting_pose[1]
-        CENTER_THRESHOLD = 0.25
+        center_threshold = 0.25
         pan_2 = Head.PAN_RIGHT * 0.8
         tilt_2 = Head.TILT_UP * 0.74
         pan_3 = Head.PAN_LEFT * 0.75
         tilt_3 = Head.TILT_UP * 0.8
-        if start_pan > Head.PAN_LEFT * CENTER_THRESHOLD:
+        if start_pan > Head.PAN_LEFT * center_threshold:
             pan_2 = Head.PAN_NEUTRAL
             tilt_2 = Head.TILT_UP * 0.8
             pan_3 = Head.PAN_RIGHT * 0.75
             tilt_3 = Head.TILT_UP * 0.7
         else:
-            if start_pan < Head.PAN_RIGHT * CENTER_THRESHOLD:
+            if start_pan < Head.PAN_RIGHT * center_threshold:
                 pan_2 = Head.PAN_NEUTRAL
                 tilt_2 = Head.TILT_UP * 0.75
                 pan_3 = Head.PAN_LEFT * 0.75
@@ -163,16 +172,16 @@ class CommonAnimations(AnimationGroup):
         Duration is 0.7 to 1.67 seconds (for just a head look in periphery) or
         1.53 to 2.82 seconds for a full turn (depending on the angle).
         """
-        TURN_TIME_BASE = 1.0
+        turn_time_base = 1.0
         if turn_angle_radians > pi:
             turn_angle_radians -= pi
-            logger.warning(('angle outside [-pi, pi]: {}').format(turn_angle_radians))
+            logger.warning('angle outside [-pi, pi]: {}'.format(turn_angle_radians))
         else:
             if turn_angle_radians < pi * -1:
                 turn_angle_radians += pi
-                logger.warning(('angle outside [-pi, pi]: {}').format(turn_angle_radians))
+                logger.warning('angle outside [-pi, pi]: {}'.format(turn_angle_radians))
         outside_periphery = abs(turn_angle_radians) > periphery
-        time_to_turn = TURN_TIME_BASE + abs(turn_angle_radians) * 0.5
+        time_to_turn = turn_time_base + abs(turn_angle_radians) * 0.5
         tk = Track()
         tk.add(0.0, self.head_mot.openeyes())
         if random() < 0.65:

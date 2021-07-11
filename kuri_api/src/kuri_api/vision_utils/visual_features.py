@@ -1,10 +1,14 @@
-from copy import deepcopy
-from vision_msgs.msg import Face, ClassifiedObject
-import numpy as np
-from collections import OrderedDict
-from .utils import cast_nan, get_key_ref_by_path, set_key_by_path
 import logging
+from collections import OrderedDict
+from copy import deepcopy
+
+import numpy as np
+from vision_msgs.msg import Face, ClassifiedObject
+
+from .utils import cast_nan, get_key_ref_by_path, set_key_by_path
+
 logger = logging.getLogger(__name__)
+
 
 class VisualFeatures:
 
@@ -16,14 +20,14 @@ class VisualFeatures:
     class Config():
         """
         Generate configs and empty data structures for frame and moment feats
-        
+
         configs are nested dicts of features -> indices in the data structure
         the data structure is a numpy array of values to allow more efficient
         calculation of statistics.
-        
+
         If you wish to alter a config or data structure, use the get_* methods
         as these will return a copy rather than a reference.
-        
+
         data can be rendered into the config dict using render
         """
 
@@ -34,8 +38,8 @@ class VisualFeatures:
             :param features: list of features and stat patterns upon them
             :returns (frame conf, frame data, moment conf, moment data)
             """
-            self.fsps = fsps or {'sv': {'labels': ('value', ), 'indices': (1, )}, 
-               'mi': {'labels': ('count', 'mean', 'variance'), 'indices': (0, 1, 2)}}
+            self.fsps = fsps or {'sv': {'labels': ('value',), 'indices': (1,)},
+                                 'mi': {'labels': ('count', 'mean', 'variance'), 'indices': (0, 1, 2)}}
             frame_stat_len = 0
             for _fps_k, _fsp_v in self.fsps.iteritems():
                 _t = np.max(_fsp_v['indices']) + 1
@@ -50,16 +54,16 @@ class VisualFeatures:
                     moment_stat_len = _t
 
             self.features = features or [
-             (('det', 'face', 'extent'), 'mi', 'mv', 'face_detector'),
-             (('det', 'face', 'comp'), 'mi', 'mv', 'face_detector'),
-             (('det', 'cat', 'extent'), 'mi', 'mv', 'object_detector'),
-             (('det', 'dog', 'extent'), 'mi', 'mv', 'object_detector'),
-             (('det', 'person', 'extent'), 'mi', 'mv', 'object_detector'),
-             (('excitement',), 'sv', 'mv', 'object_detector'),
-             (('brightness',), 'sv', 'mv', 'image_quality'),
-             (('sharpness',), 'sv', 'mv', 'image_quality'),
-             (('score',), 'sv', 'mv', '')]
-            self.feat_modules = list(set([ f[3] for f in self.features ]))
+                (('det', 'face', 'extent'), 'mi', 'mv', 'face_detector'),
+                (('det', 'face', 'comp'), 'mi', 'mv', 'face_detector'),
+                (('det', 'cat', 'extent'), 'mi', 'mv', 'object_detector'),
+                (('det', 'dog', 'extent'), 'mi', 'mv', 'object_detector'),
+                (('det', 'person', 'extent'), 'mi', 'mv', 'object_detector'),
+                (('excitement',), 'sv', 'mv', 'object_detector'),
+                (('brightness',), 'sv', 'mv', 'image_quality'),
+                (('sharpness',), 'sv', 'mv', 'image_quality'),
+                (('score',), 'sv', 'mv', '')]
+            self.feat_modules = list(set([f[3] for f in self.features]))
             feat_len = len(self.features)
             self.fmods = OrderedDict()
             for index, f in enumerate(self.features):
@@ -82,8 +86,8 @@ class VisualFeatures:
                 _fsp = self.fsps[_feat[1]]
                 for _fsp_index, _fsp_label in enumerate(_fsp['labels']):
                     _cur_loc[_fsp_label] = (
-                     _feat_index,
-                     _fsp['indices'][_fsp_index])
+                        _feat_index,
+                        _fsp['indices'][_fsp_index])
 
             self.mf_data = np.zeros((feat_len, moment_stat_len))
             self.mf_data.fill(np.nan)
@@ -103,7 +107,7 @@ class VisualFeatures:
                     for _fsp_index, _fsp_label in enumerate(_fsp['labels']):
                         _s_index = _fsp['indices'][_fsp_index] + _msp_index * frame_stat_len
                         _cur_loc[_msp_label][_fsp_label] = (_feat_index,
-                         _s_index)
+                                                            _s_index)
 
         def get_ff_ind(self, key_path):
             return get_key_ref_by_path(self.ff, key_path)
@@ -121,14 +125,13 @@ class VisualFeatures:
         """
         Logic and methods for calculating features. Uses config to decide
         calculations to perform and population into the data structure
-        
         TODO(Joe): Better placement for params
         """
         OBJECTS_HEIGHT_SCALER = 1.0 / 300.0
         OBJECTS_WIDTH_SCALER = 1.0 / 300.0
         OBJECTS_SCALER = OBJECTS_HEIGHT_SCALER * OBJECTS_WIDTH_SCALER
         POINTS_OF_INTEREST = [
-         (0.5, 0.5), (0.33, 0.33), (0.66, 0.33)]
+            (0.5, 0.5), (0.33, 0.33), (0.66, 0.33)]
 
         def __init__(self, config):
             self.config = config
@@ -137,19 +140,18 @@ class VisualFeatures:
             """
             Composition, currently minimum distance to a point of interest,
             currently upper law of thirds and center point.
-            
             TODO(Joe): Add presence along edge measure
             """
             poi = self.POINTS_OF_INTEREST
             coords = ()
             if isinstance(item, Face):
                 coords = (
-                 item.center.x, item.center.y)
+                    item.center.x, item.center.y)
             else:
                 if isinstance(item, ClassifiedObject):
                     coords = (
-                     (item.roi.x_offset + item.roi.width / 2.0) * self.OBJECTS_WIDTH_SCALER,
-                     (item.roi.y_offset + item.roi.height / 2.0) * self.OBJECTS_HEIGHT_SCALER)
+                        (item.roi.x_offset + item.roi.width / 2.0) * self.OBJECTS_WIDTH_SCALER,
+                        (item.roi.y_offset + item.roi.height / 2.0) * self.OBJECTS_HEIGHT_SCALER)
             return np.min(np.linalg.norm(np.subtract(poi, coords), axis=1))
 
         def extent(self, item):
@@ -160,12 +162,12 @@ class VisualFeatures:
 
         def det_face(self, ff, op):
             fun = getattr(self, op)
-            return [ fun(face) for face in ff['msg'].faces.faces ]
+            return [fun(face) for face in ff['msg'].faces.faces]
 
         def _det_obj(self, ff, op, oc):
             fun = getattr(self, op)
-            return [ fun(o) for o in ff['msg'].objects.positive_detections.objects if o.object_class == oc
-                   ]
+            return [fun(o) for o in ff['msg'].objects.positive_detections.objects if o.object_class == oc
+                    ]
 
         def det_cat(self, ff, op):
             return self._det_obj(ff, op, 'cat')
@@ -196,8 +198,8 @@ class VisualFeatures:
             excitement = self.get_f_val(['excitement', 'value'], ff['data']) or 0.0
             sharpness = self.get_f_val(['sharpness', 'value'], ff['data']) or 0.0
             return np.nansum([face_extent * face_count,
-             sharpness / 4.0,
-             excitement / 20.0])
+                              sharpness / 4.0,
+                              excitement / 20.0])
 
         def get_f_val(self, key_path, data):
             k = get_key_ref_by_path(self.config.ff, key_path)
@@ -209,9 +211,7 @@ class VisualFeatures:
         def f_stats(self, feature, fsps_def):
             """
             Generate stats for frame feature
-            
             Must follow pattern in config.fsps
-            
             TODO(Joe): Set length and organize stats from fsps_def
             """
             if fsps_def == 'mi':
@@ -249,21 +249,21 @@ class VisualFeatures:
         def gen_moment_data(self, ffs, m_start, m_stop):
             """
             Integration of frame results for whole moment representation
-            
+
             Generates values for "area" of results ~(value X time)
-            
+
             Timeline:
-            
+
             |_[__|____|_|__|__|___|____|_|____|___]__|
-            
+
             |       Featurized frame (run through vision, not the moment video)
             [ ]     Moment video first and last frame timestamps
-            
+
             We pad a result before and after the moment.
-            
+
             m_start must be between ffs[0], ffs[1],
             m_stop must be between ffs[-2], ffs[-1]
-            
+
             :param ffs: Featurized frames to integrate. (oldest to newest)
             :param m_start: time stamp of first frame in moment
             :param m_stop: time stamp of last frame in moment
@@ -277,18 +277,18 @@ class VisualFeatures:
                 r"""
                 Weight time based on mid point between frame and
                 adjacent frames.
-                
+
                 |___.____|______.______|____.____|_._|
                     \___________/\__________/\_____/
-                
+
                 |       featurized frame
                 .       mid point between frames
                 \_/     time area assigned to contained frame
-                
+
                 Generate time weights for featurized frames.
                 Assumes 1 ff_time before and after moment
                 Must be at least 5 featurized frames
-                
+
                 :param m_start float epoch timestamp of first frame in moment
                 :param m_stop float epoch timestamp of last frame in moment
                 :param ff_times list of float epoch times for detected frames
@@ -321,14 +321,13 @@ class VisualFeatures:
             def moment_stats(ffs):
                 """
                 Generate moment level statistics for frame level features
-                
                 Use weight_time for time weighted stats (mean, variance...)
-                
+
                 :param ffs: Featurized frames
                 :returns: Moment level statistics data array
                 """
-                frames_data = np.array([ ff['data'] for ff in ffs ])
-                frame_times = [ ff['msg'].header.stamp.to_sec() for ff in ffs ]
+                frames_data = np.array([ff['data'] for ff in ffs])
+                frame_times = [ff['msg'].header.stamp.to_sec() for ff in ffs]
                 frames_time_weights = weight_time(m_start, m_stop, frame_times)
                 frame_features = np.nansum(frames_data, axis=2)
                 frame_features_mask = np.isfinite(frame_features)
@@ -343,7 +342,7 @@ class VisualFeatures:
                 demeaned_weighted_sum_of_frames = np.nansum(demeaned_weighted_frames, axis=0)
                 time_weighted_variance_features = demeaned_weighted_sum_of_frames / feature_weight_sums
                 mv_feature_stats = np.concatenate((time_weighted_mean_features,
-                 time_weighted_variance_features), axis=1)
+                                                   time_weighted_variance_features), axis=1)
                 return mv_feature_stats
 
             mf_data = moment_stats(ffs)
@@ -372,7 +371,7 @@ class VisualFeatures:
     def render(self, conf, data, cast_nan_to_none=False):
         """
         Render a feature config nested dict with data
-        
+
         :param conf: conf produced by gen_visual_features_config()
         :param data: data struct produced by gen_visual_features_config()
         """

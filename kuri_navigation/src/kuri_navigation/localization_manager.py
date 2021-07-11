@@ -4,9 +4,8 @@ import amcl
 import nav_msgs
 import rospy
 import std_srvs
-from nav_msgs.srv import SetMapRequest
-
 from kuri_navigation.pose_utils import _pose_to_posecov, se2_to_pose
+from nav_msgs.srv import SetMapRequest
 
 
 class LocalizationManager:

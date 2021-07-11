@@ -1,0 +1,14 @@
+[flake8]
+max-line-length = 160
+exclude =
+  **/pulse_utils/pulse_lib.py
+  kuri_slack_bot/app.py
+max-complexity = 20
+# We import modules here to make the API cleaner
+per-file-ignores =
+  **/kuri_api/lights.py:W293
+  **/kuri_api/__init__.py:F401
+  **/kuri_navigation/__init__.py:F401
+  **/anim/__init__.py:F401
+  **/utils/__init__.py:F401
+  **/kuri_api/base.py:N801

@@ -1,5 +1,8 @@
-import threading, rospy
+import rospy
+import threading
+
 from sensor_msgs.msg import JointState
+
 
 class JointStates(object):
     """
@@ -55,4 +58,6 @@ class JointStates(object):
                 self._eye_pos = joint_pos['eyelids_joint']
 
     def _is_identical(self, joint_pos):
-        return self._right_wheel_pos == joint_pos['wheel_right_joint'] and self._left_wheel_pos == joint_pos['wheel_left_joint'] and self._pan_pos == joint_pos['head_1_joint'] and self._tilt_pos == joint_pos['head_2_joint'] and self._eye_pos == joint_pos['eyelids_joint']
+        return self._right_wheel_pos == joint_pos['wheel_right_joint'] and self._left_wheel_pos == joint_pos[
+            'wheel_left_joint'] and self._pan_pos == joint_pos['head_1_joint'] and self._tilt_pos == joint_pos[
+                   'head_2_joint'] and self._eye_pos == joint_pos['eyelids_joint']

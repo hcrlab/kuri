@@ -1,15 +1,13 @@
 import threading
 
 import geometry_msgs.msg
-import rospy
-
 import mayfield_msgs.msg
 import mayfield_utils
 import mobile_base
+import rospy
 
 
 class SafetyController:
-
     # A set of the safety events we're equipped to handle.
     # It's just bumpers so we don't need to deal with compexities
     # like "What happens if a front bump and a rear cliff triggers
@@ -35,8 +33,8 @@ class SafetyController:
         # Override the safety controller for all events that we don't
         # handle so they'll be ignored by the hardware
         self.UNHANDLED_EVENTS = (
-            self._safety_client.safety_statuses()  # All statuses
-            - self.HANDLED_EVENTS                  # Minus the ones we handle
+                self._safety_client.safety_statuses()  # All statuses
+                - self.HANDLED_EVENTS  # Minus the ones we handle
         )
         self._safety_client.safety_override(self.UNHANDLED_EVENTS)
 

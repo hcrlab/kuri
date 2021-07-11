@@ -1,13 +1,8 @@
 import os.path
 
-import rospy
-from tf.transformations import euler_from_quaternion
-
 import mayfield_msgs.msg
 import mayfield_utils
-
-import geometry_msgs.msg
-
+import rospy
 from kuri_api.power import PowerMonitor
 from kuri_navigation.localization_manager import LocalizationManager
 
@@ -37,7 +32,6 @@ class MayNavController:
         self._localization_manager = LocalizationManager()
         self._power_monitor = None  # Created when we start to run
 
-
     def run(self):
         '''
         Look in the home directory to see if there's a simlink to an active
@@ -47,7 +41,7 @@ class MayNavController:
             self._localization_manager.start_localization()
             # Assume that on start-up we're on or near the dock.  It's as good
             # a guess as any. . .
-            #self._map_manager.localize_on_dock()
+            # self._map_manager.localize_on_dock()
             self._power_monitor = PowerMonitor()
             self._power_monitor.docked_event.connect(self._dock_changed_cb)
             self._power_monitor.undocked_event.connect(self._dock_changed_cb)
@@ -79,6 +73,6 @@ class MayNavController:
         To help AMCL, relocalize to the dock whenever we're on it
         '''
         if msg == 'docked':
-            #TODO: Make dock pose a ros param so we can do something like this without OORT
-            #self._map_manager.localize_on_dock()
+            # TODO: Make dock pose a ros param so we can do something like this without OORT
+            # self._map_manager.localize_on_dock()
             pass

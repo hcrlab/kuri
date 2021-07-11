@@ -1,5 +1,5 @@
 #include "ros/ros.h"
-#include "h264_decoder.h"
+#include <kuri_camera/h264_decoder.h>
 #include <opencv2/highgui/highgui.hpp>
 #include <chrono>
 #include <mutex>

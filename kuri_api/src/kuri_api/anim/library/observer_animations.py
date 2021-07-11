@@ -1,6 +1,7 @@
+from kuri_api import Lights
 from kuri_api.anim import AnimationGroup
 from kuri_api.anim import Track
-from kuri_api import Lights
+
 
 class ObserverModeAnimations(AnimationGroup):
     """

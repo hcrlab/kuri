@@ -1,11 +1,12 @@
 #!/usr/bin/env python
-import madmux
 import threading
+
 import cv2
+import madmux
 import numpy as np
-from sensor_msgs.msg import Image, CompressedImage
-from cv_bridge import CvBridge, CvBridgeError
 import rospy
+from cv_bridge import CvBridge
+from sensor_msgs.msg import Image, CompressedImage
 
 rospy.init_node("kuri_camera_publisher")
 
@@ -25,28 +26,31 @@ else:
     publisher = rospy.Publisher(base_topic, Image, queue_size=1)
 
 image = None
+
+
 def stream_cb(data):
-  global image
-  try:
-    stamp = rospy.get_rostime()
-    # Make sure the previous message was sent before we take in the new one
-    image_published.wait()
-    image_published.clear()
+    global image
+    try:
+        stamp = rospy.get_rostime()
+        # Make sure the previous message was sent before we take in the new one
+        image_published.wait()
+        image_published.clear()
 
-    # Read the bytes as a jpeg image
-    data = np.fromstring(data, np.uint8)
-    decoded = cv2.imdecode(data, cv2.CV_LOAD_IMAGE_COLOR)
+        # Read the bytes as a jpeg image
+        data = np.fromstring(data, np.uint8)
+        decoded = cv2.imdecode(data, cv2.CV_LOAD_IMAGE_COLOR)
 
-    # Convert the decoded image to a ROS message
-    if use_compression:
-        image = bridge.cv2_to_compressed_imgmsg(decoded)
-    else:
-        image = bridge.cv2_to_imgmsg(decoded, "rgb8")
+        # Convert the decoded image to a ROS message
+        if use_compression:
+            image = bridge.cv2_to_compressed_imgmsg(decoded)
+        else:
+            image = bridge.cv2_to_imgmsg(decoded, "rgb8")
 
-    image.header.stamp = stamp
-    image_received.set()
-  except Exception as e:
-    print(e)
+        image.header.stamp = stamp
+        image_received.set()
+    except Exception as e:
+        print(e)
+
 
 # The MJPEG channel
 s = madmux.Stream("/var/run/madmux/ch3.sock")
@@ -57,7 +61,7 @@ poll_subscribers = rospy.Rate(1)
 image_published.set()
 while not rospy.is_shutdown():
     if publisher.get_num_connections() == 0:
-        rospy.loginfo_throttle(10,"Waiting for subscribers...")
+        rospy.loginfo_throttle(10, "Waiting for subscribers...")
         poll_subscribers.sleep()
         continue
 

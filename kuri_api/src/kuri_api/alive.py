@@ -1,9 +1,11 @@
 import random
-from threading import Lock, RLock
 import time
-from kuri_api.utils.timeouts import EventTimeout
+from threading import Lock, RLock
+
 from kuri_api.anim import AnimationPlayer
 from kuri_api.anim.library.blink_animations import BlinkAnimations
+from kuri_api.utils.timeouts import EventTimeout
+
 
 class Alive(object):
     """

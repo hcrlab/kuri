@@ -1,8 +1,10 @@
+import random
+from math import radians
+
 from kuri_api.anim import AnimationGroup
 from kuri_api.anim import Track
 from kuri_api.utils.social import random_photo_tilt
-import random
-from math import radians
+
 
 class SocialAnimations(AnimationGroup):
     """
@@ -31,11 +33,11 @@ class SocialAnimations(AnimationGroup):
             tk.add(0.35, self.head_mot.blinkeyes())
         tilt = random_photo_tilt()
         init_pan = self.head.cur_pan
-        PAN_CUTOFF = 0.5
-        if init_pan > PAN_CUTOFF:
+        pan_cutoff = 0.5
+        if init_pan > pan_cutoff:
             pan_dir = -1
         else:
-            if init_pan < -1 * PAN_CUTOFF:
+            if init_pan < -1 * pan_cutoff:
                 pan_dir = 1
             else:
                 pan_dir = random.choice([1, -1])

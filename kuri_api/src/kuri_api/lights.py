@@ -1,7 +1,7 @@
 import rospy
-from mobile_base_driver.msg import ChestLeds
-from mobile_base_driver.msg import Led
 from kuri_api.utils.mux import Mux, MuxChannel
+from mobile_base_driver.msg import ChestLeds, Led
+
 
 class Lights(object):
     """
@@ -56,7 +56,7 @@ class Lights(object):
     LED_MID_RING = range(IDX_INNER_BOTTOM_LEFT, IDX_INNER_LEFT + 1)
     LED_OUTER_RING = range(IDX_OUTER_BOTTOM_MID_LEFT, IDX_OUTER_UPPER_MID_LEFT + 1)
     ALL_OFF = [
-     OFF] * NUM_LEDS
+                  OFF] * NUM_LEDS
     ALL_ON = [ON] * NUM_LEDS
     ALL_HALF = [HALF] * NUM_LEDS
 
@@ -72,7 +72,7 @@ class Lights(object):
         self._light_pub.unregister()
 
     def put_pixels(self, pixels):
-        """ set the LEDs to the values in pixels. 
+        """ set the LEDs to the values in pixels.
             :param pixels: an array of 3-ary tuples
         """
         self._last_pixels = pixels
@@ -90,7 +90,6 @@ class Lights(object):
 
 
 class LightsMux(Mux):
-
     class Channel(Lights, MuxChannel):
 
         def __init__(self, mux, name, priority):
@@ -100,16 +99,16 @@ class LightsMux(Mux):
         def on_release(self):
             self.off()
 
-        put_pixels = Mux.protect(fail=False)
-        off = Mux.protect(fail=False)
+        put_pixels = Mux.Protect(fail=False)
+        off = Mux.Protect(fail=False)
 
     priority = [
-     'emotion',
-     'power_status',
-     'performance',
-     'teleop',
-     'listening',
-     'romoji']
+        'emotion',
+        'power_status',
+        'performance',
+        'teleop',
+        'listening',
+        'romoji']
 
     def __init__(self, priority=None):
         super(LightsMux, self).__init__()

@@ -7,7 +7,7 @@
   <maintainer email="nswalker@cs.uw.edu">Nick Walker</maintainer>
 
 
-  <license>None</license>
+  <license>MIT</license>
 
   <buildtool_depend>catkin</buildtool_depend>
 

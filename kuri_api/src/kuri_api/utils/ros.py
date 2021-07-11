@@ -1,10 +1,16 @@
 """
 Helpers for dealing with ROS.
 """
-import logging, genpy, rospy, timer, traceback
+import genpy
+import logging
+import rospy
+import timer
+import traceback
 from threading import Lock
+
 logger = logging.getLogger(__name__)
 DEFAULT_SERVICE_WAIT_RATE = 0.1
+
 
 def async_wait_for_servers(svrs, done_cb=None):
     """
@@ -28,7 +34,7 @@ def async_wait_for_servers(svrs, done_cb=None):
 def wait_for_servers(svrs, timeout=None):
     if not isinstance(svrs, list):
         svrs = [
-         svrs]
+            svrs]
     for svr in svrs:
         try:
             svr.wait_for_service(timeout=timeout)
@@ -42,7 +48,7 @@ def wait_for_servers(svrs, timeout=None):
 def wait_for_topics(topics, timeout=None, poll=0.1):
     if not isinstance(topics, list):
         topics = [
-         topics]
+            topics]
     expires_at = rospy.get_time() + timeout if timeout else None
     for topics in topics:
         while topics.get_num_connections() == 0 and (expires_at is None or rospy.get_time() < expires_at):
@@ -109,12 +115,12 @@ class SafeServiceProxy(object):
             for i in range(self.RETRIES):
                 try:
                     return self._service_proxy(*args, **kwargs)
-                except rospy.service.ServiceException as rospy.ServiceException:
+                except rospy.service.ServiceException as _:
                     name = ''
                     if hasattr(self._service_proxy, 'resolved_name'):
                         name = self._service_proxy.resolved_name
                     if not self._mute_failures:
-                        logger.warn(('Failed to call {}').format(name))
+                        logger.warn('Failed to call {}'.format(name))
                     return
                 except Exception:
                     logger.error(traceback.format_exc())

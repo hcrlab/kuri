@@ -4,23 +4,19 @@ import os
 import subprocess
 
 import rospy
-from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
 import amcl.msg
-import geometry_msgs.msg
 import nav_msgs.msg
-from nav_msgs.srv import SetMap, SetMapRequest
 import std_srvs.srv
 
 import oort_msgs.srv
 import mayfield_utils
 
-from kuri_navigation.pose_utils import _pose_to_posecov, se2_to_pose
+from kuri_navigation.pose_utils import _pose_to_posecov, se2_to_pose, pose_to_se2
 
 
 class OortMapManager:
-
-    onMapGrew = mayfield_utils.Event()
+    on_map_grew = mayfield_utils.Event()
 
     def __init__(self):
 
@@ -225,4 +221,4 @@ class OortMapManager:
 
         if map_size - self._map_size > 1:
             self._map_size = map_size
-            self.onMapGrew(map_size)
+            self.on_map_grew(map_size)

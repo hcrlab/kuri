@@ -10,11 +10,13 @@ find_package(OpenCV REQUIRED)
 
 find_package(catkin REQUIRED
   COMPONENTS
+        compressed_image_transport
         cv_bridge
+        dynamic_reconfigure
         image_transport
         madmux
-        compressed_image_transport
-        dynamic_reconfigure
+        roscpp
+        sensor_msgs
 )
 
 catkin_package(
@@ -22,6 +24,7 @@ catkin_package(
   CATKIN_DEPENDS
         cv_bridge
         image_transport
+        roscpp
         sensor_msgs
         compressed_image_transport
         dynamic_reconfigure
@@ -69,8 +72,21 @@ if (libmadmux)
   add_executable(kuri_camera_publisher src/kuri_camera_publisher.cpp)
   add_dependencies(kuri_camera_publisher KuriCamera_gencfg)
   target_link_libraries(kuri_camera_publisher  ${catkin_LIBRARIES} ${libmadmux})
+  
+  install(TARGETS kuri_camera_publisher
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION})
+
 else()
   message(WARNING "Did not find libmadmux. Skipping kuri_camera_publisher")
   message(WARNING "libmadmux path: ")
   message(WARNING ${libmadmux})
 endif()
+
+
+catkin_install_python(PROGRAMS scripts/kuri_camera_publisher.py scripts/save_image.py
+        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+        
+install(DIRECTORY include/${PROJECT_NAME}/
+        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})

@@ -1,4 +1,8 @@
-import functools, hashlib, os, cPickle as pickle
+import cPickle
+import functools
+import hashlib
+import os
+
 
 def _sha1(s):
     return hashlib.sha1(s).hexdigest()
@@ -14,7 +18,7 @@ def _store(cache_dir, key, val):
     if not os.path.isdir(objd):
         os.makedirs(objd)
     with open(os.path.join(objd, hash[2:]), 'w') as (f):
-        pickle.dump(val, f)
+        cPickle.dump(val, f)
 
 
 def _load(cache_dir, key):
@@ -24,12 +28,12 @@ def _load(cache_dir, key):
     hash = _keyhash(key)
     objd = os.path.join(cache_dir, hash[:2])
     with open(os.path.join(objd, hash[2:])) as (f):
-        return pickle.load(f)
+        return cPickle.load(f)
 
 
 def memoize(root_dir):
     """ A better memoize:
-         - pickle objects instead of yaml
+         - cPickle objects instead of yaml
          - one file per object instead of a big dict
          - objects are lazily loaded from disk when first used
     """
@@ -41,7 +45,7 @@ def memoize(root_dir):
 
         @functools.wraps(f)
         def cached(*args, **kwargs):
-            key = ('{}{}{}').format(f.func_name, pickle.dumps(args), pickle.dumps(kwargs))
+            key = '{}{}{}'.format(f.func_name, cPickle.dumps(args), cPickle.dumps(kwargs))
             if key not in cache:
                 try:
                     cache[key] = _load(cache_dir, key)

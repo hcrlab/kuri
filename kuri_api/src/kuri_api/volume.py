@@ -1,9 +1,13 @@
-import os.path, rospy
+import logging
+import os.path
+import rospy
+
 from kuri_api.msg import Volume as VolMsg
 from std_msgs.msg import Bool, Empty
-import logging
+
 sounds_path = '/opt/gizmo/share/assets/sounds'
 logger = logging.getLogger(__name__)
+
 
 class Volume(object):
     """

@@ -10,11 +10,11 @@
 
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>message_generation</build_depend>
 
-  <depend>actionlib</depend>
-  <depend>actionlib_msgs</depend>
-  <exec_depend>message_runtime</exec_depend>
   <exec_depend>madmux</exec_depend>
+  <exec_depend>kuri_api</exec_depend>
+  <exec_depend>kuri_camera</exec_depend>
+  <exec_depend>kuri_navigation</exec_depend>
+  <exec_depend>mobile_base_driver</exec_depend>
 
 </package>
