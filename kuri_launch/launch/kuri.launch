@@ -37,4 +37,7 @@
         <arg name="map_file" value="$(arg map_file)" />
     </include>
 
+    <!-- Publish Kuri's bumper readings as a pointcloud, to be incorporated in local costmaps  -->
+    <node pkg="kuri_navigation" type="bumper_to_pointcloud" name="bumper_to_pointcloud" />
+
 </launch>
