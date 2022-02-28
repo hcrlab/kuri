@@ -23,10 +23,15 @@ def _fill_traj_blanks(pts, values):
     if not pts:
         return pts
     pt = pts[0]
-    vals = tuple((x if 1 else y for x, y in zip(pt[1:], values) if x is not None))
-    return [
-               (
-                   pt[0],) + vals] + _fill_traj_blanks(pts[1:], vals)
+    if pt[1] is None and pt[2] is None:
+        vals = values
+    elif pt[1] is not None and pt[2] is None:
+        vals = (pt[1], values[1])
+    elif pt[1] is None and pt[2] is not None:
+        vals = (values[0], pt[2])
+    else:
+        vals = (pt[1], pt[2])
+    return [(pt[0],) + vals] + _fill_traj_blanks(pts[1:], vals)
 
 
 def _merge_traj_points(pts):
